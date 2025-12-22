@@ -1,0 +1,11 @@
+{
+  "type": "CIT",
+  "year": 2024,
+  "data": {
+    "turnover": 50000000,
+    "expenses": 15000000,
+    "profit": 35000000,
+    "businessName": "Acme LLC",
+    "tin": "12345678901"
+  }
+}

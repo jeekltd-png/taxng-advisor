@@ -1,0 +1,4 @@
+type,year,paymentDescription,grossAmount,whtRate,whtAmount,beneficiary,tin
+WHT,2024,Service provision,1000000,0.05,50000,John Services Ltd,87654321098
+WHT,2024,Consulting fees,2500000,0.05,125000,Expert Consultants,11111111111
+WHT,2024,Contractor payment,1500000,0.05,75000,BuildRight Construction,22222222222

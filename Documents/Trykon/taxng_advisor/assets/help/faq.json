@@ -1,0 +1,34 @@
+[
+  {
+    "q": "What taxes does the app calculate?",
+    "a": "The app supports Corporate Income Tax (CIT), Value Added Tax (VAT), Withholding Tax (WHT), Pay As You Earn / Personal Income Tax (PAYE/PIT), Stamp Duty and common payroll taxes. It covers major business and personnel taxes for Nigerian taxpayers."
+  },
+  {
+    "q": "Is my data stored securely?",
+    "a": "By default your data is stored locally on your device and encrypted. You may opt into cloud backup which uses AES-encrypted storage. We never share personally identifiable data without consent."
+  },
+  {
+    "q": "Can I use the app offline?",
+    "a": "Yes. Core calculators, saved records and reminders work offline. When you regain connectivity any pending syncs will be uploaded if you enabled cloud sync."
+  },
+  {
+    "q": "How do I pay my tax?",
+    "a": "The app generates payment instructions and optional payment links that work with Remita, Flutterwave, or Paystack (where configured). You can export a PDF receipt or send a confirmation email after payment."
+  },
+  {
+    "q": "Can I invite my accountant or team?",
+    "a": "Yes. The Pro and Business tiers support multi-user access and accountant invites; Business tier adds team roles and audit logs."
+  },
+  {
+    "q": "What happens if tax rules change?",
+    "a": "We monitor official guidance and push rule updates in app releases. Critical rule updates are flagged in the app; keep auto-updates enabled to stay current. Always verify before filing."
+  },
+  {
+    "q": "How do I export reports?",
+    "a": "The Basic tier provides CSV and watermarked PDF exports. Pro and Business tiers include official-format PDF reports and Excel exports."
+  },
+  {
+    "q": "Refunds & billing questions",
+    "a": "Contact support via the in-app support link or email support@taxng.example. Subscription cancellations stop further billing at the end of the current period; contact support for exceptions."
+  }
+]

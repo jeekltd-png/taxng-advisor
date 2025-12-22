@@ -1,0 +1,12 @@
+{
+  "type": "WHT",
+  "year": 2024,
+  "data": {
+    "paymentDescription": "Service provision",
+    "grossAmount": 1000000,
+    "whtRate": 0.05,
+    "whtAmount": 50000,
+    "beneficiary": "John Services Ltd",
+    "tin": "87654321098"
+  }
+}

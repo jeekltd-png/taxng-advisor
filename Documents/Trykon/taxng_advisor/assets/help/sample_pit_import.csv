@@ -1,0 +1,4 @@
+type,year,employeeId,employeeName,grossIncome,taxableIncome,personalRelief,standardRelief,pit
+PIT,2024,EMP001,John Doe,3600000,3000000,200000,300000,600000
+PIT,2024,EMP002,Jane Smith,4200000,3500000,200000,300000,700000
+PIT,2024,EMP003,Ahmed Hassan,2800000,2400000,200000,300000,420000

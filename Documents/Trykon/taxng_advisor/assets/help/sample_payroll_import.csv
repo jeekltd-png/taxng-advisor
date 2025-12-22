@@ -1,0 +1,4 @@
+type,year,month,employeeCount,totalGrossSalary,totalDeductions,totalPIT,totalNHF,totalPENSION,netPayroll
+Payroll,2024,December,25,10000000,2500000,1500000,250000,750000,7500000
+Payroll,2024,November,25,10000000,2500000,1500000,250000,750000,7500000
+Payroll,2024,October,24,9600000,2400000,1440000,240000,720000,7200000

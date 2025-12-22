@@ -1,0 +1,4 @@
+type,year,transactionType,propertyAddress,transactionValue,stampDutyRate,stampDutyAmount,buyer,seller
+StampDuty,2024,Property Sale,123 Lekki Lane Lagos,50000000,0.015,750000,Jane Smith,Property Holdings Ltd
+StampDuty,2024,Property Sale,456 Victoria Island Lagos,75000000,0.015,1125000,Corp Investment,Estate Developers
+StampDuty,2024,Deed Registration,789 Ikoyi Drive Lagos,35000000,0.015,525000,John Investor,Asset Management Ltd

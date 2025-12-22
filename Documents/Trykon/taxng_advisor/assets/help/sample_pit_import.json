@@ -1,0 +1,13 @@
+{
+  "type": "PIT",
+  "year": 2024,
+  "data": {
+    "employeeId": "EMP001",
+    "employeeName": "John Doe",
+    "grossIncome": 3600000,
+    "taxableIncome": 3000000,
+    "personalRelief": 200000,
+    "standardRelief": 300000,
+    "pit": 600000
+  }
+}

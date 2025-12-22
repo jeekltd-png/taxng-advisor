@@ -1,0 +1,13 @@
+{
+  "type": "VAT",
+  "year": 2024,
+  "period": "Q4",
+  "data": {
+    "totalSales": 5000000,
+    "taxableSales": 4500000,
+    "exemptSales": 500000,
+    "inputTax": 675000,
+    "outputTax": 675000,
+    "vat": 0
+  }
+}

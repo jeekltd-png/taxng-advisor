@@ -1,0 +1,14 @@
+{
+  "type": "Payroll",
+  "year": 2024,
+  "month": "December",
+  "data": {
+    "employeeCount": 25,
+    "totalGrossSalary": 10000000,
+    "totalDeductions": 2500000,
+    "totalPIT": 1500000,
+    "totalNHF": 250000,
+    "totalPENSION": 750000,
+    "netPayroll": 7500000
+  }
+}
