@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:taxng_advisor/features/auth/presentation/login_screen.dart';
+import 'package:taxng_advisor/features/auth/presentation/forgot_password_screen.dart';
 import 'package:taxng_advisor/features/profile/presentation/profile_screen.dart';
 import 'package:taxng_advisor/features/vat/presentation/vat_calculator_screen.dart';
 import 'package:taxng_advisor/features/pit/presentation/pit_calculator_screen.dart';
@@ -20,71 +21,27 @@ import 'package:taxng_advisor/features/help/admin_pricing_editor_screen.dart';
 import 'package:taxng_advisor/features/help/admin_deployment_guide_screen.dart';
 import 'package:taxng_advisor/features/help/admin_user_testing_guide_screen.dart';
 import 'package:taxng_advisor/features/help/admin_csv_excel_guide_screen.dart';
+import 'package:taxng_advisor/features/help/test_cases_admin_screen.dart';
 import 'package:taxng_advisor/features/help/payment_guide_screen.dart';
 import 'package:taxng_advisor/features/help/privacy_policy_screen.dart';
 import 'package:taxng_advisor/features/payment/payment_history_screen.dart';
-import 'package:taxng_advisor/features/pit/services/pit_storage_service.dart';
-import 'package:taxng_advisor/services/pricing_service.dart';
-import 'package:taxng_advisor/services/payment_service.dart';
-import 'package:taxng_advisor/features/vat/services/vat_storage_service.dart';
-import 'package:taxng_advisor/features/cit/services/cit_storage_service.dart';
-import 'package:taxng_advisor/services/reminder_service.dart';
-import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/features/subscription/upgrade_request_screen.dart';
+import 'package:taxng_advisor/features/admin/admin_subscription_screen.dart';
+import 'package:taxng_advisor/features/onboarding/presentation/welcome_screen.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
-import 'package:taxng_advisor/services/sync_service.dart';
-import 'package:taxng_advisor/services/encryption_service.dart';
+import 'package:taxng_advisor/services/auth_service.dart';
 
-/// Application entry point
-///
-/// This initializes lightweight services required at startup. For web
-/// builds some platform-specific services (e.g. Hive desktop adapters)
-/// may be skipped or adjusted. The initialization order is:
-/// 1. Encryption service (so secure storage helpers are ready)
-/// 2. Hive (boxes) initialization
-/// 3. Sync listener initialization (non-blocking)
-/// 4. Legacy feature initializers (feature-scoped persistence)
-/// 5. Reminders and other scheduled tasks
-/// 6. Seed development/test users (safe to skip in production)
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize encryption helpers (non-blocking)
-  EncryptionService.initialize();
-
-  // Initialize unified Hive service (open named boxes used by the app)
-  // Hive is used for local persistence; on web this will use hive_flutter's
-  // in-memory/web-backed boxes. Ensure this completes before using boxes.
-  await HiveService.initialize();
-
-  // Initialize sync service and attach connectivity listener. The listener
-  // runs in the background and will not block startup; network checks are
-  // performed asynchronously by the listener.
-  SyncService.initializeSyncListener();
-
-  // Legacy per-feature initializers (keep for backward compatibility).
-  // These will ensure any older storage formats are ready to use.
-  await PitStorageService.init();
-  await VatStorageService.init();
-  await CitStorageService.init();
-
-  // Initialize pricing service (for monetization)
-  await PricingService.init();
-
-  // Initialize payment service
-  await PaymentService.init();
-
-  // Initialize reminder scheduling (local notifications).
-  await ReminderService.init();
-  await ReminderService.scheduleAllDefaultReminders();
-
-  // Seed test users for local development (non-blocking). This call is
-  // safe to leave in dev builds but should be gated or removed in
-  // production to avoid injecting test accounts.
   try {
+    // Initialize Hive database
+    await HiveService.initialize();
+
+    // Seed test users
     await AuthService.seedTestUsers();
-    print('✅ Seeded test users');
   } catch (e) {
-    print('⚠️ Skipped seeding test users: $e');
+    print('Initialization error: $e');
   }
 
   runApp(const TaxNgApp());
@@ -97,15 +54,18 @@ class TaxNgApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'TaxNG Advisor',
+      title: 'TaxPadi',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.green),
       darkTheme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: Colors.green,
           brightness: Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const LoginScreen(),
+      home: const WelcomeScreen(),
       routes: {
+        '/welcome': (_) => const WelcomeScreen(),
+        '/login': (_) => const LoginScreen(),
+        '/forgot-password': (_) => const ForgotPasswordScreen(),
         '/dashboard': (_) => const DashboardScreen(),
         '/debug/users': (_) => const DebugUsersScreen(),
         '/help/faq': (_) => const FaqScreen(),
@@ -119,11 +79,14 @@ class TaxNgApp extends StatelessWidget {
         '/help/admin/deployment': (_) => const AdminDeploymentGuideScreen(),
         '/help/admin/user-testing': (_) => const AdminUserTestingGuideScreen(),
         '/help/admin/csv-excel': (_) => const AdminCsvExcelGuideScreen(),
+        '/help/admin/test-cases': (_) => const TestCasesAdminScreen(),
         '/help/payment-guide': (_) => const PaymentGuideScreen(isAdmin: false),
         '/help/admin/payment-guide': (_) =>
             const PaymentGuideScreen(isAdmin: true),
         '/help/privacy-policy': (_) => const PrivacyPolicyScreen(),
         '/payment/history': (_) => const PaymentHistoryScreen(),
+        '/subscription/upgrade': (_) => const UpgradeRequestScreen(),
+        '/admin/subscriptions': (_) => const AdminSubscriptionScreen(),
         '/vat': (_) => const VatCalculatorScreen(),
         '/pit': (_) => const PitCalculatorScreen(),
         '/cit': (_) => const CitCalculatorScreen(),

@@ -246,7 +246,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.teal.withOpacity(0.25),
+                    color: Colors.teal.withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -309,24 +309,37 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
             ),
             const SizedBox(height: 12),
             ...PaymentService.govTaxAccounts.map((account) {
+              final isSelected = _selectedTaxAccount == account;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
-                child: RadioListTile<GovTaxAccount>(
-                  value: account,
-                  groupValue: _selectedTaxAccount,
-                  onChanged: (value) {
-                    setState(() => _selectedTaxAccount = value);
-                  },
-                  title: Text(account.bankName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(account.accountName),
-                      Text(
-                        account.accountNumber,
-                        style: const TextStyle(fontFamily: 'monospace'),
+                child: Card(
+                  elevation: isSelected ? 4 : 2,
+                  color: isSelected ? Colors.blue.shade50 : null,
+                  child: RadioListTile<GovTaxAccount>(
+                    value: account,
+                    groupValue: _selectedTaxAccount,
+                    activeColor: Colors.blue,
+                    selected: isSelected,
+                    onChanged: (value) {
+                      setState(() => _selectedTaxAccount = value);
+                    },
+                    title: Text(
+                      account.bankName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.blue.shade900 : null,
                       ),
-                    ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(account.accountName),
+                        Text(
+                          account.accountNumber,
+                          style: const TextStyle(fontFamily: 'monospace'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

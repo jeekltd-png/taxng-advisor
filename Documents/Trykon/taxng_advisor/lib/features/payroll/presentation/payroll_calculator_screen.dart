@@ -66,11 +66,22 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen> {
 
     if (confirmed == true) {
       final amt = double.tryParse(controller.text) ?? taxAmount;
+
+      // Process currency conversion for oil & gas sector
+      final paymentData = await PaymentService.processPaymentCurrency(
+        userId: user.id,
+        amount: amt,
+        currency: 'NGN',
+      );
+
       await PaymentService.savePayment(
         userId: user.id,
         taxType: 'Payroll',
-        amount: amt,
+        amount: paymentData['amount'],
         email: user.email,
+        currency: paymentData['currency'],
+        originalCurrency: paymentData['originalCurrency'],
+        originalAmount: paymentData['originalAmount'],
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

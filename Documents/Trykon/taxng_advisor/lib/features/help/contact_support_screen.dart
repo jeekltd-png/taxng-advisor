@@ -7,9 +7,9 @@ class ContactSupportScreen extends StatelessWidget {
   Future<void> _sendEmail() async {
     final email = Uri(
       scheme: 'mailto',
-      path: 'support@taxng.example',
+      path: 'jeekltd@gmail.com',
       queryParameters: {
-        'subject': 'Support request - TaxNG Advisor',
+        'subject': 'Support request - TaxPadi',
         'body':
             'Please describe your issue and include screenshots or console logs if available.'
       },

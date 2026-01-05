@@ -17,6 +17,9 @@ class AuthService {
     return Hive.box(_usersBox);
   }
 
+  /// Expose openUsersBox for subscription service
+  static Future<Box> openUsersBox() => _openUsersBox();
+
   static String _hashPassword(String password) {
     final bytes = utf8.encode(password);
     final digest = sha256.convert(bytes);
@@ -29,6 +32,15 @@ class AuthService {
     required String email,
     bool isBusiness = false,
     String? businessName,
+    String? tin,
+    String? cacNumber,
+    String? bvn,
+    String? vatNumber,
+    String? payeRef,
+    String? phoneNumber,
+    String? address,
+    String? taxOffice,
+    String? industrySector,
   }) async {
     final box = await _openUsersBox();
 
@@ -44,6 +56,17 @@ class AuthService {
       'email': email,
       'isBusiness': isBusiness,
       'businessName': businessName,
+      'tin': tin,
+      'cacNumber': cacNumber,
+      'bvn': bvn,
+      'vatNumber': vatNumber,
+      'payeRef': payeRef,
+      'phoneNumber': phoneNumber,
+      'address': address,
+      'taxOffice': taxOffice,
+      'tccExpiryDate': null,
+      'industrySector': industrySector,
+      'subscriptionTier': 'free', // All new users start on free tier
       'hashedPassword': _hashPassword(password),
       'createdAt': now.toIso8601String(),
       'modifiedAt': now.toIso8601String(),
@@ -85,6 +108,16 @@ class AuthService {
     return UserProfile.fromMap(rec.cast<String, dynamic>());
   }
 
+  /// Get user by ID
+  static Future<UserProfile?> getUserById(String userId) async {
+    final box = await _openUsersBox();
+    final rec = box.values
+        .cast<Map>()
+        .firstWhere((u) => u['id'] == userId, orElse: () => {});
+    if (rec.isEmpty) return null;
+    return UserProfile.fromMap(rec.cast<String, dynamic>());
+  }
+
   /// Seed a few test users for local development if they don't exist.
   static Future<void> seedTestUsers() async {
     final box = await _openUsersBox();
@@ -110,7 +143,7 @@ class AuthService {
       {
         'username': 'admin',
         'password': 'Admin@123',
-        'email': 'admin@example.com',
+        'email': 'jeekltd@gmail.com',
         'isBusiness': false,
         'businessName': null,
         'isAdmin': true,
@@ -129,6 +162,8 @@ class AuthService {
         'email': s['email'],
         'isBusiness': s['isBusiness'],
         'businessName': s['businessName'],
+        'industrySector': s['industrySector'],
+        'subscriptionTier': s['subscriptionTier'] ?? 'free',
         'isAdmin': s['isAdmin'] ?? false,
         'hashedPassword': _hashPassword(s['password'] as String),
         'createdAt': now.toIso8601String(),
@@ -152,6 +187,7 @@ class AuthService {
           email: m['email'] as String? ?? '',
           isBusiness: m['isBusiness'] as bool? ?? false,
           businessName: m['businessName'] as String?,
+          industrySector: m['industrySector'] as String?,
           createdAt: DateTime.tryParse(m['createdAt'] as String? ?? '') ??
               DateTime.now(),
           modifiedAt: DateTime.tryParse(m['modifiedAt'] as String? ?? '') ??
@@ -161,5 +197,52 @@ class AuthService {
     }).toList();
 
     return list;
+  }
+
+  /// Verify user exists by username or email for password reset
+  /// Returns the username if found, null otherwise
+  static Future<String?> verifyUserForPasswordReset(
+      String usernameOrEmail) async {
+    final box = await _openUsersBox();
+    final input = usernameOrEmail.trim().toLowerCase();
+
+    for (final userMap in box.values.cast<Map>()) {
+      final username = (userMap['username'] as String?)?.toLowerCase();
+      final email = (userMap['email'] as String?)?.toLowerCase();
+
+      if (username == input || email == input) {
+        return userMap['username'] as String;
+      }
+    }
+
+    return null;
+  }
+
+  /// Reset password for a user
+  static Future<bool> resetPassword(String username, String newPassword) async {
+    final box = await _openUsersBox();
+
+    // Find the user
+    int? userIndex;
+    Map? userMap;
+    for (int i = 0; i < box.length; i++) {
+      final record = box.getAt(i) as Map?;
+      if (record != null && record['username'] == username) {
+        userIndex = i;
+        userMap = record;
+        break;
+      }
+    }
+
+    if (userIndex == null || userMap == null) return false;
+
+    // Update password
+    final updatedMap =
+        Map<String, dynamic>.from(userMap.cast<String, dynamic>());
+    updatedMap['hashedPassword'] = _hashPassword(newPassword);
+    updatedMap['modifiedAt'] = DateTime.now().toIso8601String();
+
+    await box.putAt(userIndex, updatedMap);
+    return true;
   }
 }

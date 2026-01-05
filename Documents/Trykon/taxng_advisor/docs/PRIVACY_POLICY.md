@@ -39,7 +39,7 @@ TaxNG Advisor is intended for users aged 18 and above.
 
 ## Contact Us
 If you have questions or requests regarding this policy:
-- Email: support@trykon.example
+- Email: jeekltd@gmail.com
 
 ## Changes to This Policy
 We may update this policy from time to time. Material changes will be reflected in the app and the date above will be updated.

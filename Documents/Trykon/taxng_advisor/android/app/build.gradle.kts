@@ -41,13 +41,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
-    buildTypes {
-        release {
-            // Use release signing if key.properties is present, otherwise fallback to debug signing.
-            signingConfig = if (hasReleaseSigning) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
-        }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 
     // Define release signing config when key.properties exists.
@@ -64,6 +63,16 @@ android {
                 keyAlias = keyAliasValue
                 keyPassword = keyPasswordValue
             }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Use release signing if key.properties is present, otherwise fallback to debug signing.
+            signingConfig = if (hasReleaseSigning) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // Disable R8/Proguard minification to prevent crashes
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

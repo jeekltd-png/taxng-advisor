@@ -117,7 +117,8 @@ class RemindersScreen extends StatelessWidget {
             color: isUrgent ? Colors.red[50] : null,
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: (reminder['color'] as Color).withOpacity(0.2),
+                backgroundColor:
+                    (reminder['color'] as Color).withValues(alpha: 0.2),
                 child: Icon(reminder['icon'] as IconData,
                     color: reminder['color'] as Color),
               ),
@@ -147,7 +148,7 @@ class RemindersScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isUrgent
                           ? Colors.red
-                          : (reminder['color'] as Color).withOpacity(0.1),
+                          : (reminder['color'] as Color).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

@@ -18,6 +18,7 @@ class HiveService {
   static const String paymentsBox = 'payments';
   static const String syncBox = 'sync_status';
   static const String profileBox = 'profile_settings';
+  static const String upgradeRequestsBox = 'upgrade_requests';
 
   /// Initialize Hive and open all boxes used by the application.
   ///
@@ -40,6 +41,7 @@ class HiveService {
       await Hive.openBox(payrollBox);
       await Hive.openBox(syncBox);
       await Hive.openBox(profileBox);
+      await Hive.openBox(upgradeRequestsBox);
 
       print('✅ Hive initialized successfully');
     } catch (e) {
@@ -78,6 +80,9 @@ class HiveService {
 
   /// Get Profile Settings box (for logos, company settings)
   static Box<dynamic> getProfileBox() => Hive.box(profileBox);
+
+  /// Get Upgrade Requests box
+  static Box<dynamic> getUpgradeRequestsBox() => Hive.box(upgradeRequestsBox);
 
   /// Add a CIT calculation
   static Future<void> saveCIT(Map<String, dynamic> data) async {
@@ -202,6 +207,21 @@ class HiveService {
     await getWhtBox().clear();
     await getStampDutyBox().clear();
     await getPayrollBox().clear();
+  }
+
+  /// Clear all user data for account deletion
+  static Future<void> clearAllData() async {
+    await getCitBox().clear();
+    await getPitBox().clear();
+    await getVatBox().clear();
+    await getWhtBox().clear();
+    await getStampDutyBox().clear();
+    await getPayrollBox().clear();
+    await getUsersBox().clear();
+    await getPaymentsBox().clear();
+    await getSyncBox().clear();
+    await getProfileBox().clear();
+    await getUpgradeRequestsBox().clear();
   }
 
   /// Get sync status

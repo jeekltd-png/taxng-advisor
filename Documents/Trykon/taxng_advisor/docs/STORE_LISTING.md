@@ -25,7 +25,7 @@
 - Answer questionnaires accurately; app targets users 18+.
 
 ## Contact Details
-- Email: support@trykon.example
+- Email: jeekltd@gmail.com
 - Website: https://your-domain.example
 
 ## Release Management

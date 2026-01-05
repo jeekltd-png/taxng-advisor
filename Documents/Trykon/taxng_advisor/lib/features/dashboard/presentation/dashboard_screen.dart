@@ -16,7 +16,7 @@ class DashboardScreen extends StatelessWidget {
             children: [
               const DrawerHeader(
                 decoration: BoxDecoration(color: Colors.green),
-                child: Text('TaxNG Advisor',
+                child: Text('TaxPadi',
                     style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
               ListTile(
@@ -28,6 +28,11 @@ class DashboardScreen extends StatelessWidget {
                 leading: const Icon(Icons.notifications),
                 title: const Text('Reminders'),
                 onTap: () => Navigator.pushNamed(context, '/reminders'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.receipt_long),
+                title: const Text('Payment History'),
+                onTap: () => Navigator.pushNamed(context, '/payment/history'),
               ),
               const Divider(),
               ListTile(
@@ -65,7 +70,7 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
       appBar: AppBar(
-        title: const Text('TaxNG Advisor'),
+        title: const Text('TaxPadi'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -86,6 +91,7 @@ class DashboardScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
+              childAspectRatio: 1.2, // Adjust tile height for better visibility
               children: [
                 _TaxTile(
                   title: 'VAT',
@@ -163,18 +169,51 @@ class _TaxTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 3,
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
-        child: Center(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _getIconForTax(title),
+                size: 40,
+                color: Colors.green,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  IconData _getIconForTax(String title) {
+    switch (title) {
+      case 'VAT':
+        return Icons.receipt;
+      case 'PIT':
+        return Icons.person;
+      case 'CIT':
+        return Icons.business;
+      case 'WHT':
+        return Icons.attach_money;
+      case 'Payroll':
+        return Icons.payments;
+      case 'Stamp Duty':
+        return Icons.description;
+      default:
+        return Icons.calculate;
+    }
   }
 }

@@ -123,6 +123,14 @@ class _HelpArticlesScreenState extends State<HelpArticlesScreen> {
           if (_isAdmin) const SizedBox(height: 12),
           if (_isAdmin)
             _ActionButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/help/admin/test-cases'),
+              label: 'Admin: Test Cases',
+              icon: Icons.bug_report,
+            ),
+          if (_isAdmin) const SizedBox(height: 12),
+          if (_isAdmin)
+            _ActionButton(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -131,6 +139,14 @@ class _HelpArticlesScreenState extends State<HelpArticlesScreen> {
               ),
               label: 'Admin: Payments',
               icon: Icons.receipt,
+            ),
+          if (_isAdmin) const SizedBox(height: 12),
+          if (_isAdmin)
+            _ActionButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/admin/subscriptions'),
+              label: 'Admin: Subscriptions',
+              icon: Icons.workspace_premium,
             ),
           if (_isAdmin) const SizedBox(height: 12),
           // User buttons

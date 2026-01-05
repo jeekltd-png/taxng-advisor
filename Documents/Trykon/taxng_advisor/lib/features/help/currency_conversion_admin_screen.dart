@@ -376,7 +376,7 @@ class _CurrencyConversionAdminScreenState
 
   Widget _buildInfoCard(String title, String content, Color color) {
     return Card(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),

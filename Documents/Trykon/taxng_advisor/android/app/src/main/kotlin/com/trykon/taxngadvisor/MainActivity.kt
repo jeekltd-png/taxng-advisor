@@ -1,4 +1,4 @@
-package com.example.taxng_advisor
+package com.trykon.taxngadvisor
 
 import io.flutter.embedding.android.FlutterActivity
 

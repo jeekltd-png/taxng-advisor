@@ -80,16 +80,16 @@ class _PricingScreenState extends State<PricingScreen> {
                     );
                   }),
                   const SizedBox(height: 24),
-            _buildTransactionalAddOns(),
-            const SizedBox(height: 24),
-            _buildPaymentMethods(),
-            const SizedBox(height: 24),
-            _buildFeatureComparison(),
-            const SizedBox(height: 24),
-            _buildCTA(context),
-          ],
-        ),
-      ),
+                  _buildTransactionalAddOns(),
+                  const SizedBox(height: 24),
+                  _buildPaymentMethods(),
+                  const SizedBox(height: 24),
+                  _buildFeatureComparison(),
+                  const SizedBox(height: 24),
+                  _buildCTA(context),
+                ],
+              ),
+            ),
     );
   }
 
@@ -392,7 +392,7 @@ class _PricingScreenState extends State<PricingScreen> {
 
   Widget _buildCTA(BuildContext context) {
     return Card(
-      color: Colors.deepPurple[50],
+      color: Colors.green[700],
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -402,13 +402,14 @@ class _PricingScreenState extends State<PricingScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             const Text(
               'Start with the free plan or upgrade to Pro for advanced features.',
-              style: TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 13, color: Colors.white),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -417,10 +418,11 @@ class _PricingScreenState extends State<PricingScreen> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/help/contact');
+                    Navigator.pushNamed(context, '/subscription/upgrade');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green[700],
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
@@ -434,6 +436,8 @@ class _PricingScreenState extends State<PricingScreen> {
                     Navigator.pushNamed(context, '/help/contact');
                   },
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,

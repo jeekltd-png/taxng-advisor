@@ -13,6 +13,7 @@ class PaymentHistoryScreen extends StatefulWidget {
 
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   late Future<List<PaymentRecord>> _paymentsFuture;
+  String _selectedFilter = 'all'; // all, success, pending, failed
 
   @override
   void initState() {
@@ -27,7 +28,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Future<List<PaymentRecord>> _getPayments() async {
     final user = await AuthService.currentUser();
     if (user == null) return [];
-    return await PaymentService.getPaymentHistory(user.id);
+    final allPayments = await PaymentService.getPaymentHistory(user.id);
+
+    // Apply filter
+    if (_selectedFilter == 'all') return allPayments;
+    return allPayments.where((p) => p.status == _selectedFilter).toList();
   }
 
   String _getPaymentMethodLabel(String method) {
@@ -79,8 +84,30 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payment History'),
-        backgroundColor: Colors.deepPurple,
+        title: const Text(
+          'Payment History',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (value) {
+              setState(() {
+                _selectedFilter = value;
+                _loadPayments();
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'all', child: Text('All Payments')),
+              const PopupMenuItem(value: 'success', child: Text('✓ Success')),
+              const PopupMenuItem(value: 'pending', child: Text('⌛ Pending')),
+              const PopupMenuItem(value: 'failed', child: Text('✗ Failed')),
+            ],
+          ),
+        ],
       ),
       body: FutureBuilder<List<PaymentRecord>>(
         future: _paymentsFuture,
@@ -145,7 +172,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           const SizedBox(height: 8),
                           Text(
                             '₦${totalPaid.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   color: Colors.deepPurple,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -153,9 +183,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           const SizedBox(height: 12),
                           Text(
                             '${payments.where((p) => p.status == 'success').length} successful payment(s)',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[700],
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[700],
+                                    ),
                           ),
                         ],
                       ),
@@ -189,7 +220,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               ),
                               Text(
                                 '₦${payment.amount.toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green,
                                     ),
@@ -207,7 +241,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               Text(
                                 DateFormat('MMM dd, yyyy • hh:mm a')
                                     .format(payment.paidAt),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: Colors.grey[600],
                                     ),
                               ),
@@ -217,7 +254,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                   child: Chip(
                                     label: Text(payment.status.toUpperCase()),
                                     backgroundColor:
-                                        _getStatusColor(payment.status).withOpacity(0.2),
+                                        _getStatusColor(payment.status)
+                                            .withValues(alpha: 0.2),
                                     labelStyle: TextStyle(
                                       color: _getStatusColor(payment.status),
                                       fontSize: 10,
@@ -245,7 +283,9 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  void _showPaymentDetails(BuildContext context, PaymentRecord payment) {
+  void _showPaymentDetails(BuildContext context, PaymentRecord payment) async {
+    final user = await AuthService.currentUser();
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -276,7 +316,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 '₦${payment.amount.toStringAsFixed(2)}',
                 isHighlight: true,
               ),
-              _buildDetailRow('Method', _getPaymentMethodLabel(payment.paymentMethod)),
+              _buildDetailRow(
+                  'Method', _getPaymentMethodLabel(payment.paymentMethod)),
               _buildDetailRow(
                 'Status',
                 payment.status.toUpperCase(),
@@ -293,6 +334,62 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               if (payment.referenceId != null)
                 _buildDetailRow('Reference ID', payment.referenceId!),
               const SizedBox(height: 16),
+
+              // Download/Share PDF button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      Navigator.pop(context); // Close modal first
+
+                      // Show loading indicator
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Generating PDF receipt...'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+
+                      await PaymentService.sharePdfReceipt(
+                        taxType: payment.taxType,
+                        amount: payment.amount,
+                        currency: payment.currency ?? 'NGN',
+                        referenceId: payment.referenceId ?? payment.id,
+                        paymentMethod:
+                            _getPaymentMethodLabel(payment.paymentMethod),
+                        bankName: payment.bankName,
+                        accountNumber: payment.bankAccount,
+                        tin: payment.tin,
+                        userName: user?.username ?? 'Taxpayer',
+                        userEmail: payment.email,
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✓ PDF receipt ready to share!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error generating PDF: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('Download PDF Receipt'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

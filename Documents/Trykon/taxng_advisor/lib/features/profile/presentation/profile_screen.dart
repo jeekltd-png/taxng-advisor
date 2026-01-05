@@ -80,6 +80,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickFile() async {
+    // Show dialog with clear cancel option first
+    final shouldProceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Import File'),
+        content: const Text(
+          'Select a JSON or CSV file from your device.\n\nYou can cancel anytime by:\n• Tapping "Cancel" below\n• Using your device back button\n• Tapping outside this dialog',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.folder_open),
+            label: const Text('Choose File'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldProceed != true) return;
+
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json', 'csv'],
@@ -226,8 +250,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (_user != null) ...[
               Text('Username: ${_user!.username}'),
               Text('Email: ${_user!.email}'),
+              if (_user!.phoneNumber != null && _user!.phoneNumber!.isNotEmpty)
+                Text('Phone: ${_user!.phoneNumber}'),
+              if (_user!.address != null && _user!.address!.isNotEmpty)
+                Text('Address: ${_user!.address}'),
               Text(
                   'Business: ${_user!.isBusiness ? _user!.businessName ?? 'Yes' : 'No'}'),
+              const Divider(height: 24),
+              const Text('Tax Compliance Information',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              if (_user!.tin != null && _user!.tin!.isNotEmpty)
+                Text('TIN: ${_user!.tin}',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (_user!.cacNumber != null && _user!.cacNumber!.isNotEmpty)
+                Text('CAC Reg. No: ${_user!.cacNumber}',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (_user!.bvn != null && _user!.bvn!.isNotEmpty)
+                Text('BVN: ${_user!.bvn}',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (_user!.vatNumber != null && _user!.vatNumber!.isNotEmpty)
+                Text('VAT Reg. No: ${_user!.vatNumber}',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (_user!.payeRef != null && _user!.payeRef!.isNotEmpty)
+                Text('PAYE Ref: ${_user!.payeRef}',
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (_user!.taxOffice != null && _user!.taxOffice!.isNotEmpty)
+                Text('Tax Office: ${_user!.taxOffice}'),
+              if (_user!.tccExpiryDate != null)
+                Text(
+                    'TCC Expires: ${_user!.tccExpiryDate!.toString().substring(0, 10)}',
+                    style: TextStyle(
+                      color: _user!.tccExpiryDate!.isBefore(DateTime.now())
+                          ? Colors.red
+                          : Colors.green,
+                      fontWeight: FontWeight.w500,
+                    )),
               const SizedBox(height: 16),
             ],
             // Company Logo Customization
@@ -291,6 +349,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               children: [
                 ElevatedButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/help/sample-data'),
+                  icon: const Icon(Icons.data_object),
+                  label: const Text('View Samples'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
                   onPressed: _pickFile,
                   icon: const Icon(Icons.upload_file),
                   label: const Text('Choose file'),
@@ -299,13 +364,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   onPressed: _importJson,
                   child: const Text('Import'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/help/sample-data'),
-                  icon: const Icon(Icons.data_object),
-                  label: const Text('View Samples'),
                 ),
               ],
             ),
@@ -344,9 +402,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete_forever, color: Colors.red),
+              title: const Text('Delete Account',
+                  style: TextStyle(color: Colors.red)),
+              subtitle: const Text('Permanently delete your account and data'),
+              onTap: () => _showDeleteAccountDialog(context),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete your account?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 12),
+            Text('This will permanently delete:'),
+            SizedBox(height: 8),
+            Text('• Your profile and settings'),
+            Text('• All tax calculations and data'),
+            Text('• Payment history and records'),
+            Text('• Subscription information'),
+            SizedBox(height: 12),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        // Delete all user data
+        await HiveService.clearAllData();
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Account deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to login
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting account: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }

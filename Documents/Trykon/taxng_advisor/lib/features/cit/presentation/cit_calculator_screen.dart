@@ -133,11 +133,22 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
 
     if (confirmed == true) {
       final amt = double.tryParse(controller.text) ?? result!.taxPayable;
+
+      // Process currency conversion for oil & gas sector
+      final paymentData = await PaymentService.processPaymentCurrency(
+        userId: user.id,
+        amount: amt,
+        currency: 'NGN',
+      );
+
       await PaymentService.savePayment(
         userId: user.id,
         taxType: 'CIT',
-        amount: amt,
+        amount: paymentData['amount'],
         email: user.email,
+        currency: paymentData['currency'],
+        originalCurrency: paymentData['originalCurrency'],
+        originalAmount: paymentData['originalAmount'],
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Payment recorded and confirmation sent')),
