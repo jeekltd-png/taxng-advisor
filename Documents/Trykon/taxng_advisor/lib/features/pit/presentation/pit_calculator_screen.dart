@@ -6,6 +6,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
 import 'package:taxng_advisor/services/validation_service.dart';
+import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
@@ -100,32 +101,32 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
       return;
     }
 
-    try {
-      final grossIncome = data['grossIncome']!;
-      final otherDeductions = data['otherDeductions']!;
-      final annualRentPaid = data['annualRentPaid']!;
+    final result = await ErrorRecoveryService.withErrorHandling(
+      context,
+      () async {
+        final grossIncome = data['grossIncome']!;
+        final otherDeductions = data['otherDeductions']!;
+        final annualRentPaid = data['annualRentPaid']!;
 
-      setState(() {
-        result = PitCalculator.calculate(
+        return PitCalculator.calculate(
           grossIncome: grossIncome,
           otherDeductions: otherDeductions > 0 ? [otherDeductions] : [],
           annualRentPaid: annualRentPaid,
         );
+      },
+      operationName: 'PIT Calculation',
+      expectedErrorType: ErrorType.calculation,
+      onRetry: () => _calculatePIT(),
+    );
+
+    if (result != null) {
+      setState(() {
+        this.result = result;
         _showResults = true;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('PIT calculated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to calculate PIT: $e'),
-          backgroundColor: Colors.red,
-        ),
+      ErrorRecoveryService.showSuccess(
+        context,
+        '✅ PIT calculated successfully',
       );
     }
   }
@@ -221,7 +222,17 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PIT Calculator'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/icon.png',
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 8),
+            const Text('PIT Calculator'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),

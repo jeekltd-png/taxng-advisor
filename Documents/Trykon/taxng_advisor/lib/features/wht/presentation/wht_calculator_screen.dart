@@ -4,6 +4,7 @@ import 'package:taxng_advisor/models/tax_result.dart';
 import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
 import 'package:taxng_advisor/services/validation_service.dart';
+import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
@@ -120,29 +121,29 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
       return;
     }
 
-    try {
-      final amount = data['amount']!;
+    final result = await ErrorRecoveryService.withErrorHandling(
+      context,
+      () async {
+        final amount = data['amount']!;
 
-      setState(() {
-        result = WhtCalculator.calculate(
+        return WhtCalculator.calculate(
           amount: amount as double,
           type: _selectedType,
         );
+      },
+      operationName: 'WHT Calculation',
+      expectedErrorType: ErrorType.calculation,
+      onRetry: () => _calculateWHT(),
+    );
+
+    if (result != null) {
+      setState(() {
+        this.result = result;
         _showResults = true;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('WHT calculated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to calculate WHT: $e'),
-          backgroundColor: Colors.red,
-        ),
+      ErrorRecoveryService.showSuccess(
+        context,
+        '✅ WHT calculated successfully',
       );
     }
   }
@@ -157,7 +158,17 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WHT Calculator'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/icon.png',
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 8),
+            const Text('WHT Calculator'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),

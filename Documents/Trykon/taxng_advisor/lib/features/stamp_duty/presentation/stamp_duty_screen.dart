@@ -6,6 +6,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
 import 'package:taxng_advisor/services/validation_service.dart';
+import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
@@ -122,29 +123,29 @@ class _StampDutyScreenState extends State<StampDutyScreen>
       return;
     }
 
-    try {
-      final amount = data['amount']!;
+    final result = await ErrorRecoveryService.withErrorHandling(
+      context,
+      () async {
+        final amount = data['amount']!;
 
-      setState(() {
-        result = StampDutyCalculator.calculate(
+        return StampDutyCalculator.calculate(
           amount: amount as double,
           type: _selectedType,
         );
+      },
+      operationName: 'Stamp Duty Calculation',
+      expectedErrorType: ErrorType.calculation,
+      onRetry: () => _calculateStampDuty(),
+    );
+
+    if (result != null) {
+      setState(() {
+        this.result = result;
         _showResults = true;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Stamp Duty calculated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to calculate Stamp Duty: $e'),
-          backgroundColor: Colors.red,
-        ),
+      ErrorRecoveryService.showSuccess(
+        context,
+        '✅ Stamp Duty calculated successfully',
       );
     }
   }
@@ -246,7 +247,17 @@ class _StampDutyScreenState extends State<StampDutyScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stamp Duty Calculator'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/icon.png',
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 8),
+            const Text('Stamp Duty Calculator'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
