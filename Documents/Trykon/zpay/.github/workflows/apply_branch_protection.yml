@@ -1,0 +1,38 @@
+name: Apply Branch Protection
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to protect'
+        required: false
+        default: 'main'
+      status_checks:
+        description: 'Comma-separated status check names to require'
+        required: false
+        default: 'rules-unit-tests,emulator-e2e'
+      review_count:
+        description: 'Number of required approving reviews'
+        required: false
+        default: '1'
+
+jobs:
+  apply-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run script to apply branch protection
+        env:
+          BRANCH: ${{ github.event.inputs.branch }}
+          STATUS_CHECKS: ${{ github.event.inputs.status_checks }}
+          REVIEW_COUNT: ${{ github.event.inputs.review_count }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/apply_branch_protection.js

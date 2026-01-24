@@ -1,0 +1,48 @@
+name: zpay
+description: A modern mobile financial services app - zpay
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+
+  # State management
+  flutter_riverpod: ^2.5.0
+
+  # Navigation
+  go_router: ^7.0.0
+
+  # Networking
+  dio: ^5.2.0
+
+  # Currency + localization
+  intl: ^0.19.0
+
+  # Visualizations
+  fl_chart: ^0.68.0
+
+  # Firebase (auth/backend)
+  firebase_core: ^4.4.0
+  firebase_auth: ^6.1.4
+  cloud_firestore: ^6.1.2
+  google_sign_in: ^6.3.0
+
+  # Secure storage and local prefs
+  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.1.0
+  uuid: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

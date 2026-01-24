@@ -1,0 +1,42 @@
+name: Set Admin Claim
+
+on:
+  workflow_dispatch:
+    inputs:
+      identifier:
+        description: 'Email or UID of the user to set claim for'
+        required: true
+      flag:
+        description: 'Whether to set admin=true or admin=false'
+        required: true
+        default: 'true'
+
+jobs:
+  set-claim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install firebase-admin
+
+      - name: Create service account key file from secret
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT_JSON" ]; then
+            echo "SERVICE_ACCOUNT_JSON secret not set. Aborting.";
+            exit 1;
+          fi
+          echo "$SERVICE_ACCOUNT_JSON" | base64 --decode > serviceAccountKey.json
+
+      - name: Run set_admin_claim script
+        run: |
+          node scripts/set_admin_claim.js "${{ github.event.inputs.identifier }}" "${{ github.event.inputs.flag }}"
