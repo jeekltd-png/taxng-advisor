@@ -11,6 +11,7 @@ import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// WHT Calculator Screen
 class WhtCalculatorScreen extends StatefulWidget {
@@ -160,21 +161,11 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/icon.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text('WHT Calculator'),
-          ],
-        ),
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'WHT Calculator',
+        additionalActions: [
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline, color: Colors.white),
             tooltip: 'Quick Import Help',
             onPressed: () {
               showDialog(

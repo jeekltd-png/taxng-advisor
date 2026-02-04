@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_paystack_plus/flutter_paystack_plus.dart';
 import 'package:taxng_advisor/models/user.dart';
+import 'package:taxng_advisor/models/pricing_tier.dart';
 
 /// Service for handling Paystack payment processing
 /// CURRENTLY DISABLED - Using manual payment only due to package compatibility issues
@@ -91,18 +92,47 @@ class PaystackService {
     return 'TAXNG_${userId}_$timestamp';
   }
 
-  /// Get tier price in Naira
+  /// Get tier base monthly price in Naira
   static double getTierPrice(String tierName) {
     switch (tierName.toLowerCase()) {
-      case 'basic':
-        return 500.0;
-      case 'pro':
-        return 2000.0;
+      case 'individual':
+        return 2000.0; // Reduced from ₦3,000 for Nigerian market
       case 'business':
-        return 8000.0;
+        return 12000.0;
+      case 'enterprise':
+        return 50000.0;
       default:
         return 0.0;
     }
+  }
+
+  /// Calculate price based on billing cycle
+  /// - Monthly: Full price
+  /// - Quarterly: 10% discount
+  /// - Annual: 20% discount
+  static double calculatePriceForCycle(String tierName, BillingCycle cycle) {
+    final basePrice = getTierPrice(tierName);
+    switch (cycle) {
+      case BillingCycle.monthly:
+        return basePrice;
+      case BillingCycle.quarterly:
+        return basePrice * 3 * 0.90; // 10% discount
+      case BillingCycle.annual:
+        return basePrice * 12 * 0.80; // 20% discount
+    }
+  }
+
+  /// Get savings for a billing cycle
+  static double getSavings(String tierName, BillingCycle cycle) {
+    final basePrice = getTierPrice(tierName);
+    final months = cycle == BillingCycle.monthly
+        ? 1
+        : cycle == BillingCycle.quarterly
+            ? 3
+            : 12;
+    final fullPrice = basePrice * months;
+    final discountedPrice = calculatePriceForCycle(tierName, cycle);
+    return fullPrice - discountedPrice;
   }
 
   /// Calculate monthly price (for annual plans, divide by 12)
@@ -110,9 +140,21 @@ class PaystackService {
       {bool isAnnual = false}) {
     final basePrice = getTierPrice(tierName);
     if (isAnnual) {
-      // Offer 20% discount for annual payment
-      return (basePrice * 12 * 0.8);
+      // 20% off for annual = effective monthly rate
+      return basePrice * 0.80;
     }
     return basePrice;
+  }
+
+  /// Get free trial days for a tier
+  static int getTrialDays(String tierName) {
+    switch (tierName.toLowerCase()) {
+      case 'individual':
+      case 'business':
+      case 'enterprise':
+        return 14; // 14-day free trial for all paid tiers
+      default:
+        return 0;
+    }
   }
 }

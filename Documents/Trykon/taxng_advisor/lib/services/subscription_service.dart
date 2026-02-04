@@ -25,6 +25,7 @@ class SubscriptionService {
     String? accountNumber, // Account number (last 4 digits)
     double? amountPaid, // Amount paid by user
     String? notes, // Additional notes from user
+    String? billingCycle, // Monthly, Quarterly, or Annual
   }) async {
     final box = HiveService.getUpgradeRequestsBox();
     final now = DateTime.now();
@@ -58,6 +59,7 @@ class SubscriptionService {
       'accountNumber': accountNumber,
       'amountPaid': amountPaid,
       'notes': notes,
+      'billingCycle': billingCycle ?? 'Monthly',
       'proofSubmittedAt':
           paymentProofPath != null ? now.toIso8601String() : null,
     };
@@ -203,21 +205,23 @@ class SubscriptionService {
   static bool canAccessFeature(UserProfile user, String feature) {
     switch (feature) {
       case 'csv_export':
-        return ['basic', 'pro', 'business'].contains(user.subscriptionTier);
+        return ['individual', 'business', 'enterprise']
+            .contains(user.subscriptionTier);
       case 'pdf_export':
-        return ['basic', 'pro', 'business'].contains(user.subscriptionTier);
+        return ['individual', 'business', 'enterprise']
+            .contains(user.subscriptionTier);
       case 'official_pdf':
-        return ['pro', 'business'].contains(user.subscriptionTier);
+        return ['business', 'enterprise'].contains(user.subscriptionTier);
       case 'payment_links':
-        return ['pro', 'business'].contains(user.subscriptionTier);
+        return ['business', 'enterprise'].contains(user.subscriptionTier);
       case 'multi_user':
-        return ['pro', 'business'].contains(user.subscriptionTier);
+        return ['business', 'enterprise'].contains(user.subscriptionTier);
       case 'team_roles':
-        return user.subscriptionTier == 'business';
+        return ['business', 'enterprise'].contains(user.subscriptionTier);
       case 'api_access':
-        return user.subscriptionTier == 'business';
+        return user.subscriptionTier == 'enterprise';
       case 'white_label':
-        return user.subscriptionTier == 'business';
+        return user.subscriptionTier == 'enterprise';
       default:
         return true; // Free features
     }
@@ -228,12 +232,12 @@ class SubscriptionService {
     switch (tier) {
       case 'free':
         return 'Free';
-      case 'basic':
-        return 'Basic';
-      case 'pro':
-        return 'Pro';
+      case 'individual':
+        return 'Individual';
       case 'business':
         return 'Business';
+      case 'enterprise':
+        return 'Enterprise';
       default:
         return tier;
     }
@@ -244,12 +248,12 @@ class SubscriptionService {
     switch (tier) {
       case 'free':
         return 'grey';
-      case 'basic':
+      case 'individual':
         return 'blue';
-      case 'pro':
-        return 'deepPurple';
       case 'business':
         return 'orange';
+      case 'enterprise':
+        return 'purple';
       default:
         return 'grey';
     }

@@ -5,6 +5,7 @@ import 'package:taxng_advisor/services/subscription_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/pricing_tier.dart';
 import 'package:taxng_advisor/services/pricing_service.dart';
+import 'package:taxng_advisor/services/paystack_service.dart';
 
 /// Screen for users to upgrade their subscription tier
 class UpgradeRequestScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class UpgradeRequestScreen extends StatefulWidget {
 
 class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
   String? _selectedTier;
+  BillingCycle _selectedCycle = BillingCycle.monthly;
   bool _isSubmitting = false;
   bool _hasPending = false;
   String _currentTier = 'free';
@@ -133,8 +135,9 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
       if (user == null) throw Exception('User not found');
 
       final amountPaid = double.tryParse(_amountPaidController.text);
+      final billingCycleName = PricingTier.getCycleDisplayName(_selectedCycle);
 
-      // Submit upgrade request with payment proof
+      // Submit upgrade request with payment proof and billing cycle
       await SubscriptionService.submitUpgradeRequest(
         userId: user.id,
         currentTier: user.subscriptionTier,
@@ -149,16 +152,20 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
             ? _accountNumberController.text
             : null,
         amountPaid: amountPaid,
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+        notes: _notesController.text.isNotEmpty
+            ? '${_notesController.text}\n[Billing: $billingCycleName]'
+            : '[Billing: $billingCycleName]',
+        billingCycle: billingCycleName,
       );
 
       if (mounted) {
+        final trialDays = PaystackService.getTrialDays(_selectedTier!);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-                '✅ Request submitted with payment proof! Admin will review and activate your subscription within 24-48 hours.'),
+                '✅ Request submitted! ${trialDays > 0 ? 'Your $trialDays-day free trial starts after admin approval. ' : ''}Admin will review and activate your subscription within 24-48 hours.'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
         Navigator.pop(context);
@@ -176,15 +183,24 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
 
   Color _getTierColor(String tier) {
     switch (tier) {
-      case 'basic':
+      case 'individual':
         return Colors.blue;
-      case 'pro':
-        return Colors.deepPurple;
       case 'business':
         return Colors.orange;
+      case 'enterprise':
+        return Colors.purple;
       default:
         return Colors.grey;
     }
+  }
+
+  /// Format price with thousands separator
+  String _formatPrice(double price) {
+    if (price >= 1000) {
+      return price.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+    }
+    return price.toStringAsFixed(0);
   }
 
   @override
@@ -265,6 +281,91 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
 
             if (!_hasPending) ...[
               const Text(
+                'Select Billing Cycle',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Save up to 20% with longer billing cycles',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+
+              // Billing Cycle Selector
+              Row(
+                children: BillingCycle.values.map((cycle) {
+                  final isSelected = _selectedCycle == cycle;
+                  final discount = cycle == BillingCycle.monthly
+                      ? 0
+                      : cycle == BillingCycle.quarterly
+                          ? 10
+                          : 20;
+
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedCycle = cycle),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.green[700]
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                            border: isSelected
+                                ? Border.all(
+                                    color: Colors.green[900]!, width: 2)
+                                : null,
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                PricingTier.getCycleDisplayName(cycle),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              if (discount > 0) ...[
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.green[100],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Save $discount%',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 24),
+
+              const Text(
                 'Select Your New Plan',
                 style: TextStyle(
                   fontSize: 18,
@@ -273,7 +374,7 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Choose a tier to upgrade to. Admin will review and approve your request.',
+                'All paid plans include a 14-day free trial',
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 16),
@@ -284,6 +385,11 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
                   .map((tier) {
                 final tierKey = tier.name.toLowerCase();
                 final isSelected = _selectedTier == tierKey;
+                final cyclePrice = PaystackService.calculatePriceForCycle(
+                    tierKey, _selectedCycle);
+                final savings =
+                    PaystackService.getSavings(tierKey, _selectedCycle);
+                final trialDays = PaystackService.getTrialDays(tierKey);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -352,15 +458,64 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
                                               ),
                                             ),
                                           ],
+                                          if (trialDays > 0) ...[
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue[100],
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '$trialDays-day trial',
+                                                style: TextStyle(
+                                                  color: Colors.blue[800],
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
-                                      Text(
-                                        '${tier.price}${tier.period}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '₦${_formatPrice(cyclePrice)}',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            PricingTier.getCyclePeriod(
+                                                _selectedCycle),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                      if (savings > 0) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Save ₦${_formatPrice(savings)}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.green[700],
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
