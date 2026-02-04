@@ -5,6 +5,8 @@ import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/services/validation_service.dart';
 import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
@@ -29,6 +31,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
 
   PitResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -706,6 +709,21 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
               ),
             ],
 
+            const SizedBox(height: 24),
+            SupportingDocumentsWidget(
+              attachments: _attachments,
+              onDocumentAdded: (doc) {
+                setState(() {
+                  _attachments.add(doc);
+                });
+              },
+              onDocumentRemoved: (doc) {
+                setState(() {
+                  _attachments.remove(doc);
+                });
+              },
+              calculationId: null, // Will save when calculation is saved
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),

@@ -6,6 +6,8 @@ import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 // TODO: Uncomment after `flutter pub get` completes
 // import 'package:taxng_advisor/services/hive_service.dart';
 // import 'package:taxng_advisor/services/sync_service.dart';
@@ -25,6 +27,7 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
 
   CitResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -371,6 +374,21 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
               ),
             ],
 
+            const SizedBox(height: 24),
+            SupportingDocumentsWidget(
+              attachments: _attachments,
+              onDocumentAdded: (doc) {
+                setState(() {
+                  _attachments.add(doc);
+                });
+              },
+              onDocumentRemoved: (doc) {
+                setState(() {
+                  _attachments.remove(doc);
+                });
+              },
+              calculationId: null, // Will save when calculation is saved
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),

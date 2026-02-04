@@ -8,6 +8,8 @@ import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 
 /// WHT Calculator Screen
@@ -26,6 +28,7 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
   WhtType _selectedType = WhtType.dividends;
   WhtResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   final Map<WhtType, String> _whtTypeLabels = {
     WhtType.dividends: 'Dividends (10%)',
@@ -329,7 +332,7 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<WhtType>(
-                              value: _selectedType,
+                              initialValue: _selectedType,
                               decoration: const InputDecoration(
                                 labelText: 'Payment Type',
                                 border: OutlineInputBorder(),
@@ -580,6 +583,21 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
               ),
             ],
 
+            const SizedBox(height: 24),
+            SupportingDocumentsWidget(
+              attachments: _attachments,
+              onDocumentAdded: (doc) {
+                setState(() {
+                  _attachments.add(doc);
+                });
+              },
+              onDocumentRemoved: (doc) {
+                setState(() {
+                  _attachments.remove(doc);
+                });
+              },
+              calculationId: null, // Will save when calculation is saved
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),

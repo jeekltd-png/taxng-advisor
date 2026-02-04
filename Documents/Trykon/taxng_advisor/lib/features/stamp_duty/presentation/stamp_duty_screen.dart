@@ -11,6 +11,8 @@ import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 
 /// Stamp Duty Screen
 class StampDutyScreen extends StatefulWidget {
@@ -28,6 +30,7 @@ class _StampDutyScreenState extends State<StampDutyScreen>
   StampDutyType _selectedType = StampDutyType.sale;
   StampDutyResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   final Map<StampDutyType, String> _stampDutyTypeLabels = {
     StampDutyType.electronicTransfer: 'Electronic Transfer (0.15%)',
@@ -418,7 +421,7 @@ class _StampDutyScreenState extends State<StampDutyScreen>
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<StampDutyType>(
-                              value: _selectedType,
+                              initialValue: _selectedType,
                               decoration: const InputDecoration(
                                 labelText: 'Transaction Type',
                                 border: OutlineInputBorder(),
@@ -687,6 +690,21 @@ class _StampDutyScreenState extends State<StampDutyScreen>
               ),
             ],
 
+            const SizedBox(height: 24),
+            SupportingDocumentsWidget(
+              attachments: _attachments,
+              onDocumentAdded: (doc) {
+                setState(() {
+                  _attachments.add(doc);
+                });
+              },
+              onDocumentRemoved: (doc) {
+                setState(() {
+                  _attachments.remove(doc);
+                });
+              },
+              calculationId: null, // Will save when calculation is saved
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),

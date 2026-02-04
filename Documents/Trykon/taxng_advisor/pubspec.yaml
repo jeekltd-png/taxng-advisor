@@ -1,6 +1,6 @@
 name: taxng_advisor
 description: Nigeria Tax Act 2025 compliance app
-version: 1.0.24+25
+version: 2.6.0+36
 environment:
   sdk: '>=3.2.0 <4.0.0'
 

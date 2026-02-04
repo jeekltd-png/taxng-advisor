@@ -10,6 +10,8 @@ import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 
 /// Payroll Calculator Screen
@@ -31,6 +33,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
 
   PayrollResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -828,6 +831,21 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
               ),
             ],
 
+            const SizedBox(height: 24),
+            SupportingDocumentsWidget(
+              attachments: _attachments,
+              onDocumentAdded: (doc) {
+                setState(() {
+                  _attachments.add(doc);
+                });
+              },
+              onDocumentRemoved: (doc) {
+                setState(() {
+                  _attachments.remove(doc);
+                });
+              },
+              calculationId: null, // Will save when calculation is saved
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),

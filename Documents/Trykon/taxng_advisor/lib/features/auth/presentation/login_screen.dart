@@ -275,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (_isRegister && _isBusiness) ...[
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _selectedTaxOffice,
+                      initialValue: _selectedTaxOffice,
                       decoration: const InputDecoration(
                         labelText: 'FIRS Tax Office',
                         helperText: 'Your registered tax office/station',

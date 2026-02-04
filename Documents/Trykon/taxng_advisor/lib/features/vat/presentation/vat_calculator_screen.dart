@@ -10,6 +10,8 @@ import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
+import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
+import 'package:taxng_advisor/models/calculation_attachment.dart';
 
 /// VAT Calculator Screen
 class VatCalculatorScreen extends StatefulWidget {
@@ -30,6 +32,7 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
 
   VatResult? result;
   bool _showResults = false;
+  List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -1026,6 +1029,30 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
           ],
         ),
       ),
+      bottomNavigationBar: result != null
+          ? Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SupportingDocumentsWidget(
+                    attachments: _attachments,
+                    onDocumentAdded: (doc) {
+                      setState(() {
+                        _attachments.add(doc);
+                      });
+                    },
+                    onDocumentRemoved: (doc) {
+                      setState(() {
+                        _attachments.remove(doc);
+                      });
+                    },
+                    calculationId: null, // Will save when calculation is saved
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 }
