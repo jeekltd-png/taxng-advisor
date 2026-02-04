@@ -5,9 +5,13 @@ import 'package:taxng_advisor/models/tax_result.dart';
 import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
+import 'package:taxng_advisor/services/validation_service.dart';
+import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/features/payment/payment_gateway_screen.dart';
+import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 // TODO: Uncomment after `flutter pub get` completes
 // import 'package:taxng_advisor/services/hive_service.dart';
 // import 'package:taxng_advisor/services/sync_service.dart';
@@ -20,7 +24,8 @@ class CitCalculatorScreen extends StatefulWidget {
   State<CitCalculatorScreen> createState() => _CitCalculatorScreenState();
 }
 
-class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
+class _CitCalculatorScreenState extends State<CitCalculatorScreen>
+    with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
   final _turnoverController = TextEditingController(text: '75000000');
   final _profitController = TextEditingController(text: '15000000');
@@ -32,6 +37,9 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
   @override
   void initState() {
     super.initState();
+    // Register validation rules
+    ValidationService.registerRules('CIT', ValidationService.getCITRules());
+
     // If opened with route arguments (imported data), prefill and calculate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
@@ -58,13 +66,36 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
     );
   }
 
-  void _calculateCIT() {
-    if (_formKey.currentState!.validate()) {
-      final turnover = double.parse(_turnoverController.text);
-      final profit = double.parse(_profitController.text);
+  void _calculateCIT() async {
+    final data = {
+      'turnover': double.tryParse(_turnoverController.text) ?? 0,
+      'profit': double.tryParse(_profitController.text) ?? 0,
+    };
 
+    // Validate before calculating
+    if (!await canSubmit('CIT', data)) {
+      return;
+    }
+
+    final calcResult = await ErrorRecoveryService.withErrorHandling(
+      context,
+      () async {
+        final turnover = data['turnover']!;
+        final profit = data['profit']!;
+
+        return CitCalculator.calculate(
+          turnover: turnover as double,
+          profit: profit as double,
+        );
+      },
+      operationName: 'CIT Calculation',
+      expectedErrorType: ErrorType.calculation,
+      onRetry: () => _calculateCIT(),
+    );
+
+    if (calcResult != null) {
       setState(() {
-        result = CitCalculator.calculate(turnover: turnover, profit: profit);
+        result = calcResult;
         _showResults = true;
       });
 
@@ -72,6 +103,11 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
       CitStorageService.saveEstimate(result!);
       // TODO: Uncomment after `flutter pub get` completes
       // HiveService.saveCIT(result!.toMap());
+
+      ErrorRecoveryService.showSuccess(
+        context,
+        '✅ CIT calculated successfully',
+      );
 
       _showSyncStatus();
     }
@@ -185,9 +221,7 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CIT Calculator'),
-      ),
+      appBar: const TaxNGAppBar(title: 'CIT Calculator'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -221,48 +255,34 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
+                      ValidatedTextField(
                         controller: _turnoverController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Annual Business Turnover (₦)',
-                          hintText: 'e.g., 75000000',
-                          prefixIcon: const Icon(Icons.trending_up),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value?.isEmpty ?? true) {
-                            return 'Please enter turnover';
-                          }
-                          if (double.tryParse(value!) == null) {
-                            return 'Please enter a valid number';
-                          }
-                          return null;
+                        label: 'Annual Business Turnover (₦)',
+                        fieldName: 'turnover',
+                        calculatorKey: 'CIT',
+                        getFormData: () => {
+                          'turnover':
+                              double.tryParse(_turnoverController.text) ?? 0,
+                          'profit':
+                              double.tryParse(_profitController.text) ?? 0,
                         },
+                        keyboardType: TextInputType.number,
+                        hintText: 'e.g., 75000000',
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
+                      ValidatedTextField(
                         controller: _profitController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Chargeable Profit (₦)',
-                          hintText: 'e.g., 15000000',
-                          prefixIcon: const Icon(Icons.pie_chart),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value?.isEmpty ?? true) {
-                            return 'Please enter profit';
-                          }
-                          if (double.tryParse(value!) == null) {
-                            return 'Please enter a valid number';
-                          }
-                          return null;
+                        label: 'Chargeable Profit (₦)',
+                        fieldName: 'profit',
+                        calculatorKey: 'CIT',
+                        getFormData: () => {
+                          'turnover':
+                              double.tryParse(_turnoverController.text) ?? 0,
+                          'profit':
+                              double.tryParse(_profitController.text) ?? 0,
                         },
+                        keyboardType: TextInputType.number,
+                        hintText: 'e.g., 15000000',
                       ),
                       const SizedBox(height: 20),
                       Row(

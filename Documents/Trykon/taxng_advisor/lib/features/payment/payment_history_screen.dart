@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:intl/intl.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Payment History Screen - View all past payments
 class PaymentHistoryScreen extends StatefulWidget {
@@ -83,15 +84,9 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Payment History',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'Payment History',
+        additionalActions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
             onSelected: (value) {

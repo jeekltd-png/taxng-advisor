@@ -27,7 +27,7 @@ class TaxNGCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Card(
       elevation: elevation ?? 0,
-      backgroundColor: backgroundColor ?? TaxNGColors.bgWhite,
+      color: backgroundColor ?? TaxNGColors.bgWhite,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius ?? BorderRadius.circular(12),
         side: border ??

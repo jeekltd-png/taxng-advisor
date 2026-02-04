@@ -112,6 +112,11 @@ class AuthService {
     return UserProfile.fromMap(rec.cast<String, dynamic>());
   }
 
+  /// Alias for currentUser for backward compatibility
+  Future<UserProfile?> getCurrentUser() async {
+    return AuthService.currentUser();
+  }
+
   /// Get user by ID
   static Future<UserProfile?> getUserById(String userId) async {
     final box = await _openUsersBox();

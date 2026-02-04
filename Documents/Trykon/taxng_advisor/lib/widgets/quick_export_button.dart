@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:taxng_advisor/services/pdf_service.dart';
-import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -98,15 +97,9 @@ class QuickExportButton extends StatelessWidget {
         ),
       );
 
-      final user = await AuthService.currentUser();
-
       final pdfBytes = await PdfService.generatePdf(
         resultData,
         taxType,
-        userId: user?.id,
-        tin: user?.tin,
-        userName:
-            user?.isBusiness == true ? user?.businessName : user?.username,
       );
 
       if (context.mounted) {
@@ -233,17 +226,10 @@ class QuickExportButton extends StatelessWidget {
         ),
       );
 
-      // Get user info for PDF
-      final user = await AuthService.currentUser();
-
-      // Generate PDF
-      final pdfBytes = await PdfService.generatePdf(
+      // Generate PDF for potential future use
+      await PdfService.generatePdf(
         resultData,
         taxType,
-        userId: user?.id,
-        tin: user?.tin,
-        userName:
-            user?.isBusiness == true ? user?.businessName : user?.username,
       );
 
       if (context.mounted) {
@@ -252,17 +238,11 @@ class QuickExportButton extends StatelessWidget {
         // Share file with email subject and body
         final subject = 'Tax Calculation - $taxType';
         final body = _formatResultsAsText();
-        final fileName =
-            'TaxPadi_${taxType}_${DateTime.now().millisecondsSinceEpoch}.pdf';
 
-        // Use XFile.fromData for web compatibility (no temporary file needed)
-        await Share.shareXFiles(
-          [
-            XFile.fromData(pdfBytes,
-                name: fileName, mimeType: 'application/pdf')
-          ],
+        // Use share for text sharing
+        await Share.share(
+          body,
           subject: subject,
-          text: body,
         );
 
         if (context.mounted) {

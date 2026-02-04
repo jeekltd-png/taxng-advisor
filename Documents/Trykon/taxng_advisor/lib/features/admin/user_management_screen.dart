@@ -92,7 +92,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
     final updatedUser = user.copyWith(
       isActive: newStatus,
-      suspendedBy: newStatus ? null : _currentUser!.id,
       suspensionReason: newStatus ? null : 'Suspended by admin',
     );
 
@@ -130,7 +129,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               _buildDetailRow('Username', user.username),
               _buildDetailRow('Email', user.email),
               _buildDetailRow('Subscription Tier', user.subscriptionTier),
-              _buildDetailRow('Admin Role', user.adminRole),
+              _buildDetailRow('Admin Role', user.adminRole ?? 'User'),
               _buildDetailRow('Status', user.isActive ? 'Active' : 'Suspended'),
               _buildDetailRow(
                   'Join Date', user.createdAt.toString().split(' ')[0]),
@@ -195,7 +194,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 const Icon(Icons.admin_panel_settings, color: Colors.red),
                 const SizedBox(width: 8),
                 Text(
-                  'Logged in as: ${_currentUser!.username} (${_currentUser!.adminRole.toUpperCase()})',
+                  'Logged in as: ${_currentUser!.username} (${(_currentUser!.adminRole ?? 'ADMIN').toUpperCase()})',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -346,7 +345,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           children: [
                             Text(user.email),
                             Text(
-                              '${user.subscriptionTier.toUpperCase()} • ${user.adminRole.toUpperCase()}',
+                              '${user.subscriptionTier.toUpperCase()} • ${(user.adminRole ?? 'USER').toUpperCase()}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color:

@@ -12,6 +12,7 @@ import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// VAT Calculator Screen
 class VatCalculatorScreen extends StatefulWidget {
@@ -231,9 +232,9 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('VAT Calculator'),
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'VAT Calculator',
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             tooltip: 'Quick Import Help',

@@ -13,6 +13,7 @@ import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Payroll Calculator Screen
 class PayrollCalculatorScreen extends StatefulWidget {
@@ -247,19 +248,9 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/icon.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text('Payroll Calculator'),
-          ],
-        ),
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'Payroll Calculator',
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             tooltip: 'Quick Import Help',

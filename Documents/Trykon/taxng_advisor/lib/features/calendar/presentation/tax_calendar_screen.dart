@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/tax_deadline.dart';
 import '../../../services/tax_calendar_service.dart';
+import '../../../widgets/common/taxng_app_bar.dart';
 
 class TaxCalendarScreen extends StatefulWidget {
   const TaxCalendarScreen({super.key});
@@ -39,10 +40,8 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tax Calendar'),
-        backgroundColor: const Color(0xFF0066FF),
-        foregroundColor: Colors.white,
+      appBar: TaxNGAppBar(
+        title: 'Tax Calendar',
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -69,7 +68,7 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
   }
 
   Widget _buildUpcomingTab() {
-    final upcomingDeadlines = _calendarService.getUpcomingDeadlines(days: 30);
+    final upcomingDeadlines = _calendarService.upcomingDeadlines;
     final overdueDeadlines = _calendarService.overdueDeadlines;
 
     return RefreshIndicator(
@@ -210,7 +209,7 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
 
   Widget _buildDeadlineCard(TaxDeadline deadline, {bool isOverdue = false}) {
     final priorityColor = _getPriorityColor(deadline.priority);
-    final daysUntil = deadline.daysUntilDue;
+    final daysUntil = deadline.daysRemaining;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -241,7 +240,7 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      deadline.typeDisplay,
+                      deadline.typeName,
                       style: TextStyle(
                         color: priorityColor,
                         fontWeight: FontWeight.w500,
@@ -428,10 +427,10 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              _buildDetailRow('Type', deadline.typeDisplay),
+              _buildDetailRow('Type', deadline.typeName),
               _buildDetailRow('Due Date', _formatDate(deadline.dueDate)),
-              _buildDetailRow(
-                  'Frequency', deadline.frequency.name.toUpperCase()),
+              _buildDetailRow('Recurrence',
+                  deadline.isRecurring ? 'Recurring' : 'One-time'),
               _buildDetailRow('Priority', deadline.priority.name.toUpperCase()),
               _buildDetailRow('Status', deadline.status.name.toUpperCase()),
               const SizedBox(height: 16),
@@ -502,9 +501,9 @@ class _TaxCalendarScreenState extends State<TaxCalendarScreen>
 
   Future<void> _markAsCompleted(TaxDeadline deadline) async {
     if (deadline.status == DeadlineStatus.completed) {
-      await _calendarService.markAsIncomplete(deadline.id);
+      await _calendarService.markNotCompleted(deadline.id);
     } else {
-      await _calendarService.markAsCompleted(deadline.id);
+      await _calendarService.markCompleted(deadline.id);
     }
     await _loadDeadlines();
   }

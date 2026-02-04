@@ -1,3 +1,6 @@
+/// Type alias for backward compatibility with code using 'User'
+typedef User = UserProfile;
+
 class UserProfile {
   final String id;
   final String username;
@@ -25,6 +28,13 @@ class UserProfile {
   final DateTime createdAt;
   final DateTime modifiedAt;
   final bool isAdmin; // Admin can access developer documentation
+  final String?
+      adminRole; // 'main_admin', 'sub_admin', 'sub_admin1', 'sub_admin2', null for regular users
+  final bool isActive; // Whether the user account is active
+  final String? suspensionReason; // Reason for suspension if isActive is false
+  final String? createdBy; // ID of admin who created this user
+  final int
+      adminHierarchyLevel; // 0=main, 1=sub_admin, 2=sub_admin2, 99=regular user
 
   UserProfile({
     required this.id,
@@ -48,7 +58,24 @@ class UserProfile {
     required this.createdAt,
     required this.modifiedAt,
     this.isAdmin = false,
+    this.adminRole,
+    this.isActive = true,
+    this.suspensionReason,
+    this.createdBy,
+    this.adminHierarchyLevel = 99,
   });
+
+  /// Check if user is main admin (highest privileges)
+  bool get isMainAdmin => adminRole == 'main_admin';
+
+  /// Check if user is sub admin level 1
+  bool get isSubAdmin1 => adminRole == 'sub_admin' || adminRole == 'sub_admin1';
+
+  /// Check if user is sub admin level 2
+  bool get isSubAdmin2 => adminRole == 'sub_admin2';
+
+  /// Check if user is any type of admin
+  bool get isAnyAdmin => isAdmin || adminRole != null;
 
   /// Get user's full name (firstName + lastName), or username if not available
   String get fullName {
@@ -103,6 +130,11 @@ class UserProfile {
       'industrySector': industrySector,
       'subscriptionTier': subscriptionTier,
       'isAdmin': isAdmin,
+      'adminRole': adminRole,
+      'isActive': isActive,
+      'suspensionReason': suspensionReason,
+      'createdBy': createdBy,
+      'adminHierarchyLevel': adminHierarchyLevel,
       'createdAt': createdAt.toIso8601String(),
       'modifiedAt': modifiedAt.toIso8601String(),
     };
@@ -131,8 +163,72 @@ class UserProfile {
       industrySector: m['industrySector'] as String?,
       subscriptionTier: m['subscriptionTier'] as String? ?? 'free',
       isAdmin: m['isAdmin'] as bool? ?? false,
+      adminRole: m['adminRole'] as String?,
+      isActive: m['isActive'] as bool? ?? true,
+      suspensionReason: m['suspensionReason'] as String?,
+      createdBy: m['createdBy'] as String?,
+      adminHierarchyLevel: m['adminHierarchyLevel'] as int? ?? 99,
       createdAt: DateTime.parse(m['createdAt'] as String),
       modifiedAt: DateTime.parse(m['modifiedAt'] as String),
+    );
+  }
+
+  /// Create a copy of this user with some properties changed
+  UserProfile copyWith({
+    String? id,
+    String? username,
+    String? email,
+    String? firstName,
+    String? lastName,
+    bool? isBusiness,
+    String? businessName,
+    String? tin,
+    String? cacNumber,
+    String? bvn,
+    String? vatNumber,
+    String? payeRef,
+    String? phoneNumber,
+    String? address,
+    String? taxOffice,
+    DateTime? tccExpiryDate,
+    String? industrySector,
+    String? subscriptionTier,
+    DateTime? createdAt,
+    DateTime? modifiedAt,
+    bool? isAdmin,
+    String? adminRole,
+    bool? isActive,
+    String? suspensionReason,
+    String? createdBy,
+    int? adminHierarchyLevel,
+  }) {
+    return UserProfile(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      isBusiness: isBusiness ?? this.isBusiness,
+      businessName: businessName ?? this.businessName,
+      tin: tin ?? this.tin,
+      cacNumber: cacNumber ?? this.cacNumber,
+      bvn: bvn ?? this.bvn,
+      vatNumber: vatNumber ?? this.vatNumber,
+      payeRef: payeRef ?? this.payeRef,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      address: address ?? this.address,
+      taxOffice: taxOffice ?? this.taxOffice,
+      tccExpiryDate: tccExpiryDate ?? this.tccExpiryDate,
+      industrySector: industrySector ?? this.industrySector,
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
+      createdAt: createdAt ?? this.createdAt,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
+      isAdmin: isAdmin ?? this.isAdmin,
+      adminRole: adminRole ?? this.adminRole,
+      isActive: isActive ?? this.isActive,
+      suspensionReason: suspensionReason ?? this.suspensionReason,
+      createdBy: createdBy ?? this.createdBy,
+      adminHierarchyLevel: adminHierarchyLevel ?? this.adminHierarchyLevel,
     );
   }
 }

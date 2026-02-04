@@ -288,12 +288,12 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen>
     switch (tier) {
       case 'free':
         return Colors.grey;
-      case 'basic':
+      case 'individual':
         return Colors.blue;
-      case 'pro':
-        return Colors.deepPurple;
       case 'business':
         return Colors.orange;
+      case 'enterprise':
+        return Colors.purple;
       default:
         return Colors.grey;
     }
@@ -744,9 +744,9 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen>
           onSelected: (newTier) => _changeTier(user, newTier),
           itemBuilder: (context) => [
             const PopupMenuItem(value: 'free', child: Text('Free')),
-            const PopupMenuItem(value: 'basic', child: Text('Basic')),
-            const PopupMenuItem(value: 'pro', child: Text('Pro')),
+            const PopupMenuItem(value: 'individual', child: Text('Individual')),
             const PopupMenuItem(value: 'business', child: Text('Business')),
+            const PopupMenuItem(value: 'enterprise', child: Text('Enterprise')),
           ],
         ),
       ),

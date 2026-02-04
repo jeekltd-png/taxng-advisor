@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/batch_processing_service.dart';
 import 'package:taxng_advisor/services/tax_analytics_service.dart';
 import 'package:taxng_advisor/utils/tax_helpers.dart';
+import 'package:taxng_advisor/widgets/progress_overlay.dart';
 
 /// Dialog for batch processing selected calculations
 class BatchProcessingDialog extends StatefulWidget {
@@ -84,6 +85,13 @@ class _BatchProcessingDialogState extends State<BatchProcessingDialog> {
   Future<void> _applyOperation() async {
     if (_previewResults == null) return;
 
+    // Show progress overlay
+    ProgressOverlay.show(
+      context,
+      message:
+          'Applying batch operation to ${widget.selectedCalculations.length} items...',
+    );
+
     setState(() => _isLoading = true);
 
     try {
@@ -103,6 +111,7 @@ class _BatchProcessingDialogState extends State<BatchProcessingDialog> {
       }
 
       if (mounted) {
+        ProgressOverlay.hide(context); // Close progress overlay
         widget.onApplied();
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -114,6 +123,7 @@ class _BatchProcessingDialogState extends State<BatchProcessingDialog> {
       }
     } catch (e) {
       if (mounted) {
+        ProgressOverlay.hide(context); // Close progress overlay
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error applying operation: $e'),

@@ -28,6 +28,17 @@ import 'package:taxng_advisor/features/payment/payment_history_screen.dart';
 import 'package:taxng_advisor/features/subscription/upgrade_request_screen.dart';
 import 'package:taxng_advisor/features/admin/admin_subscription_screen.dart';
 import 'package:taxng_advisor/features/onboarding/presentation/welcome_screen.dart';
+import 'package:taxng_advisor/features/tax_overview/tax_overview_screen.dart';
+import 'package:taxng_advisor/features/templates/template_management_screen.dart';
+import 'package:taxng_advisor/features/help/feedback_screen.dart';
+import 'package:taxng_advisor/features/calendar/presentation/tax_calendar_screen.dart';
+import 'package:taxng_advisor/features/history/presentation/calculation_history_screen.dart';
+// Phase 3 - Nice-to-Have Features
+import 'package:taxng_advisor/features/sharing/presentation/share_with_accountant_screen.dart';
+import 'package:taxng_advisor/features/sharing/presentation/cpa_dashboard_screen.dart';
+import 'package:taxng_advisor/features/expenses/presentation/expense_categories_screen.dart';
+import 'package:taxng_advisor/features/settings/presentation/language_settings_screen.dart';
+import 'package:taxng_advisor/features/settings/presentation/whatsapp_settings_screen.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/theme/app_theme.dart';
@@ -93,6 +104,17 @@ class TaxNgApp extends StatelessWidget {
         '/stamp_duty': (_) => const StampDutyScreen(),
         '/reminders': (_) => const RemindersScreen(),
         '/profile': (_) => const ProfileScreen(),
+        '/tax-overview': (_) => const TaxOverviewScreen(),
+        '/templates': (_) => const TemplateManagementScreen(),
+        '/help/feedback': (_) => const FeedbackScreen(),
+        '/calendar': (_) => const TaxCalendarScreen(),
+        '/history': (_) => const CalculationHistoryScreen(),
+        // Phase 3 - Nice-to-Have Features
+        '/share': (_) => const ShareWithAccountantScreen(),
+        '/cpa-dashboard': (_) => const CPADashboardScreen(),
+        '/expenses': (_) => const ExpenseCategoriesScreen(),
+        '/settings/language': (_) => const LanguageSettingsScreen(),
+        '/settings/whatsapp': (_) => const WhatsAppSettingsScreen(),
       },
     );
   }

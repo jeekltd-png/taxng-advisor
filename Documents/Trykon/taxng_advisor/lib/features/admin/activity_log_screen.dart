@@ -180,7 +180,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                 const Icon(Icons.admin_panel_settings, color: Colors.red),
                 const SizedBox(width: 8),
                 Text(
-                  'Logged in as: ${_currentUser!.username} (${_currentUser!.adminRole.toUpperCase()})',
+                  'Logged in as: ${_currentUser!.username} (${(_currentUser!.adminRole ?? 'ADMIN').toUpperCase()})',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],

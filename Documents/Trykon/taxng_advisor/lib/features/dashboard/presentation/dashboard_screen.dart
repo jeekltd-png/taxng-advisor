@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/widgets/sync_status_indicator.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Dashboard Screen - Main entry point
 class DashboardScreen extends StatelessWidget {
@@ -14,46 +15,116 @@ class DashboardScreen extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.green),
-                child: Text('TaxPadi',
-                    style: TextStyle(color: Colors.white, fontSize: 18)),
+              DrawerHeader(
+                decoration: const BoxDecoration(color: Color(0xFF1B5E20)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'TaxNG',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Smart Tax Made Simple',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               ListTile(
-                leading: const Icon(Icons.person),
+                leading:
+                    const Icon(Icons.person_outline, color: Color(0xFF1B5E20)),
                 title: const Text('Profile'),
                 onTap: () => Navigator.pushNamed(context, '/profile'),
               ),
               ListTile(
-                leading: const Icon(Icons.notifications),
+                leading: const Icon(Icons.dashboard_outlined,
+                    color: Color(0xFF1B5E20)),
+                title: const Text('Tax Overview'),
+                onTap: () => Navigator.pushNamed(context, '/tax-overview'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.history, color: Color(0xFF1B5E20)),
+                title: const Text('Calculation History'),
+                onTap: () => Navigator.pushNamed(context, '/history'),
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.folder_outlined, color: Color(0xFF1B5E20)),
+                title: const Text('My Templates'),
+                onTap: () => Navigator.pushNamed(context, '/templates'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined,
+                    color: Color(0xFF1B5E20)),
                 title: const Text('Reminders'),
                 onTap: () => Navigator.pushNamed(context, '/reminders'),
               ),
               ListTile(
-                leading: const Icon(Icons.receipt_long),
+                leading: const Icon(Icons.receipt_long_outlined,
+                    color: Color(0xFF1B5E20)),
                 title: const Text('Payment History'),
                 onTap: () => Navigator.pushNamed(context, '/payment/history'),
               ),
               const Divider(),
+              // Phase 3 Features
               ListTile(
-                leading: const Icon(Icons.help_outline),
+                leading: const Icon(Icons.category_outlined,
+                    color: Color(0xFF1B5E20)),
+                title: const Text('Expense Categories'),
+                onTap: () => Navigator.pushNamed(context, '/expenses'),
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.share_outlined, color: Color(0xFF1B5E20)),
+                title: const Text('Share with Accountant'),
+                onTap: () => Navigator.pushNamed(context, '/share'),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.calendar_today_outlined,
+                    color: Color(0xFF1B5E20)),
+                title: const Text('Tax Calendar'),
+                onTap: () => Navigator.pushNamed(context, '/calendar'),
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.help_outline, color: Color(0xFF1B5E20)),
                 title: const Text('Help & FAQ'),
                 onTap: () => Navigator.pushNamed(context, '/help/faq'),
               ),
               ListTile(
-                leading: const Icon(Icons.article),
+                leading: const Icon(Icons.article_outlined,
+                    color: Color(0xFF1B5E20)),
                 title: const Text('Help Articles'),
                 onTap: () => Navigator.pushNamed(context, '/help/articles'),
               ),
               ListTile(
-                leading: const Icon(Icons.contact_support),
+                leading: const Icon(Icons.feedback_outlined,
+                    color: Color(0xFF1B5E20)),
+                title: const Text('Send Feedback'),
+                onTap: () => Navigator.pushNamed(context, '/help/feedback'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.support_agent_outlined,
+                    color: Color(0xFF1B5E20)),
                 title: const Text('Contact Support'),
                 onTap: () => Navigator.pushNamed(context, '/help/contact'),
               ),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Logout'),
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title:
+                    const Text('Logout', style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   await AuthService.logout();
                   if (context.mounted) {
@@ -69,9 +140,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      appBar: AppBar(
-        title: const Text('TaxPadi'),
-      ),
+      appBar: const TaxNGAppBar(title: 'TaxNG'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

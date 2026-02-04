@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/common/taxng_app_bar.dart';
 
 /// Filing deadlines with countdowns
 class RemindersScreen extends StatelessWidget {
@@ -99,9 +100,8 @@ class RemindersScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tax Reminders & Deadlines'),
-        centerTitle: true,
+      appBar: const TaxNGAppBar(
+        title: 'Tax Reminders & Deadlines',
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(12),

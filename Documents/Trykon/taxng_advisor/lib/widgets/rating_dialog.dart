@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/user_activity_tracker.dart';
 
 /// Rating Dialog Widget
-/// 
-/// Allows users to rate the TaxPadi app with a 1-5 star rating.
+///
+/// Allows users to rate the TaxNG app with a 1-5 star rating.
 /// Automatically tracks the rating using UserActivityTracker.
 class RatingDialog extends StatefulWidget {
   const RatingDialog({Key? key}) : super(key: key);
@@ -84,7 +84,7 @@ class _RatingDialogState extends State<RatingDialog> {
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
-              'Rate TaxPadi',
+              'Rate TaxNG',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -182,7 +182,7 @@ class _RatingDialogState extends State<RatingDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Your rating helps us improve TaxPadi',
+                      'Your rating helps us improve TaxNG',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.blue[700],

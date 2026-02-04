@@ -5,6 +5,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/models/user.dart';
 import 'package:taxng_advisor/features/help/privacy_policy_screen.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -241,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: const TaxNGAppBar(title: 'Profile', showUserProfile: false),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -373,6 +374,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const Text('Help & Support',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
+            // Phase 3 Settings
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Language'),
+              subtitle: const Text('Choose your preferred language'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/settings/language'),
+            ),
+            ListTile(
+              leading: Icon(Icons.chat, color: Colors.green[600]),
+              title: const Text('WhatsApp Notifications'),
+              subtitle: const Text('Manage WhatsApp alerts & bot'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/settings/whatsapp'),
+            ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('FAQ'),

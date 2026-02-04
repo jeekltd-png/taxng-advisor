@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/calculation_history.dart';
 import '../../../services/calculation_history_service.dart';
+import '../../../widgets/common/taxng_app_bar.dart';
 
 class CalculationHistoryScreen extends StatefulWidget {
   const CalculationHistoryScreen({super.key});
@@ -61,10 +62,8 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calculation History'),
-        backgroundColor: const Color(0xFF0066FF),
-        foregroundColor: Colors.white,
+      appBar: TaxNGAppBar(
+        title: 'Calculation History',
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -268,7 +267,7 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen>
                   Icons.calculate,
                 ),
                 _buildStatItem(
-                  summary.savedCalculations.toString(),
+                  _historyService.savedCalculations.length.toString(),
                   'Saved',
                   Icons.bookmark,
                 ),
@@ -317,7 +316,6 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen>
       CalculationType.wht: 'WHT',
       CalculationType.payroll: 'Payroll',
       CalculationType.stampDuty: 'Stamp Duty',
-      CalculationType.other: 'Other',
     };
 
     return Card(
@@ -445,7 +443,7 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen>
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      history.typeDisplay,
+                      history.typeName,
                       style: TextStyle(
                         color: _getTypeColor(history.type),
                         fontWeight: FontWeight.w500,
@@ -512,8 +510,6 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen>
         return Colors.teal;
       case CalculationType.stampDuty:
         return Colors.red;
-      case CalculationType.other:
-        return Colors.grey;
     }
   }
 

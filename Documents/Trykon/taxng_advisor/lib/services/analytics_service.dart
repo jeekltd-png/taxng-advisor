@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import '../models/user.dart';
 import '../models/subscription_request.dart';
 import '../models/support_ticket.dart';
 import '../models/admin_activity_log.dart';

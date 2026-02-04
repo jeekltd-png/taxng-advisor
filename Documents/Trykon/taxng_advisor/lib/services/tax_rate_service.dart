@@ -6,23 +6,29 @@ import '../models/tax_rates.dart';
 
 /// Service for managing and updating Nigerian tax rates
 class TaxRateService extends ChangeNotifier {
-  NigerianTaxRates _rates = NigerianTaxRates.current();
   bool _isLoading = false;
   String? _error;
   DateTime? _lastUpdated;
 
-  NigerianTaxRates get rates => _rates;
   bool get isLoading => _isLoading;
   String? get error => _error;
   DateTime? get lastUpdated => _lastUpdated;
 
-  double get vatRate => _rates.vatRate;
-  double get citRate => _rates.citRate;
-  double get eduTaxRate => _rates.eduTaxRate;
-  double get nassTaxRate => _rates.nassTaxRate;
-  Map<String, double> get whtRates => _rates.whtRates;
-  List<PITBand> get pitBands => _rates.pitBands;
-  double get minimumWage => _rates.minimumWage;
+  double get vatRate => NigerianTaxRates.vatStandardRate / 100;
+  double get citRate => NigerianTaxRates.citLargeCompanyRate / 100;
+  double get eduTaxRate => NigerianTaxRates.tertiaryEducationTaxRate / 100;
+  double get nassTaxRate => 0.0; // Not applicable in current rates
+  Map<String, double> get whtRates => {
+        'Dividend': NigerianTaxRates.whtDividendCompany / 100,
+        'Interest': NigerianTaxRates.whtInterestCompany / 100,
+        'Royalty': NigerianTaxRates.whtRoyaltyCompany / 100,
+        'Rent': NigerianTaxRates.whtRentCompany / 100,
+        'Contract': NigerianTaxRates.whtContractCompany / 100,
+        'Consultancy': NigerianTaxRates.whtConsultancyCompany / 100,
+        'Others': 0.10,
+      };
+  List<PITBand> get pitBands => NigerianTaxRates.pitBands;
+  double get minimumWage => 70000; // Nigeria minimum wage
 
   Future<void> initialize() async {
     _lastUpdated = DateTime.now();
@@ -37,7 +43,6 @@ class TaxRateService extends ChangeNotifier {
     try {
       await Future.delayed(const Duration(seconds: 1));
 
-      _rates = NigerianTaxRates.current();
       _lastUpdated = DateTime.now();
       _isLoading = false;
       notifyListeners();
@@ -76,13 +81,10 @@ class TaxRateService extends ChangeNotifier {
     for (final band in pitBands) {
       if (remainingIncome <= 0) break;
 
-      final bandAmount = band.upperLimit != null
-          ? (band.upperLimit! - band.lowerLimit)
-          : remainingIncome;
+      final bandAmount = (band.upperLimit - band.lowerLimit);
 
-      final taxableInBand = remainingIncome > bandAmount
-          ? bandAmount
-          : remainingIncome;
+      final taxableInBand =
+          remainingIncome > bandAmount ? bandAmount : remainingIncome;
 
       tax += taxableInBand * band.rate;
       remainingIncome -= taxableInBand;
@@ -102,13 +104,10 @@ class TaxRateService extends ChangeNotifier {
 
     for (int i = 0; i < pitBands.length && remainingIncome > 0; i++) {
       final band = pitBands[i];
-      final bandAmount = band.upperLimit != null
-          ? (band.upperLimit! - band.lowerLimit)
-          : remainingIncome;
+      final bandAmount = (band.upperLimit - band.lowerLimit);
 
-      final taxableInBand = remainingIncome > bandAmount
-          ? bandAmount
-          : remainingIncome;
+      final taxableInBand =
+          remainingIncome > bandAmount ? bandAmount : remainingIncome;
 
       final taxInBand = taxableInBand * band.rate;
       breakdown['Band ${i + 1} (${(band.rate * 100).toInt()}%)'] = taxInBand;
@@ -121,9 +120,9 @@ class TaxRateService extends ChangeNotifier {
 
   String formatCurrency(double amount) {
     return '₦${amount.toStringAsFixed(2).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]},',
-    )}';
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (match) => '${match[1]},',
+        )}';
   }
 
   String formatPercentage(double rate) {
@@ -136,7 +135,8 @@ class TaxRateService extends ChangeNotifier {
       'CIT Rate': formatPercentage(citRate),
       'EDT Rate': formatPercentage(eduTaxRate),
       'Minimum Wage': formatCurrency(minimumWage),
-      'Effective Date': _rates.effectiveDate.toIso8601String().split('T').first,
+      'Effective Date':
+          NigerianTaxRates.lastUpdated.toIso8601String().split('T').first,
     };
   }
 }

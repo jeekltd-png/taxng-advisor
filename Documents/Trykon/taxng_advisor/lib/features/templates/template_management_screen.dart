@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/models/calculation_template.dart';
 import 'package:taxng_advisor/services/template_service.dart';
+import 'package:taxng_advisor/widgets/progress_overlay.dart';
 import 'package:intl/intl.dart';
 
 /// Template Management Screen - View, edit, and delete calculation templates
@@ -768,6 +769,11 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
   }
 
   void _duplicateTemplate(CalculationTemplate template) async {
+    ProgressOverlay.show(
+      context,
+      message: 'Duplicating template...',
+    );
+
     final duplicate = CalculationTemplate(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: '${template.name} (Copy)',
@@ -780,10 +786,14 @@ class _TemplateManagementScreenState extends State<TemplateManagementScreen> {
     );
 
     await TemplateService.saveTemplate(duplicate);
-    setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Template duplicated')),
-    );
+
+    if (mounted) {
+      ProgressOverlay.hide(context);
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Template duplicated')),
+      );
+    }
   }
 
   void _showHelpDialog() {

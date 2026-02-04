@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:taxng_advisor/services/tax_analytics_service.dart';
 import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:intl/intl.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Tax Overview Dashboard - Shows aggregated tax data with charts
 class TaxOverviewScreen extends StatefulWidget {
@@ -70,35 +71,9 @@ class _TaxOverviewScreenState extends State<TaxOverviewScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.analytics_outlined, size: 24),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Tax Overview',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-          ],
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.green[700]!, Colors.green[500]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        foregroundColor: Colors.white,
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'Tax Overview',
+        additionalActions: [
           PopupMenuButton<String>(
             initialValue: _selectedPeriod,
             onSelected: (value) {

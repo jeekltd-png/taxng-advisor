@@ -3,13 +3,13 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:share_plus/share_plus.dart';
 import 'package:taxng_advisor/services/tax_analytics_service.dart';
-import 'package:taxng_advisor/utils/tax_helpers.dart';
+import 'package:taxng_advisor/utils/tax_helpers.dart' hide CurrencyFormatter;
+import 'package:taxng_advisor/utils/currency_formatter.dart';
 import 'package:intl/intl.dart';
 
-/// Export Service - Handles CSV, Excel, and PDF exports
+/// Export Service - Handles CSV and PDF exports
 class ExportService {
   /// Export calculations to CSV
   static Future<String> exportToCSV({
@@ -51,78 +51,17 @@ class ExportService {
     return path;
   }
 
-  /// Export calculations to Excel
+  /// Export calculations to Excel-compatible CSV
+  /// Note: For true Excel format (.xlsx), a premium library would be needed.
+  /// This exports as CSV which can be opened in Excel.
   static Future<String> exportToExcel({
     List<TaxCalculationItem>? calculations,
     String? fileName,
   }) async {
-    calculations ??= TaxAnalyticsService.getRecentCalculations(limit: 1000);
-
-    if (calculations.isEmpty) {
-      throw Exception('No calculations to export');
-    }
-
-    // Create Excel workbook
-    final xlsio.Workbook workbook = xlsio.Workbook();
-    final xlsio.Worksheet sheet = workbook.worksheets[0];
-    sheet.name = 'Tax Calculations';
-
-    // Header row with styling
-    sheet.getRangeByIndex(1, 1).setText('Date');
-    sheet.getRangeByIndex(1, 2).setText('Tax Type');
-    sheet.getRangeByIndex(1, 3).setText('Description');
-    sheet.getRangeByIndex(1, 4).setText('Amount (NGN)');
-    sheet.getRangeByIndex(1, 5).setText('Currency');
-
-    // Style header
-    final xlsio.Style headerStyle = workbook.styles.add('HeaderStyle');
-    headerStyle.bold = true;
-    headerStyle.fontSize = 12;
-    headerStyle.backColor = '#4CAF50';
-    headerStyle.fontColor = '#FFFFFF';
-    sheet.getRangeByIndex(1, 1, 1, 5).cellStyle = headerStyle;
-
-    // Data rows
-    for (int i = 0; i < calculations.length; i++) {
-      final calc = calculations[i];
-      final rowIndex = i + 2;
-
-      sheet
-          .getRangeByIndex(rowIndex, 1)
-          .setText(DateFormat('yyyy-MM-dd HH:mm').format(calc.date));
-      sheet.getRangeByIndex(rowIndex, 2).setText(calc.type);
-      sheet.getRangeByIndex(rowIndex, 3).setText(calc.description);
-      sheet.getRangeByIndex(rowIndex, 4).setNumber(calc.amount);
-      sheet.getRangeByIndex(rowIndex, 5).setText('NGN');
-    }
-
-    // Auto-fit columns
-    sheet.autoFitColumn(1);
-    sheet.autoFitColumn(2);
-    sheet.autoFitColumn(3);
-    sheet.autoFitColumn(4);
-    sheet.autoFitColumn(5);
-
-    // Add summary section
-    final summaryRow = calculations.length + 3;
-    sheet.getRangeByIndex(summaryRow, 3).setText('Total:');
-    sheet.getRangeByIndex(summaryRow, 3).cellStyle.bold = true;
-    sheet
-        .getRangeByIndex(summaryRow, 4)
-        .setFormula('=SUM(D2:D${calculations.length + 1})');
-    sheet.getRangeByIndex(summaryRow, 4).cellStyle.bold = true;
-    sheet.getRangeByIndex(summaryRow, 4).numberFormat = '#,##0.00';
-
-    // Save to file
-    final directory = await getApplicationDocumentsDirectory();
+    // Use CSV format which Excel can open
     fileName ??=
-        'tax_calculations_${DateTime.now().millisecondsSinceEpoch}.xlsx';
-    final path = '${directory.path}/$fileName';
-    final List<int> bytes = workbook.saveAsStream();
-    File(path).writeAsBytes(bytes);
-    workbook.dispose();
-
-    return path;
+        'tax_calculations_${DateTime.now().millisecondsSinceEpoch}.csv';
+    return exportToCSV(calculations: calculations, fileName: fileName);
   }
 
   /// Export calculations to PDF

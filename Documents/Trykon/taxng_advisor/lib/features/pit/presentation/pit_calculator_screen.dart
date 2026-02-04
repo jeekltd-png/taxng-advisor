@@ -13,6 +13,7 @@ import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// PIT Calculator Screen
 class PitCalculatorScreen extends StatefulWidget {
@@ -224,19 +225,9 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/icon.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text('PIT Calculator'),
-          ],
-        ),
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'PIT Calculator',
+        additionalActions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
             tooltip: 'Quick Import Help',
