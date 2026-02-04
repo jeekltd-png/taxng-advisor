@@ -13,8 +13,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   bool _isRegister = false;
   bool _isBusiness = false;
+  bool _useEmailAsUsername = true; // Default to using email as username
   final _businessNameController = TextEditingController();
   final _tinController = TextEditingController();
   final _cacController = TextEditingController();
@@ -31,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     _emailController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _businessNameController.dispose();
     _tinController.dispose();
     _cacController.dispose();
@@ -42,6 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Sync username with email when "use email as username" is enabled
+  void _onEmailChanged(String value) {
+    if (_useEmailAsUsername) {
+      _usernameController.text = value;
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -50,6 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (_isRegister) {
       final email = _emailController.text.trim();
+      final firstName = _firstNameController.text.trim();
+      final lastName = _lastNameController.text.trim();
       final businessName = _businessNameController.text.trim();
       final tin = _tinController.text.trim();
       final cac = _cacController.text.trim();
@@ -63,6 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
         username: username,
         password: password,
         email: email,
+        firstName: firstName.isNotEmpty ? firstName : null,
+        lastName: lastName.isNotEmpty ? lastName : null,
         isBusiness: _isBusiness,
         businessName: _isBusiness ? businessName : null,
         tin: tin.isNotEmpty ? tin : null,
@@ -153,20 +169,203 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Username',
-                      hintText: 'e.g., admin or user@example.com',
-                      helperText: 'Username can be a valid email address',
+                  // First Name and Last Name (only for registration)
+                  if (_isRegister) ...[
+                    TextFormField(
+                      controller: _firstNameController,
+                      decoration: InputDecoration(
+                        labelText: 'First Name',
+                        prefixIcon: const Icon(Icons.person_outline),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (v) => _isRegister && (v == null || v.isEmpty)
+                          ? 'Required'
+                          : null,
                     ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Required' : null,
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _lastNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Last Name',
+                        prefixIcon: const Icon(Icons.person_outline),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (v) => _isRegister && (v == null || v.isEmpty)
+                          ? 'Required'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    // Email field (for registration)
+                    TextFormField(
+                      controller: _emailController,
+                      onChanged: _onEmailChanged,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) {
+                        if (_isRegister && (v == null || v.isEmpty)) {
+                          return 'Required';
+                        }
+                        if (v != null && v.isNotEmpty && !v.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        hintText: 'e.g., 08012345678',
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 12),
+                    // Use email as username toggle
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _useEmailAsUsername
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: Colors.blue[700],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Use email as username',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[900],
+                                  ),
+                                ),
+                                Text(
+                                  _useEmailAsUsername
+                                      ? 'Your email will be used for login'
+                                      : 'Enter a custom username below',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _useEmailAsUsername,
+                            onChanged: (v) {
+                              setState(() {
+                                _useEmailAsUsername = v;
+                                if (v) {
+                                  _usernameController.text =
+                                      _emailController.text;
+                                } else {
+                                  _usernameController.clear();
+                                }
+                              });
+                            },
+                            activeColor: Colors.blue[700],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Username field (disabled if using email)
+                    TextFormField(
+                      controller: _usernameController,
+                      enabled: !_useEmailAsUsername,
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: _useEmailAsUsername
+                            ? 'Using email as username'
+                            : 'Enter your username',
+                        prefixIcon: const Icon(Icons.person),
+                        filled: true,
+                        fillColor: _useEmailAsUsername
+                            ? Colors.grey[200]
+                            : Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        helperText: _useEmailAsUsername
+                            ? 'Auto-populated from email'
+                            : null,
+                      ),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  // Username field for Login only
+                  if (!_isRegister)
+                    TextFormField(
+                      controller: _usernameController,
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'e.g., admin or user@example.com',
+                        helperText: 'Username can be a valid email address',
+                        prefixIcon: const Icon(Icons.person),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required' : null,
+                    ),
+                  if (!_isRegister) const SizedBox(height: 12),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      filled: true,
+                      fillColor: Colors.green[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                     obscureText: true,
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Required' : null,
@@ -174,102 +373,161 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12),
                   if (_isRegister)
                     TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                  const SizedBox(height: 12),
-                  if (_isRegister)
-                    TextFormField(
                       controller: _tinController,
-                      decoration: const InputDecoration(
-                        labelText: 'TIN (Tax Identification Number)',
+                      decoration: InputDecoration(
+                        labelText: 'Tax Identification Number (TIN)',
                         hintText: 'e.g., 12345678-0001',
                         helperText:
                             'Optional but recommended for tax compliance',
+                        prefixIcon: const Icon(Icons.badge_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
-                    ),
-                  const SizedBox(height: 12),
-                  if (_isRegister)
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        hintText: 'e.g., 08012345678',
-                        helperText: 'Required by FIRS',
-                      ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                  const SizedBox(height: 12),
-                  if (_isRegister)
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'Physical Address',
-                        hintText: 'Complete address required by FIRS',
-                      ),
-                      maxLines: 2,
                     ),
                   const SizedBox(height: 12),
                   if (_isRegister && !_isBusiness)
                     TextFormField(
                       controller: _bvnController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'BVN (Bank Verification Number)',
                         hintText: '11 digits',
                         helperText: 'Required for individual taxpayers',
+                        prefixIcon: const Icon(Icons.account_balance_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
                       maxLength: 11,
                     ),
                   const SizedBox(height: 12),
                   if (_isRegister)
-                    Row(
-                      children: [
-                        const Text('Register as business'),
-                        const SizedBox(width: 8),
-                        Switch(
-                          value: _isBusiness,
-                          onChanged: (v) => setState(() => _isBusiness = v),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isBusiness ? Colors.blue[50] : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _isBusiness
+                              ? Colors.blue[300]!
+                              : Colors.grey[300]!,
                         ),
-                      ],
-                    ),
-                  if (_isRegister && _isBusiness)
-                    TextFormField(
-                      controller: _businessNameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Business Name'),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.business,
+                            color: _isBusiness
+                                ? Colors.blue[700]
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Business Account',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: _isBusiness
+                                        ? Colors.blue[900]
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                                Text(
+                                  'Register as a business entity',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _isBusiness
+                                        ? Colors.blue[700]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _isBusiness,
+                            onChanged: (v) => setState(() => _isBusiness = v),
+                            activeColor: Colors.blue[700],
+                          ),
+                        ],
+                      ),
                     ),
                   if (_isRegister && _isBusiness) ...[
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _cacController,
-                      decoration: const InputDecoration(
-                        labelText: 'CAC Registration Number',
-                        hintText: 'e.g., RC1234567 or BN1234567',
-                        helperText: 'Required for registered businesses',
+                      controller: _businessNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Business Name',
+                        prefixIcon: const Icon(Icons.domain),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
+                      validator: (v) => _isBusiness && (v == null || v.isEmpty)
+                          ? 'Required'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _cacController,
+                      decoration: InputDecoration(
+                        labelText: 'CAC Number (Optional)',
+                        hintText: 'e.g., RC1234567 or BN1234567',
+                        prefixIcon: const Icon(Icons.description_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: InputDecoration(
+                        labelText: 'Business Address',
+                        hintText: 'Complete address required by FIRS',
+                        prefixIcon: const Icon(Icons.location_on_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _vatController,
-                      decoration: const InputDecoration(
-                        labelText: 'VAT Registration Number',
+                      decoration: InputDecoration(
+                        labelText: 'VAT Number (Optional)',
                         hintText: 'If turnover > ₦25M',
-                        helperText: 'Required for VAT-registered businesses',
+                        prefixIcon: const Icon(Icons.receipt_outlined),
+                        filled: true,
+                        fillColor: Colors.green[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _payeController,
-                      decoration: const InputDecoration(
-                        labelText: 'PAYE Reference Number',
-                        hintText: 'If you have employees',
-                        helperText: 'Required for employers',
-                      ),
                     ),
                   ],
                   if (_isRegister && _isBusiness) ...[
@@ -356,10 +614,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ],
-                  const SizedBox(height: 18),
-                  ElevatedButton(
-                    onPressed: _submit,
-                    child: Text(_isRegister ? 'Register' : 'Login'),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _isRegister ? 'Create Account' : 'Login',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 20),
+                        ],
+                      ),
+                    ),
                   ),
                   if (!_isRegister) ...[
                     const SizedBox(height: 8),

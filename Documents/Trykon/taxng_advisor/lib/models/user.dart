@@ -2,6 +2,8 @@ class UserProfile {
   final String id;
   final String username;
   final String email;
+  final String? firstName;
+  final String? lastName;
   final bool isBusiness;
   final String? businessName;
   final String?
@@ -19,7 +21,7 @@ class UserProfile {
   final DateTime? tccExpiryDate; // Tax Clearance Certificate expiry date
   final String? industrySector; // Industry sector (e.g., 'oil_and_gas')
   final String
-      subscriptionTier; // Subscription tier: 'free', 'basic', 'pro', 'business'
+      subscriptionTier; // Subscription tier: 'free', 'individual', 'business', 'enterprise'
   final DateTime createdAt;
   final DateTime modifiedAt;
   final bool isAdmin; // Admin can access developer documentation
@@ -28,6 +30,8 @@ class UserProfile {
     required this.id,
     required this.username,
     required this.email,
+    this.firstName,
+    this.lastName,
     required this.isBusiness,
     this.businessName,
     this.tin,
@@ -45,6 +49,17 @@ class UserProfile {
     required this.modifiedAt,
     this.isAdmin = false,
   });
+
+  /// Get user's full name (firstName + lastName), or username if not available
+  String get fullName {
+    final parts = <String>[];
+    if (firstName != null && firstName!.isNotEmpty) parts.add(firstName!);
+    if (lastName != null && lastName!.isNotEmpty) parts.add(lastName!);
+    return parts.isNotEmpty ? parts.join(' ') : username;
+  }
+
+  /// Get display name (firstName if available, else username)
+  String get displayName => firstName ?? username;
 
   /// Check if business is in oil and gas sector (requires USD payments)
   bool get isOilAndGasSector => industrySector == 'oil_and_gas';
@@ -72,6 +87,8 @@ class UserProfile {
       'id': id,
       'username': username,
       'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
       'isBusiness': isBusiness,
       'businessName': businessName,
       'tin': tin,
@@ -96,6 +113,8 @@ class UserProfile {
       id: m['id'] as String,
       username: m['username'] as String,
       email: m['email'] as String,
+      firstName: m['firstName'] as String?,
+      lastName: m['lastName'] as String?,
       isBusiness: m['isBusiness'] as bool? ?? false,
       businessName: m['businessName'] as String?,
       tin: m['tin'] as String?,
