@@ -30,6 +30,7 @@ import 'package:taxng_advisor/features/admin/admin_subscription_screen.dart';
 import 'package:taxng_advisor/features/onboarding/presentation/welcome_screen.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,12 +55,9 @@ class TaxNgApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'TaxPadi',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.green),
-      darkTheme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.green,
-          brightness: Brightness.dark),
+      title: 'TaxNG',
+      theme: TaxNGTheme.lightTheme(),
+      darkTheme: TaxNGTheme.darkTheme(),
       themeMode: ThemeMode.system,
       home: const WelcomeScreen(),
       routes: {
