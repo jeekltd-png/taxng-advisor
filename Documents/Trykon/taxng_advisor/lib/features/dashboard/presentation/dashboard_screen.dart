@@ -180,7 +180,7 @@ class _TaxTile extends StatelessWidget {
               Icon(
                 _getIconForTax(title),
                 size: 40,
-                color: Colors.green,
+                color: const Color(0xFF0066FF), // TaxNG Primary Blue
               ),
               const SizedBox(height: 8),
               Text(
