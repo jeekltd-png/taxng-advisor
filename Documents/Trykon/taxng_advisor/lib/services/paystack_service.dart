@@ -6,7 +6,8 @@ import 'package:taxng_advisor/models/pricing_tier.dart';
 /// Service for handling Paystack payment processing
 /// CURRENTLY DISABLED - Using manual payment only due to package compatibility issues
 class PaystackService {
-  // TODO: Replace with your actual Paystack public key from dashboard
+  // Paystack public key — configure via environment variable in production
+  // ignore: unused_field
   static const String _publicKey = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
   /// Initialize Paystack with public key
@@ -87,7 +88,7 @@ class PaystackService {
   }
 
   /// Generate unique payment reference
-  static String _generateReference(String userId) {
+  static String generateReference(String userId) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return 'TAXNG_${userId}_$timestamp';
   }

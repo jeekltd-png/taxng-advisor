@@ -5,8 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:taxng_advisor/services/tax_analytics_service.dart';
-import 'package:taxng_advisor/utils/tax_helpers.dart' hide CurrencyFormatter;
-import 'package:taxng_advisor/utils/currency_formatter.dart';
+import 'package:taxng_advisor/utils/tax_helpers.dart';
 import 'package:intl/intl.dart';
 
 /// Export Service - Handles CSV and PDF exports

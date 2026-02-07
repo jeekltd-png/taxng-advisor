@@ -349,7 +349,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       await PaymentService.sharePdfReceipt(
                         taxType: payment.taxType,
                         amount: payment.amount,
-                        currency: payment.currency ?? 'NGN',
+                        currency: payment.currency,
                         referenceId: payment.referenceId ?? payment.id,
                         paymentMethod:
                             _getPaymentMethodLabel(payment.paymentMethod),

@@ -1,39 +1,85 @@
+import 'dart:convert';
+import 'dart:math';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EncryptionService {
   static const String _keyPrefix = 'taxng_';
-  static final _storage = FlutterSecureStorage();
+  static const String _encKeyStorageKey = '${_keyPrefix}enc_key';
+  static const String _encIvStorageKey = '${_keyPrefix}enc_iv';
+  static final _storage = const FlutterSecureStorage();
 
-  // Initialize encryption key - in production, derive from secure source
-  static final _key = encrypt.Key.fromLength(32);
-  static final _iv = encrypt.IV.fromLength(16);
+  static late encrypt.Key _key;
+  static late encrypt.IV _iv;
   static late encrypt.Encrypter _encrypter;
+  static bool _initialized = false;
 
-  /// Initialize encryption service
-  static void initialize() {
-    _encrypter = encrypt.Encrypter(encrypt.AES(_key));
-    print('✅ Encryption service initialized');
+  /// Generate a cryptographically secure random string of given byte length.
+  static String _generateSecureRandom(int length) {
+    final random = Random.secure();
+    final values = List<int>.generate(length, (_) => random.nextInt(256));
+    return base64Url.encode(values);
+  }
+
+  /// Initialize encryption service.
+  /// Persists the key/IV in flutter_secure_storage so they survive restarts.
+  static Future<void> initialize() async {
+    try {
+      // Try to load existing key & IV from secure storage
+      String? storedKey = await _storage.read(key: _encKeyStorageKey);
+      String? storedIv = await _storage.read(key: _encIvStorageKey);
+
+      if (storedKey == null || storedIv == null) {
+        // First run — generate and persist key + IV
+        final keyBytes = _generateSecureRandom(32);
+        final ivBytes = _generateSecureRandom(16);
+        await _storage.write(key: _encKeyStorageKey, value: keyBytes);
+        await _storage.write(key: _encIvStorageKey, value: ivBytes);
+        storedKey = keyBytes;
+        storedIv = ivBytes;
+      }
+
+      _key = encrypt.Key.fromBase64(storedKey);
+      _iv = encrypt.IV.fromBase64(storedIv);
+      _encrypter = encrypt.Encrypter(encrypt.AES(_key));
+      _initialized = true;
+      debugPrint('✅ Encryption service initialized');
+    } catch (e) {
+      debugPrint('⚠️ Encryption service init failed: $e');
+      // Fallback — generate ephemeral key (data won't persist across restarts)
+      _key = encrypt.Key.fromLength(32);
+      _iv = encrypt.IV.fromLength(16);
+      _encrypter = encrypt.Encrypter(encrypt.AES(_key));
+      _initialized = true;
+    }
   }
 
   /// Encrypt sensitive data
   static String encryptData(String data) {
+    if (!_initialized) {
+      debugPrint('⚠️ EncryptionService not initialized, returning data as-is');
+      return data;
+    }
     try {
       final encrypted = _encrypter.encrypt(data, iv: _iv);
       return encrypted.base64;
     } catch (e) {
-      print('❌ Encryption failed: $e');
+      debugPrint('❌ Encryption failed: $e');
       return data; // Return unencrypted if encryption fails
     }
   }
 
   /// Decrypt data
   static String decryptData(String encryptedData) {
+    if (!_initialized) {
+      return '';
+    }
     try {
       final decrypted = _encrypter.decrypt64(encryptedData, iv: _iv);
       return decrypted;
     } catch (e) {
-      print('❌ Decryption failed: $e');
+      debugPrint('❌ Decryption failed: $e');
       return ''; // Return empty if decryption fails
     }
   }
@@ -45,9 +91,9 @@ class EncryptionService {
         key: '${_keyPrefix}auth_token',
         value: encryptData(token),
       );
-      print('✅ Auth token stored securely');
+      debugPrint('✅ Auth token stored securely');
     } catch (e) {
-      print('❌ Failed to store auth token: $e');
+      debugPrint('❌ Failed to store auth token: $e');
     }
   }
 
@@ -57,7 +103,7 @@ class EncryptionService {
       final encrypted = await _storage.read(key: '${_keyPrefix}auth_token');
       return encrypted != null ? decryptData(encrypted) : null;
     } catch (e) {
-      print('❌ Failed to retrieve auth token: $e');
+      debugPrint('❌ Failed to retrieve auth token: $e');
       return null;
     }
   }
@@ -72,9 +118,9 @@ class EncryptionService {
         key: '${_keyPrefix}business_$businessId',
         value: encrypted,
       );
-      print('✅ Business data encrypted and stored');
+      debugPrint('✅ Business data encrypted and stored');
     } catch (e) {
-      print('❌ Failed to store business data: $e');
+      debugPrint('❌ Failed to store business data: $e');
     }
   }
 
@@ -90,7 +136,7 @@ class EncryptionService {
       // Parse the decrypted data back to map if needed
       return {'data': decrypted};
     } catch (e) {
-      print('❌ Failed to retrieve business data: $e');
+      debugPrint('❌ Failed to retrieve business data: $e');
       return null;
     }
   }
@@ -105,9 +151,9 @@ class EncryptionService {
         key: '${_keyPrefix}result_$resultId',
         value: encrypted,
       );
-      print('✅ Calculation result encrypted and stored');
+      debugPrint('✅ Calculation result encrypted and stored');
     } catch (e) {
-      print('❌ Failed to store calculation result: $e');
+      debugPrint('❌ Failed to store calculation result: $e');
     }
   }
 
@@ -115,9 +161,9 @@ class EncryptionService {
   static Future<void> deleteAuthToken() async {
     try {
       await _storage.delete(key: '${_keyPrefix}auth_token');
-      print('✅ Auth token deleted');
+      debugPrint('✅ Auth token deleted');
     } catch (e) {
-      print('❌ Failed to delete auth token: $e');
+      debugPrint('❌ Failed to delete auth token: $e');
     }
   }
 
@@ -125,9 +171,9 @@ class EncryptionService {
   static Future<void> clearAllEncryptedData() async {
     try {
       await _storage.deleteAll();
-      print('✅ All encrypted data cleared');
+      debugPrint('✅ All encrypted data cleared');
     } catch (e) {
-      print('❌ Failed to clear encrypted data: $e');
+      debugPrint('❌ Failed to clear encrypted data: $e');
     }
   }
 

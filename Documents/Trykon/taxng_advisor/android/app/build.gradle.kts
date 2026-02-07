@@ -70,9 +70,10 @@ android {
         release {
             // Use release signing if key.properties is present, otherwise fallback to debug signing.
             signingConfig = if (hasReleaseSigning) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
-            // Disable R8/Proguard minification to prevent crashes
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // Enable R8 minification for smaller APK
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

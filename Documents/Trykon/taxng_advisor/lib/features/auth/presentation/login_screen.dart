@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           Navigator.pushReplacementNamed(context, '/welcome');
         }
@@ -301,7 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                               });
                             },
-                            activeColor: Colors.blue[700],
+                            activeThumbColor: Colors.blue[700],
                           ),
                         ],
                       ),
@@ -459,7 +459,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Switch(
                             value: _isBusiness,
                             onChanged: (v) => setState(() => _isBusiness = v),
-                            activeColor: Colors.blue[700],
+                            activeThumbColor: Colors.blue[700],
                           ),
                         ],
                       ),

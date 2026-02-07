@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 /// HiveService centralizes all Hive box names and accessors.
@@ -43,10 +44,10 @@ class HiveService {
       await Hive.openBox(profileBox);
       await Hive.openBox(upgradeRequestsBox);
 
-      print('✅ Hive initialized successfully');
+      debugPrint('✅ Hive initialized successfully');
     } catch (e) {
       // Bubble up the error so callers can decide how to recover.
-      print('❌ Hive initialization error: $e');
+      debugPrint('❌ Hive initialization error: $e');
       rethrow;
     }
   }
@@ -233,5 +234,26 @@ class HiveService {
       'hasErrors':
           (syncBox.get('failed_records', defaultValue: []) as List).isNotEmpty,
     };
+  }
+
+  /// Initialize Hive for testing — uses a temporary directory.
+  static Future<void> initForTesting() async {
+    await Hive.initFlutter('test_hive_data');
+    await Hive.openBox(usersBox);
+    await Hive.openBox(paymentsBox);
+    await Hive.openBox(citBox);
+    await Hive.openBox(pitBox);
+    await Hive.openBox(vatBox);
+    await Hive.openBox(whtBox);
+    await Hive.openBox(stampDutyBox);
+    await Hive.openBox(payrollBox);
+    await Hive.openBox(syncBox);
+    await Hive.openBox(profileBox);
+    await Hive.openBox(upgradeRequestsBox);
+  }
+
+  /// Close all Hive boxes for testing teardown.
+  static Future<void> closeForTesting() async {
+    await Hive.close();
   }
 }

@@ -122,7 +122,6 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
         }
       } else if (pickedFile.path.isNotEmpty) {
         // For mobile/desktop, use file-based approach
-        final file = File(pickedFile.path);
 
         if (widget.calculationId != null) {
           final savedAttachment = await _attachmentService.saveAttachment(

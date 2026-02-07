@@ -18,15 +18,6 @@ class PerformanceTestDataGenerator {
     'stamp_duty',
   ];
 
-  static final _activityTypes = [
-    'download',
-    'login',
-    'logout',
-    'calculator_use',
-    'feedback',
-    'rating',
-  ];
-
   static final _feedbackMessages = [
     'Great app, very helpful!',
     'Easy to use calculator',

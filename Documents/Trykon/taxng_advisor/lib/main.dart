@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:taxng_advisor/features/auth/presentation/login_screen.dart';
@@ -10,7 +12,6 @@ import 'package:taxng_advisor/features/wht/presentation/wht_calculator_screen.da
 import 'package:taxng_advisor/features/payroll/presentation/payroll_calculator_screen.dart';
 import 'package:taxng_advisor/features/stamp_duty/presentation/stamp_duty_screen.dart';
 import 'package:taxng_advisor/features/reminders/presentation/reminders_screen.dart';
-import 'package:taxng_advisor/features/debug/presentation/debug_users_screen.dart';
 import 'package:taxng_advisor/features/help/faq_screen.dart';
 import 'package:taxng_advisor/features/help/help_articles_screen.dart';
 import 'package:taxng_advisor/features/help/contact_support_screen.dart';
@@ -41,22 +42,40 @@ import 'package:taxng_advisor/features/settings/presentation/language_settings_s
 import 'package:taxng_advisor/features/settings/presentation/whatsapp_settings_screen.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/services/admin_access_control.dart';
 import 'package:taxng_advisor/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    // Initialize Hive database
-    await HiveService.initialize();
+  // Global error handler — catches all uncaught Flutter framework errors
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    if (kReleaseMode) {
+      // In production: log to crash reporting service (e.g. Firebase Crashlytics)
+      debugPrint('FlutterError: ${details.exceptionAsString()}');
+    }
+  };
 
-    // Seed test users
-    await AuthService.seedTestUsers();
-  } catch (e) {
-    print('Initialization error: $e');
-  }
+  // Catch all uncaught async errors
+  runZonedGuarded(() async {
+    try {
+      // Initialize Hive database
+      await HiveService.initialize();
 
-  runApp(const TaxNgApp());
+      // Only seed test users in debug mode
+      if (kDebugMode) {
+        await AuthService.seedTestUsers();
+      }
+    } catch (e) {
+      debugPrint('Initialization error: $e');
+    }
+
+    runApp(const TaxNgApp());
+  }, (error, stackTrace) {
+    debugPrint('Uncaught error: $error');
+    debugPrint('Stack trace: $stackTrace');
+  });
 }
 
 class TaxNgApp extends StatelessWidget {
@@ -76,26 +95,32 @@ class TaxNgApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/forgot-password': (_) => const ForgotPasswordScreen(),
         '/dashboard': (_) => const DashboardScreen(),
-        '/debug/users': (_) => const DebugUsersScreen(),
         '/help/faq': (_) => const FaqScreen(),
         '/help/articles': (_) => const HelpArticlesScreen(),
         '/help/contact': (_) => const ContactSupportScreen(),
         '/help/sample-data': (_) => const SampleDataScreen(),
         '/help/pricing': (_) => const PricingScreen(),
-        '/help/admin/pricing': (_) => const AdminPricingEditorScreen(),
+        // Admin routes — guarded at runtime
+        '/help/admin/pricing': (_) =>
+            const AdminGuardedRoute(child: AdminPricingEditorScreen()),
         '/help/admin/currency-conversion': (_) =>
-            const CurrencyConversionAdminScreen(),
-        '/help/admin/deployment': (_) => const AdminDeploymentGuideScreen(),
-        '/help/admin/user-testing': (_) => const AdminUserTestingGuideScreen(),
-        '/help/admin/csv-excel': (_) => const AdminCsvExcelGuideScreen(),
-        '/help/admin/test-cases': (_) => const TestCasesAdminScreen(),
+            const AdminGuardedRoute(child: CurrencyConversionAdminScreen()),
+        '/help/admin/deployment': (_) =>
+            const AdminGuardedRoute(child: AdminDeploymentGuideScreen()),
+        '/help/admin/user-testing': (_) =>
+            const AdminGuardedRoute(child: AdminUserTestingGuideScreen()),
+        '/help/admin/csv-excel': (_) =>
+            const AdminGuardedRoute(child: AdminCsvExcelGuideScreen()),
+        '/help/admin/test-cases': (_) =>
+            const AdminGuardedRoute(child: TestCasesAdminScreen()),
         '/help/payment-guide': (_) => const PaymentGuideScreen(isAdmin: false),
         '/help/admin/payment-guide': (_) =>
-            const PaymentGuideScreen(isAdmin: true),
+            const AdminGuardedRoute(child: PaymentGuideScreen(isAdmin: true)),
         '/help/privacy-policy': (_) => const PrivacyPolicyScreen(),
         '/payment/history': (_) => const PaymentHistoryScreen(),
         '/subscription/upgrade': (_) => const UpgradeRequestScreen(),
-        '/admin/subscriptions': (_) => const AdminSubscriptionScreen(),
+        '/admin/subscriptions': (_) =>
+            const AdminGuardedRoute(child: AdminSubscriptionScreen()),
         '/vat': (_) => const VatCalculatorScreen(),
         '/pit': (_) => const PitCalculatorScreen(),
         '/cit': (_) => const CitCalculatorScreen(),
@@ -117,5 +142,61 @@ class TaxNgApp extends StatelessWidget {
         '/settings/whatsapp': (_) => const WhatsAppSettingsScreen(),
       },
     );
+  }
+}
+
+/// Route guard widget that checks admin access before displaying child.
+/// Redirects non-admin users back with an access denied message.
+class AdminGuardedRoute extends StatefulWidget {
+  final Widget child;
+  const AdminGuardedRoute({super.key, required this.child});
+
+  @override
+  State<AdminGuardedRoute> createState() => _AdminGuardedRouteState();
+}
+
+class _AdminGuardedRouteState extends State<AdminGuardedRoute> {
+  bool _isAdmin = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAccess();
+  }
+
+  Future<void> _checkAccess() async {
+    final isAdmin = await AdminAccessControl.isAdmin();
+    if (!isAdmin && mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Access denied. Admin privileges required.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (mounted) {
+      setState(() {
+        _isAdmin = true;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!_isAdmin) {
+      return const Scaffold(
+        body: Center(child: Text('Access Denied')),
+      );
+    }
+    return widget.child;
   }
 }
