@@ -1,4 +1,6 @@
 /// TaxNG AppBar Widget with user profile display
+library;
+
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 
@@ -26,7 +28,7 @@ class TaxNGAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
-      backgroundColor: const Color(0xFF1B5E20),
+      backgroundColor: const Color(0xFF166534),
       foregroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.white),
       actionsIconTheme: const IconThemeData(color: Colors.white),

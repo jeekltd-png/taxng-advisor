@@ -4,7 +4,7 @@ import 'dart:math';
 
 /// Welcome screen shown on first app launch with animated falling bubbles
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -42,13 +42,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         children: [
           // Background with gradient
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.green[700]!,
-                  Colors.green[900]!,
+                  Color(0xFF166534),
+                  Color(0xFF16A34A),
+                  Color(0xFF22C55E),
                 ],
               ),
             ),
@@ -203,9 +204,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           Column(
                             children: [
                               const SizedBox(height: 20),
-                              // Continue button
+                              // Continue button (Login)
                               SizedBox(
                                 width: double.infinity,
+                                height: 54,
                                 child: ElevatedButton(
                                   onPressed: () {
                                     Navigator.pushReplacementNamed(
@@ -213,27 +215,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
-                                    foregroundColor: Colors.green[800],
+                                    foregroundColor: const Color(0xFF166534),
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
-                                    elevation: 8,
+                                    elevation: 0,
                                   ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Continue',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Icon(Icons.arrow_forward, size: 18),
-                                    ],
+                                  child: const Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -242,6 +238,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               // Register button
                               SizedBox(
                                 width: double.infinity,
+                                height: 54,
                                 child: OutlinedButton(
                                   onPressed: () {
                                     Navigator.pushReplacementNamed(
@@ -257,22 +254,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.person_add, size: 18),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Register',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                  child: const Text(
+                                    'Create Account',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
                                   ),
                                 ),
                               ),

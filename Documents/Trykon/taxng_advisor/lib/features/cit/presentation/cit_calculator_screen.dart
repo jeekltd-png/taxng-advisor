@@ -84,8 +84,8 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
         final profit = data['profit']!;
 
         return CitCalculator.calculate(
-          turnover: turnover as double,
-          profit: profit as double,
+          turnover: turnover,
+          profit: profit,
         );
       },
       operationName: 'CIT Calculation',

@@ -1027,7 +1027,7 @@ class _ExpenseCategoriesScreenState extends State<ExpenseCategoriesScreen>
                         labelText: 'Category',
                         border: OutlineInputBorder(),
                       ),
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       items: _categories.where((c) => c.isActive).map((c) {
                         return DropdownMenuItem(
                           value: c,
