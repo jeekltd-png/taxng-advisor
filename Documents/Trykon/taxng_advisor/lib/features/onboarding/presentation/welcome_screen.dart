@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -122,7 +123,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                 ),
                                 child: const Text(
-                                  'v2.6.0 (Build 36)',
+                                  'v3.0.0 (Build 38)',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.white,
@@ -236,6 +237,67 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 12),
+
+                              // Register button
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      '/login',
+                                      arguments: {'register': true},
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: const BorderSide(
+                                        color: Colors.white, width: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.person_add, size: 18),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Register',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Debug - Seed button (only in debug mode)
+                              if (kDebugMode) ...[
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                          context, '/debug/users');
+                                    },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white70,
+                                    ),
+                                    child: const Text(
+                                      'Debug - Seed / Login Users',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+
                               const SizedBox(height: 12),
 
                               // Fine print

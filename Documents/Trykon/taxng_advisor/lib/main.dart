@@ -12,6 +12,7 @@ import 'package:taxng_advisor/features/wht/presentation/wht_calculator_screen.da
 import 'package:taxng_advisor/features/payroll/presentation/payroll_calculator_screen.dart';
 import 'package:taxng_advisor/features/stamp_duty/presentation/stamp_duty_screen.dart';
 import 'package:taxng_advisor/features/reminders/presentation/reminders_screen.dart';
+import 'package:taxng_advisor/features/debug/presentation/debug_users_screen.dart';
 import 'package:taxng_advisor/features/help/faq_screen.dart';
 import 'package:taxng_advisor/features/help/help_articles_screen.dart';
 import 'package:taxng_advisor/features/help/contact_support_screen.dart';
@@ -95,6 +96,8 @@ class TaxNgApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/forgot-password': (_) => const ForgotPasswordScreen(),
         '/dashboard': (_) => const DashboardScreen(),
+        // Debug route — only functional in debug mode
+        if (kDebugMode) '/debug/users': (_) => const DebugUsersScreen(),
         '/help/faq': (_) => const FaqScreen(),
         '/help/articles': (_) => const HelpArticlesScreen(),
         '/help/contact': (_) => const ContactSupportScreen(),

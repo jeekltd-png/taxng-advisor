@@ -28,6 +28,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final _addressController = TextEditingController();
   String? _selectedIndustrySector;
   String? _selectedTaxOffice;
+  bool _didCheckArgs = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didCheckArgs) {
+      _didCheckArgs = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['register'] == true) {
+        setState(() {
+          _isRegister = true;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
