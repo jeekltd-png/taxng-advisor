@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:math';
 
-/// Welcome screen shown on first app launch with animated falling bubbles
+/// Onboarding carousel welcome screen with animated bubbles
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -14,6 +15,43 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final List<Bubble> _bubbles = [];
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  static const _pages = [
+    _OnboardingPage(
+      emoji: '🇳🇬',
+      title: 'TaxNG',
+      subtitle: 'Your Padi for\nNigerian Tax Matters',
+      description:
+          'Navigate Nigeria\'s Tax Act 2025 with confidence — calculate, comply, conquer.',
+      icon: Icons.verified_outlined,
+    ),
+    _OnboardingPage(
+      emoji: '🧮',
+      title: 'Instant Calculations',
+      subtitle: 'VAT • PIT • CIT • WHT\nPayroll • Stamp Duty',
+      description:
+          'All Nigerian tax types at your fingertips. Get accurate results in seconds.',
+      icon: Icons.calculate_rounded,
+    ),
+    _OnboardingPage(
+      emoji: '📊',
+      title: 'Smart Records',
+      subtitle: 'Generate & Share\nTax Records',
+      description:
+          'Create professional tax records and share them with your accountant instantly.',
+      icon: Icons.receipt_long_rounded,
+    ),
+    _OnboardingPage(
+      emoji: '🔒',
+      title: '100% Secure',
+      subtitle: 'Your Data Stays\nPrivate & Protected',
+      description:
+          'Bank-level encryption. Your financial data never leaves your device.',
+      icon: Icons.security_rounded,
+    ),
+  ];
 
   @override
   void initState() {
@@ -32,6 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void dispose() {
     _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -68,282 +107,280 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
           // Main content
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              const SizedBox(height: 10),
-                              // App icon
-                              Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Image.asset(
-                                    'assets/icon.png',
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Version display
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Text(
-                                  'v3.0.0 (Build 38)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Tagline
-                              const Text(
-                                'Your Padi for Nigerian Tax Matters',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Striking statement
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Column(
-                                  children: [
-                                    Icon(
-                                      Icons.verified_outlined,
-                                      size: 40,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(height: 12),
-                                    Text(
-                                      'Navigate Nigeria\'s Tax Act 2025 with Confidence',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      'Calculate taxes accurately • Generate records • Stay compliant with ease',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-
-                              // Key features
-                              _buildFeature(
-                                  Icons.calculate, 'Instant Tax Calculations'),
-                              const SizedBox(height: 10),
-                              _buildFeature(Icons.receipt_long,
-                                  'Payment Link Generation'),
-                              const SizedBox(height: 10),
-                              _buildFeature(
-                                  Icons.security, '100% Secure & Private'),
-                            ],
+            child: Column(
+              children: [
+                // App icon + version at top
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'assets/icon.png',
+                            fit: BoxFit.cover,
                           ),
-                          Column(
-                            children: [
-                              const SizedBox(height: 20),
-                              // Continue button (Login)
-                              SizedBox(
-                                width: double.infinity,
-                                height: 54,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pushReplacementNamed(
-                                        context, '/login');
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF166534),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: const Text(
-                                    'Sign In',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Register button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 54,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      '/login',
-                                      arguments: {'register': true},
-                                    );
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(
-                                        color: Colors.white, width: 2),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Create Account',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // Debug - Seed button (only in debug mode)
-                              if (kDebugMode) ...[
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                          context, '/debug/users');
-                                    },
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.white70,
-                                    ),
-                                    child: const Text(
-                                      'Debug - Seed / Login Users',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                              ],
-
-                              const SizedBox(height: 12),
-
-                              // Fine print
-                              Text(
-                                'By continuing, you agree to our Terms of Service\nand Privacy Policy',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.white.withOpacity(0.8),
-                                  height: 1.3,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                          ),
+                        ),
+                        child: const Text(
+                          'v3.1.0 (Build 39)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Page view carousel
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _pages.length,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
+                    itemBuilder: (context, index) {
+                      final page = _pages[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Emoji
+                            Text(
+                              page.emoji,
+                              style: const TextStyle(fontSize: 52),
+                            ),
+                            const SizedBox(height: 16),
+                            // Feature icon in glass card
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.25),
+                                ),
+                              ),
+                              child: Icon(
+                                page.icon,
+                                size: 36,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Subtitle
+                            Text(
+                              page.subtitle,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1.2,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Description
+                            Text(
+                              page.description,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.85),
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Page indicator
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: SmoothPageIndicator(
+                    controller: _pageController,
+                    count: _pages.length,
+                    effect: WormEffect(
+                      dotColor: Colors.white.withOpacity(0.3),
+                      activeDotColor: Colors.white,
+                      dotHeight: 8,
+                      dotWidth: 8,
+                      spacing: 8,
                     ),
                   ),
-                );
-              },
+                ),
+
+                // Buttons
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: Column(
+                    children: [
+                      // Continue / Get Started button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_currentPage < _pages.length - 1) {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            } else {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF166534),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            _currentPage < _pages.length - 1
+                                ? 'Next'
+                                : 'Sign In',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Register button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/login',
+                              arguments: {'register': true},
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side:
+                                const BorderSide(color: Colors.white, width: 2),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Create Account',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Debug - Seed button (only in debug mode)
+                      if (kDebugMode) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/debug/users');
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white70,
+                            ),
+                            child: const Text(
+                              'Debug - Seed / Login Users',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 8),
+
+                      // Fine print
+                      Text(
+                        'By continuing, you agree to our Terms of Service\nand Privacy Policy',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white.withOpacity(0.8),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ), // Closing SafeArea
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFeature(IconData icon, String text) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 15,
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
+/// Onboarding page data model
+class _OnboardingPage {
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+
+  const _OnboardingPage({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+  });
 }
 
 // Bubble data model

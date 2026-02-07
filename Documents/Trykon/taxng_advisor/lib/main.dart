@@ -44,10 +44,16 @@ import 'package:taxng_advisor/features/settings/presentation/whatsapp_settings_s
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/admin_access_control.dart';
+import 'package:taxng_advisor/services/theme_service.dart';
+import 'package:taxng_advisor/features/admin/admin_ratings_dashboard.dart';
 import 'package:taxng_advisor/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize ThemeService before app starts
+  final themeService = ThemeService();
 
   // Global error handler — catches all uncaught Flutter framework errors
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -64,6 +70,9 @@ void main() async {
       // Initialize Hive database
       await HiveService.initialize();
 
+      // Initialize theme from persisted preference
+      await themeService.initialize();
+
       // Only seed test users in debug mode
       if (kDebugMode) {
         await AuthService.seedTestUsers();
@@ -72,7 +81,12 @@ void main() async {
       debugPrint('Initialization error: $e');
     }
 
-    runApp(const TaxNgApp());
+    runApp(
+      ChangeNotifierProvider.value(
+        value: themeService,
+        child: const TaxNgApp(),
+      ),
+    );
   }, (error, stackTrace) {
     debugPrint('Uncaught error: $error');
     debugPrint('Stack trace: $stackTrace');
@@ -84,65 +98,72 @@ class TaxNgApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'TaxNG',
-      theme: TaxNGTheme.lightTheme(),
-      darkTheme: TaxNGTheme.darkTheme(),
-      themeMode: ThemeMode.system,
-      home: const WelcomeScreen(),
-      routes: {
-        '/welcome': (_) => const WelcomeScreen(),
-        '/login': (_) => const LoginScreen(),
-        '/forgot-password': (_) => const ForgotPasswordScreen(),
-        '/dashboard': (_) => const DashboardScreen(),
-        // Debug route — only functional in debug mode
-        if (kDebugMode) '/debug/users': (_) => const DebugUsersScreen(),
-        '/help/faq': (_) => const FaqScreen(),
-        '/help/articles': (_) => const HelpArticlesScreen(),
-        '/help/contact': (_) => const ContactSupportScreen(),
-        '/help/sample-data': (_) => const SampleDataScreen(),
-        '/help/pricing': (_) => const PricingScreen(),
-        // Admin routes — guarded at runtime
-        '/help/admin/pricing': (_) =>
-            const AdminGuardedRoute(child: AdminPricingEditorScreen()),
-        '/help/admin/currency-conversion': (_) =>
-            const AdminGuardedRoute(child: CurrencyConversionAdminScreen()),
-        '/help/admin/deployment': (_) =>
-            const AdminGuardedRoute(child: AdminDeploymentGuideScreen()),
-        '/help/admin/user-testing': (_) =>
-            const AdminGuardedRoute(child: AdminUserTestingGuideScreen()),
-        '/help/admin/csv-excel': (_) =>
-            const AdminGuardedRoute(child: AdminCsvExcelGuideScreen()),
-        '/help/admin/test-cases': (_) =>
-            const AdminGuardedRoute(child: TestCasesAdminScreen()),
-        '/help/payment-guide': (_) => const PaymentGuideScreen(isAdmin: false),
-        '/help/admin/payment-guide': (_) =>
-            const AdminGuardedRoute(child: PaymentGuideScreen(isAdmin: true)),
-        '/help/privacy-policy': (_) => const PrivacyPolicyScreen(),
-        '/payment/history': (_) => const PaymentHistoryScreen(),
-        '/subscription/upgrade': (_) => const UpgradeRequestScreen(),
-        '/admin/subscriptions': (_) =>
-            const AdminGuardedRoute(child: AdminSubscriptionScreen()),
-        '/vat': (_) => const VatCalculatorScreen(),
-        '/pit': (_) => const PitCalculatorScreen(),
-        '/cit': (_) => const CitCalculatorScreen(),
-        '/wht': (_) => const WhtCalculatorScreen(),
-        '/payroll': (_) => const PayrollCalculatorScreen(),
-        '/stamp_duty': (_) => const StampDutyScreen(),
-        '/reminders': (_) => const RemindersScreen(),
-        '/profile': (_) => const ProfileScreen(),
-        '/tax-overview': (_) => const TaxOverviewScreen(),
-        '/templates': (_) => const TemplateManagementScreen(),
-        '/help/feedback': (_) => const FeedbackScreen(),
-        '/calendar': (_) => const TaxCalendarScreen(),
-        '/history': (_) => const CalculationHistoryScreen(),
-        // Phase 3 - Nice-to-Have Features
-        '/share': (_) => const ShareWithAccountantScreen(),
-        '/cpa-dashboard': (_) => const CPADashboardScreen(),
-        '/expenses': (_) => const ExpenseCategoriesScreen(),
-        '/settings/language': (_) => const LanguageSettingsScreen(),
-        '/settings/whatsapp': (_) => const WhatsAppSettingsScreen(),
+    return Consumer<ThemeService>(
+      builder: (context, themeService, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'TaxNG',
+          theme: TaxNGTheme.lightTheme(),
+          darkTheme: TaxNGTheme.darkTheme(),
+          themeMode: themeService.themeMode,
+          home: const WelcomeScreen(),
+          routes: {
+            '/welcome': (_) => const WelcomeScreen(),
+            '/login': (_) => const LoginScreen(),
+            '/forgot-password': (_) => const ForgotPasswordScreen(),
+            '/dashboard': (_) => const DashboardScreen(),
+            // Debug route — only functional in debug mode
+            if (kDebugMode) '/debug/users': (_) => const DebugUsersScreen(),
+            '/help/faq': (_) => const FaqScreen(),
+            '/help/articles': (_) => const HelpArticlesScreen(),
+            '/help/contact': (_) => const ContactSupportScreen(),
+            '/help/sample-data': (_) => const SampleDataScreen(),
+            '/help/pricing': (_) => const PricingScreen(),
+            // Admin routes — guarded at runtime
+            '/help/admin/pricing': (_) =>
+                const AdminGuardedRoute(child: AdminPricingEditorScreen()),
+            '/help/admin/currency-conversion': (_) =>
+                const AdminGuardedRoute(child: CurrencyConversionAdminScreen()),
+            '/help/admin/deployment': (_) =>
+                const AdminGuardedRoute(child: AdminDeploymentGuideScreen()),
+            '/help/admin/user-testing': (_) =>
+                const AdminGuardedRoute(child: AdminUserTestingGuideScreen()),
+            '/help/admin/csv-excel': (_) =>
+                const AdminGuardedRoute(child: AdminCsvExcelGuideScreen()),
+            '/help/admin/test-cases': (_) =>
+                const AdminGuardedRoute(child: TestCasesAdminScreen()),
+            '/help/payment-guide': (_) =>
+                const PaymentGuideScreen(isAdmin: false),
+            '/help/admin/payment-guide': (_) => const AdminGuardedRoute(
+                child: PaymentGuideScreen(isAdmin: true)),
+            '/help/privacy-policy': (_) => const PrivacyPolicyScreen(),
+            '/payment/history': (_) => const PaymentHistoryScreen(),
+            '/subscription/upgrade': (_) => const UpgradeRequestScreen(),
+            '/admin/subscriptions': (_) =>
+                const AdminGuardedRoute(child: AdminSubscriptionScreen()),
+            '/admin/ratings': (_) =>
+                const AdminGuardedRoute(child: AdminRatingsDashboard()),
+            '/vat': (_) => const VatCalculatorScreen(),
+            '/pit': (_) => const PitCalculatorScreen(),
+            '/cit': (_) => const CitCalculatorScreen(),
+            '/wht': (_) => const WhtCalculatorScreen(),
+            '/payroll': (_) => const PayrollCalculatorScreen(),
+            '/stamp_duty': (_) => const StampDutyScreen(),
+            '/reminders': (_) => const RemindersScreen(),
+            '/profile': (_) => const ProfileScreen(),
+            '/tax-overview': (_) => const TaxOverviewScreen(),
+            '/templates': (_) => const TemplateManagementScreen(),
+            '/help/feedback': (_) => const FeedbackScreen(),
+            '/calendar': (_) => const TaxCalendarScreen(),
+            '/history': (_) => const CalculationHistoryScreen(),
+            // Phase 3 - Nice-to-Have Features
+            '/share': (_) => const ShareWithAccountantScreen(),
+            '/cpa-dashboard': (_) => const CPADashboardScreen(),
+            '/expenses': (_) => const ExpenseCategoriesScreen(),
+            '/settings/language': (_) => const LanguageSettingsScreen(),
+            '/settings/whatsapp': (_) => const WhatsAppSettingsScreen(),
+          },
+        );
       },
     );
   }

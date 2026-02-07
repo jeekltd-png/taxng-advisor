@@ -1,6 +1,6 @@
 name: taxng_advisor
 description: "TaxNG \u2014 Smart Tax Made Simple. Nigeria Tax Act 2025 compliance app for individuals and businesses."
-version: 3.0.0+38
+version: 3.1.0+39
 environment:
   sdk: '>=3.2.0 <4.0.0'
 
@@ -29,6 +29,8 @@ dependencies:
   csv: ^6.0.0
   share_plus: ^7.2.1
   path_provider: ^2.1.1
+  google_fonts: ^8.0.1
+  smooth_page_indicator: ^2.0.1
 
 dev_dependencies:
   flutter_test:
