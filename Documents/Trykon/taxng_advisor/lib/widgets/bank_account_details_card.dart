@@ -17,11 +17,11 @@ class BankAccountDetailsCard extends StatelessWidget {
   final bool compact;
 
   const BankAccountDetailsCard({
-    Key? key,
+    super.key,
     this.onCopy,
     this.showInstructions = true,
     this.compact = false,
-  }) : super(key: key);
+  });
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text));

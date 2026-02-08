@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen for currency conversion documentation and implementation
 class CurrencyConversionAdminScreen extends StatefulWidget {
-  const CurrencyConversionAdminScreen({Key? key}) : super(key: key);
+  const CurrencyConversionAdminScreen({super.key});
 
   @override
   State<CurrencyConversionAdminScreen> createState() =>

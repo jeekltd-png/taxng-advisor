@@ -163,7 +163,7 @@ class AuthService {
       final uname = s['username'] as String;
       if (existingUsernames.contains(uname)) continue;
 
-      final id = 'user_${DateTime.now().millisecondsSinceEpoch}_${uname}';
+      final id = 'user_${DateTime.now().millisecondsSinceEpoch}_$uname';
       final now = DateTime.now();
       final userMap = {
         'id': id,

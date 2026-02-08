@@ -29,7 +29,7 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
   WhtType _selectedType = WhtType.dividends;
   WhtResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   final Map<WhtType, String> _whtTypeLabels = {
     WhtType.dividends: 'Dividends (10%)',

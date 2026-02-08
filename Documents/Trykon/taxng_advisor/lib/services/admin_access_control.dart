@@ -178,11 +178,11 @@ class AdminProtectedScreen extends StatefulWidget {
   final bool requireMainAdmin;
 
   const AdminProtectedScreen({
-    Key? key,
+    super.key,
     required this.child,
     this.deniedMessage,
     this.requireMainAdmin = false,
-  }) : super(key: key);
+  });
 
   @override
   State<AdminProtectedScreen> createState() => _AdminProtectedScreenState();

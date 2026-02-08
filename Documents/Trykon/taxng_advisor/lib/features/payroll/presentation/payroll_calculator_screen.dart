@@ -34,7 +34,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
 
   PayrollResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {

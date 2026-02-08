@@ -88,8 +88,7 @@ class RecentCalculationsWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 ...calculations
-                    .map((calc) => _buildCalculationTile(context, calc))
-                    .toList(),
+                    .map((calc) => _buildCalculationTile(context, calc)),
               ],
             ),
           ),

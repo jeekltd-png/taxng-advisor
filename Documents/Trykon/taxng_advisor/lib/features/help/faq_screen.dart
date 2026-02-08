@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class FaqScreen extends StatefulWidget {
-  const FaqScreen({Key? key}) : super(key: key);
+  const FaqScreen({super.key});
 
   @override
   State<FaqScreen> createState() => _FaqScreenState();

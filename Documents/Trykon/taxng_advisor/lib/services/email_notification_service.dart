@@ -89,7 +89,7 @@ Subscription Details:
 - Status: Active
 - Approved Date: ${DateTime.now().toString().split('.')[0]}
 
-You now have access to all ${tier} tier features:
+You now have access to all $tier tier features:
 ${_getTierFeatures(tier)}
 
 Thank you for upgrading to TaxPadi ${tier.toUpperCase()}!

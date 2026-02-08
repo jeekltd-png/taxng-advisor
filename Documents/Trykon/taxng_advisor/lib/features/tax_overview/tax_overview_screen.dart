@@ -7,7 +7,7 @@ import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Tax Overview Dashboard - Shows aggregated tax data with charts
 class TaxOverviewScreen extends StatefulWidget {
-  const TaxOverviewScreen({Key? key}) : super(key: key);
+  const TaxOverviewScreen({super.key});
 
   @override
   State<TaxOverviewScreen> createState() => _TaxOverviewScreenState();

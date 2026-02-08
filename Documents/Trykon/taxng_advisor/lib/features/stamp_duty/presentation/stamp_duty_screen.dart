@@ -31,7 +31,7 @@ class _StampDutyScreenState extends State<StampDutyScreen>
   StampDutyType _selectedType = StampDutyType.sale;
   StampDutyResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   final Map<StampDutyType, String> _stampDutyTypeLabels = {
     StampDutyType.electronicTransfer: 'Electronic Transfer (0.15%)',

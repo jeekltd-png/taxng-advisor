@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen for pricing plans explanation and payment collection guide
 class AdminPaymentCollectionGuide extends StatefulWidget {
-  const AdminPaymentCollectionGuide({Key? key}) : super(key: key);
+  const AdminPaymentCollectionGuide({super.key});
 
   @override
   State<AdminPaymentCollectionGuide> createState() =>
@@ -48,10 +48,8 @@ class _AdminPaymentCollectionGuideState
           children: [
             _buildOverviewCard(),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('💰 4 Pricing Plans Overview'),
             const SizedBox(height: 16),
-            
             _buildPlanCard(
               title: '1. Free Tier',
               price: '₦0/month',
@@ -75,17 +73,19 @@ class _AdminPaymentCollectionGuideState
                 '✗ No payment recording',
                 '✗ No data import (CSV/JSON)',
               ],
-              businessCase: 'Build trust and let users experience value before paying. Free tier converts to paid when users need real functionality.',
+              businessCase:
+                  'Build trust and let users experience value before paying. Free tier converts to paid when users need real functionality.',
             ),
             const SizedBox(height: 16),
-            
             _buildPlanCard(
               title: '2. Individual Plan',
               price: '₦3,000/month (~\$3.50 USD)',
               annualPrice: '₦30,000/year (Save ₦6,000)',
               color: Colors.blue,
-              targetAudience: 'Freelancers, consultants, sole traders, small business owners',
-              userType: 'Individual professionals managing their own tax obligations',
+              targetAudience:
+                  'Freelancers, consultants, sole traders, small business owners',
+              userType:
+                  'Individual professionals managing their own tax obligations',
               requirements: [
                 'Active email address',
                 'Payment method (card, bank transfer, or USSD)',
@@ -104,17 +104,19 @@ class _AdminPaymentCollectionGuideState
                 '✓ Save calculation templates',
                 '✓ Notes and attachments per calculation',
               ],
-              businessCase: 'Primary revenue driver. Targets Nigeria\'s growing freelance economy and solo entrepreneurs who need professional tax tools.',
+              businessCase:
+                  'Primary revenue driver. Targets Nigeria\'s growing freelance economy and solo entrepreneurs who need professional tax tools.',
             ),
             const SizedBox(height: 16),
-            
             _buildPlanCard(
               title: '3. Business Plan',
               price: '₦12,000/month (~\$14 USD)',
               annualPrice: '₦120,000/year (Save ₦24,000)',
               color: Colors.green,
-              targetAudience: 'SMEs, accounting firms, tax consultants, growing businesses',
-              userType: 'Businesses with multiple staff members, registered companies',
+              targetAudience:
+                  'SMEs, accounting firms, tax consultants, growing businesses',
+              userType:
+                  'Businesses with multiple staff members, registered companies',
               requirements: [
                 'Registered business email domain',
                 'Business registration certificate (CAC)',
@@ -136,16 +138,17 @@ class _AdminPaymentCollectionGuideState
                 '✓ Advanced reporting and analytics',
                 '✓ Monthly tax compliance reports',
               ],
-              businessCase: 'Targets SMEs and tax consultants. Price is less than hiring one accountant for a day. High value for small accounting firms.',
+              businessCase:
+                  'Targets SMEs and tax consultants. Price is less than hiring one accountant for a day. High value for small accounting firms.',
             ),
             const SizedBox(height: 16),
-            
             _buildPlanCard(
               title: '4. Enterprise Plan',
               price: '₦50,000/month (~\$60 USD)',
               annualPrice: 'Custom pricing (volume discounts available)',
               color: Colors.deepPurple,
-              targetAudience: 'Large corporations, multinationals, banks, telecom companies, oil & gas',
+              targetAudience:
+                  'Large corporations, multinationals, banks, telecom companies, oil & gas',
               userType: 'Organizations with 20+ employees, complex tax needs',
               requirements: [
                 'Corporate email with company domain',
@@ -172,13 +175,12 @@ class _AdminPaymentCollectionGuideState
                 '✓ On-premise deployment option',
                 '✓ Training for staff members',
               ],
-              businessCase: 'High-margin tier. One client covers 10+ SME subscriptions. Targets Fortune 500 companies in Nigeria.',
+              businessCase:
+                  'High-margin tier. One client covers 10+ SME subscriptions. Targets Fortune 500 companies in Nigeria.',
             ),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('💳 Payment Collection Methods'),
             const SizedBox(height: 16),
-            
             _buildPaymentMethodCard(
               title: '1. Paystack Integration (Recommended)',
               icon: Icons.credit_card,
@@ -211,7 +213,6 @@ class _AdminPaymentCollectionGuideState
               ],
             ),
             const SizedBox(height: 16),
-            
             _buildPaymentMethodCard(
               title: '2. Direct Bank Transfer',
               icon: Icons.account_balance,
@@ -243,7 +244,6 @@ class _AdminPaymentCollectionGuideState
               ],
             ),
             const SizedBox(height: 16),
-            
             _buildPaymentMethodCard(
               title: '3. USSD Code (Quick Payment)',
               icon: Icons.dialpad,
@@ -272,7 +272,6 @@ class _AdminPaymentCollectionGuideState
               ],
             ),
             const SizedBox(height: 16),
-            
             _buildPaymentMethodCard(
               title: '4. Standing Order / Direct Debit',
               icon: Icons.autorenew,
@@ -299,55 +298,52 @@ class _AdminPaymentCollectionGuideState
               ],
             ),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('🔄 Recommended Payment Flow'),
             const SizedBox(height: 12),
-            _buildFlowStep('1', 'User Registration', 
-              'New users sign up and automatically get Free tier access. No payment required.'),
-            _buildFlowStep('2', 'Explore Phase', 
-              'Users explore calculators with example data. They see value but can\'t use custom data.'),
-            _buildFlowStep('3', 'Upgrade Prompt', 
-              'When user tries to enter custom data, show upgrade modal with pricing plans.'),
-            _buildFlowStep('4', 'Plan Selection', 
-              'User selects Individual, Business, or Enterprise plan based on needs.'),
-            _buildFlowStep('5', 'Payment Method', 
-              'User chooses: Paystack (card/USSD) or Bank Transfer.'),
-            _buildFlowStep('6', 'Payment Processing', 
-              'Paystack: Instant\nBank Transfer: Manual verification within 24 hours'),
-            _buildFlowStep('7', 'Activation', 
-              'Subscription activated, user gets email confirmation and full access.'),
-            _buildFlowStep('8', 'Recurring Billing', 
-              'Paystack auto-charges monthly. Bank transfer requires user action.'),
+            _buildFlowStep('1', 'User Registration',
+                'New users sign up and automatically get Free tier access. No payment required.'),
+            _buildFlowStep('2', 'Explore Phase',
+                'Users explore calculators with example data. They see value but can\'t use custom data.'),
+            _buildFlowStep('3', 'Upgrade Prompt',
+                'When user tries to enter custom data, show upgrade modal with pricing plans.'),
+            _buildFlowStep('4', 'Plan Selection',
+                'User selects Individual, Business, or Enterprise plan based on needs.'),
+            _buildFlowStep('5', 'Payment Method',
+                'User chooses: Paystack (card/USSD) or Bank Transfer.'),
+            _buildFlowStep('6', 'Payment Processing',
+                'Paystack: Instant\nBank Transfer: Manual verification within 24 hours'),
+            _buildFlowStep('7', 'Activation',
+                'Subscription activated, user gets email confirmation and full access.'),
+            _buildFlowStep('8', 'Recurring Billing',
+                'Paystack auto-charges monthly. Bank transfer requires user action.'),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('📊 Payment Tracking & Management'),
             const SizedBox(height: 12),
             _buildInfoCard(
               'Admin Responsibilities',
               '• Monitor Subscription Management screen daily\n'
-              '• Verify bank transfer payments within 24 hours\n'
-              '• Approve/reject upgrade requests\n'
-              '• Handle failed payment notifications\n'
-              '• Process refund requests\n'
-              '• Track monthly recurring revenue (MRR)\n'
-              '• Follow up on expiring subscriptions\n'
-              '• Respond to payment issues via email',
+                  '• Verify bank transfer payments within 24 hours\n'
+                  '• Approve/reject upgrade requests\n'
+                  '• Handle failed payment notifications\n'
+                  '• Process refund requests\n'
+                  '• Track monthly recurring revenue (MRR)\n'
+                  '• Follow up on expiring subscriptions\n'
+                  '• Respond to payment issues via email',
               Colors.blue,
             ),
             const SizedBox(height: 12),
             _buildInfoCard(
               'Automated Features',
               '• Paystack handles recurring charges\n'
-              '• Email reminders 7 days before expiry\n'
-              '• Grace period: 3 days after expiration\n'
-              '• Auto-downgrade to Free after grace period\n'
-              '• Payment failure notifications\n'
-              '• Receipt generation and emailing\n'
-              '• Subscription status updates',
+                  '• Email reminders 7 days before expiry\n'
+                  '• Grace period: 3 days after expiration\n'
+                  '• Auto-downgrade to Free after grace period\n'
+                  '• Payment failure notifications\n'
+                  '• Receipt generation and emailing\n'
+                  '• Subscription status updates',
               Colors.green,
             ),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('💡 Best Practices'),
             const SizedBox(height: 12),
             _buildBulletList([
@@ -363,12 +359,10 @@ class _AdminPaymentCollectionGuideState
               'Offer pro-rated refunds for cancellations',
             ]),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('🎯 Revenue Projections'),
             const SizedBox(height: 12),
             _buildRevenueCard(),
             const SizedBox(height: 24),
-            
             _buildSectionHeader('❓ Common Questions'),
             const SizedBox(height: 12),
             _buildFAQ(),
@@ -489,33 +483,36 @@ class _AdminPaymentCollectionGuideState
                   _buildSubHeader('Target Audience'),
                   Text(targetAudience, style: const TextStyle(fontSize: 13)),
                   const SizedBox(height: 12),
-                  
                   _buildSubHeader('User Type'),
                   Text(userType, style: const TextStyle(fontSize: 13)),
                   const SizedBox(height: 12),
-                  
                   _buildSubHeader('Requirements'),
                   ...requirements.map((req) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('• ', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-                        Expanded(child: Text(req, style: const TextStyle(fontSize: 13))),
-                      ],
-                    ),
-                  )),
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('• ',
+                                style: TextStyle(
+                                    color: color, fontWeight: FontWeight.bold)),
+                            Expanded(
+                                child: Text(req,
+                                    style: const TextStyle(fontSize: 13))),
+                          ],
+                        ),
+                      )),
                   const SizedBox(height: 12),
-                  
                   _buildSubHeader('Features'),
                   ...features.map((feature) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(feature, style: const TextStyle(fontSize: 12)),
-                  )),
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child:
+                            Text(feature, style: const TextStyle(fontSize: 12)),
+                      )),
                   const SizedBox(height: 12),
-                  
                   _buildSubHeader('Business Case'),
-                  Text(businessCase, style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+                  Text(businessCase,
+                      style: const TextStyle(
+                          fontSize: 13, fontStyle: FontStyle.italic)),
                 ],
               ),
             ),
@@ -557,35 +554,32 @@ class _AdminPaymentCollectionGuideState
               ],
             ),
             const SizedBox(height: 12),
-            
             _buildSubHeader('How It Works:'),
             const SizedBox(height: 4),
             ...howItWorks.asMap().entries.map((entry) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                '${entry.key + 1}. ${entry.value}',
-                style: const TextStyle(fontSize: 12),
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '${entry.key + 1}. ${entry.value}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                )),
             const SizedBox(height: 12),
-            
             _buildSubHeader('Advantages:'),
             const SizedBox(height: 4),
             ...advantages.map((adv) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(adv, style: const TextStyle(fontSize: 12)),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(adv, style: const TextStyle(fontSize: 12)),
+                )),
             const SizedBox(height: 12),
-            
             _buildSubHeader('Setup Steps:'),
             const SizedBox(height: 4),
             ...setup.asMap().entries.map((entry) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                '${entry.key + 1}. ${entry.value}',
-                style: const TextStyle(fontSize: 12),
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '${entry.key + 1}. ${entry.value}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                )),
           ],
         ),
       ),
@@ -663,7 +657,10 @@ class _AdminPaymentCollectionGuideState
             const SizedBox(height: 8),
             Text(
               'Realistic with focused marketing in Lagos/Abuja',
-              style: TextStyle(fontSize: 12, color: Colors.grey[700], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                  fontStyle: FontStyle.italic),
             ),
           ],
         ),

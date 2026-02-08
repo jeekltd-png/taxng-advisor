@@ -14,7 +14,7 @@ import '../../models/user_activity.dart';
 /// - Feedback submissions
 /// - App ratings
 class AdminUserActivityScreen extends StatefulWidget {
-  const AdminUserActivityScreen({Key? key}) : super(key: key);
+  const AdminUserActivityScreen({super.key});
 
   @override
   State<AdminUserActivityScreen> createState() =>

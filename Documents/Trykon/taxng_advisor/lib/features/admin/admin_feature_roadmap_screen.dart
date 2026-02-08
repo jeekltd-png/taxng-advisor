@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Admin screen showing recommended feature roadmap and monetization strategy
 class AdminFeatureRoadmapScreen extends StatelessWidget {
-  const AdminFeatureRoadmapScreen({Key? key}) : super(key: key);
+  const AdminFeatureRoadmapScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

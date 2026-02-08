@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen for UX recommendations and improvements
 class AdminUxRecommendationsScreen extends StatefulWidget {
-  const AdminUxRecommendationsScreen({Key? key}) : super(key: key);
+  const AdminUxRecommendationsScreen({super.key});
 
   @override
   State<AdminUxRecommendationsScreen> createState() =>

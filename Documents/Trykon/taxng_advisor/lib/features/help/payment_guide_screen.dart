@@ -7,9 +7,9 @@ class PaymentGuideScreen extends StatefulWidget {
   final bool isAdmin;
 
   const PaymentGuideScreen({
-    Key? key,
+    super.key,
     this.isAdmin = false,
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentGuideScreen> createState() => _PaymentGuideScreenState();

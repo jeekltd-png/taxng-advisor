@@ -9,12 +9,12 @@ class CurrencyConverterWidget extends StatefulWidget {
   final bool isBold;
 
   const CurrencyConverterWidget({
-    Key? key,
+    super.key,
     required this.nairaAmount,
     this.label = 'Tax Amount',
     this.color,
     this.isBold = false,
-  }) : super(key: key);
+  });
 
   @override
   State<CurrencyConverterWidget> createState() =>
@@ -151,10 +151,10 @@ class CurrencyConversionCard extends StatelessWidget {
   final String title;
 
   const CurrencyConversionCard({
-    Key? key,
+    super.key,
     required this.nairaAmount,
     this.title = 'Tax Amount Conversion',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

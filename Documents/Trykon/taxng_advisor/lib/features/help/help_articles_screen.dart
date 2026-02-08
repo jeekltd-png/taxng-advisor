@@ -4,7 +4,7 @@ import 'package:taxng_advisor/features/help/payment_guide_screen.dart';
 import 'package:taxng_advisor/features/help/privacy_policy_screen.dart';
 
 class HelpArticlesScreen extends StatefulWidget {
-  const HelpArticlesScreen({Key? key}) : super(key: key);
+  const HelpArticlesScreen({super.key});
 
   @override
   State<HelpArticlesScreen> createState() => _HelpArticlesScreenState();

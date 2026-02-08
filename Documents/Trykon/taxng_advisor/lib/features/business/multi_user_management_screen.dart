@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Multi-User Management Screen for Business tier
 class MultiUserManagementScreen extends StatefulWidget {
-  const MultiUserManagementScreen({Key? key}) : super(key: key);
+  const MultiUserManagementScreen({super.key});
 
   @override
   State<MultiUserManagementScreen> createState() =>

@@ -9,11 +9,11 @@ class TemplateActionButtons extends StatelessWidget {
   final Function(Map<String, dynamic>) onTemplateLoaded;
 
   const TemplateActionButtons({
-    Key? key,
+    super.key,
     required this.taxType,
     required this.currentData,
     required this.onTemplateLoaded,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

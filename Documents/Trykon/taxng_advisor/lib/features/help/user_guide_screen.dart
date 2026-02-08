@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Comprehensive user guide for using the TaxPadi app
 class UserGuideScreen extends StatelessWidget {
-  const UserGuideScreen({Key? key}) : super(key: key);
+  const UserGuideScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

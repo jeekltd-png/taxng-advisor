@@ -131,13 +131,13 @@ class PitCalculator {
     final ratePercent = (rate * 100).toInt();
 
     if (previousLimit == 0.0) {
-      return 'First ₦800K @ ${ratePercent}%';
+      return 'First ₦800K @ $ratePercent%';
     } else if (upperLimit == double.infinity) {
-      return 'Above ₦50M @ ${ratePercent}%';
+      return 'Above ₦50M @ $ratePercent%';
     } else {
       final rangeM =
           ((upperLimit - previousLimit) / 1000000).toStringAsFixed(1);
-      return 'Next ₦${rangeM}M @ ${ratePercent}%';
+      return 'Next ₦${rangeM}M @ $ratePercent%';
     }
   }
 }

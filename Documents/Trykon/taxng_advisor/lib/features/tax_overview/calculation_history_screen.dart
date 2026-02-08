@@ -10,7 +10,7 @@ import 'package:taxng_advisor/widgets/progress_overlay.dart';
 
 /// Calculation History Screen - Shows all calculations across all tax types
 class CalculationHistoryScreen extends StatefulWidget {
-  const CalculationHistoryScreen({Key? key}) : super(key: key);
+  const CalculationHistoryScreen({super.key});
 
   @override
   State<CalculationHistoryScreen> createState() =>

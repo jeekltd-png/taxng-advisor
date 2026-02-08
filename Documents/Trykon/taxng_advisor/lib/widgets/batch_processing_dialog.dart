@@ -10,10 +10,10 @@ class BatchProcessingDialog extends StatefulWidget {
   final VoidCallback onApplied;
 
   const BatchProcessingDialog({
-    Key? key,
+    super.key,
     required this.selectedCalculations,
     required this.onApplied,
-  }) : super(key: key);
+  });
 
   @override
   State<BatchProcessingDialog> createState() => _BatchProcessingDialogState();

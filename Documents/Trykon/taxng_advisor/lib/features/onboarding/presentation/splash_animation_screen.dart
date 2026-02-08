@@ -10,7 +10,7 @@ import 'dart:math' as math;
 /// - Slogan appears
 /// - Tap/click to continue
 class SplashAnimationScreen extends StatefulWidget {
-  const SplashAnimationScreen({Key? key}) : super(key: key);
+  const SplashAnimationScreen({super.key});
 
   @override
   State<SplashAnimationScreen> createState() => _SplashAnimationScreenState();
@@ -386,7 +386,7 @@ class SquaresPainter extends CustomPainter {
 
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    final squareSize = 30.0;
+    const squareSize = 30.0;
 
     // Calculate positions based on progress (1.0 = fully converged)
     final distance = (1 - progress) * math.max(size.width, size.height) / 2;

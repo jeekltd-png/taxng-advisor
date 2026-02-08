@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class SampleDataScreen extends StatefulWidget {
-  const SampleDataScreen({Key? key}) : super(key: key);
+  const SampleDataScreen({super.key});
 
   @override
   State<SampleDataScreen> createState() => _SampleDataScreenState();
@@ -220,7 +220,7 @@ class _SampleDataScreenState extends State<SampleDataScreen> {
               isJson: isJson,
               onCopy: () => _copyToClipboard(e.value),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

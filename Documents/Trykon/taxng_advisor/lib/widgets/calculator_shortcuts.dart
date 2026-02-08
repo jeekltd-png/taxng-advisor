@@ -11,29 +11,34 @@ class CalculatorShortcuts extends StatelessWidget {
   final VoidCallback? onTemplate;
 
   const CalculatorShortcuts({
-    Key? key,
+    super.key,
     required this.child,
     this.onSave,
     this.onCalculate,
     this.onClear,
     this.onExport,
     this.onTemplate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         // Ctrl+S - Save/Calculate
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS): const CalculateIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS):
+            const CalculateIntent(),
         // Ctrl+Enter - Calculate
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.enter): const CalculateIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.enter):
+            const CalculateIntent(),
         // Ctrl+R - Clear/Reset
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR): const ClearIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR):
+            const ClearIntent(),
         // Ctrl+E - Export
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyE): const ExportIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyE):
+            const ExportIntent(),
         // Ctrl+T - Template
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyT): const TemplateIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyT):
+            const TemplateIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -99,7 +104,7 @@ class QuickActionBar extends StatelessWidget {
   final bool showShortcuts;
 
   const QuickActionBar({
-    Key? key,
+    super.key,
     this.onCalculate,
     this.onClear,
     this.onSaveTemplate,
@@ -107,7 +112,7 @@ class QuickActionBar extends StatelessWidget {
     this.onExport,
     this.onCopyLast,
     this.showShortcuts = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +140,11 @@ class QuickActionBar extends StatelessWidget {
                   TextButton.icon(
                     onPressed: () => _showShortcutsDialog(context),
                     icon: const Icon(Icons.keyboard, size: 16),
-                    label: const Text('Shortcuts', style: TextStyle(fontSize: 12)),
+                    label:
+                        const Text('Shortcuts', style: TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),

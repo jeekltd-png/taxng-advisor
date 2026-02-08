@@ -11,7 +11,7 @@ import 'package:taxng_advisor/models/user.dart';
 
 /// Admin-only screen: Generate reports for all users
 class AdminReportsScreen extends StatefulWidget {
-  const AdminReportsScreen({Key? key}) : super(key: key);
+  const AdminReportsScreen({super.key});
 
   @override
   State<AdminReportsScreen> createState() => _AdminReportsScreenState();
@@ -507,19 +507,19 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.calculate, color: Colors.green),
-              title: Text('CIT: ${_totalCit} total records'),
+              title: Text('CIT: $_totalCit total records'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _tabController.animateTo(3),
             ),
             ListTile(
               leading: const Icon(Icons.person, color: Colors.blue),
-              title: Text('PIT: ${_totalPit} total records'),
+              title: Text('PIT: $_totalPit total records'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _tabController.animateTo(4),
             ),
             ListTile(
               leading: const Icon(Icons.receipt, color: Colors.orange),
-              title: Text('VAT: ${_totalVat} total returns'),
+              title: Text('VAT: $_totalVat total returns'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _tabController.animateTo(5),
             ),

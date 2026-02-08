@@ -4,7 +4,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen: CSV & Excel Import Guide
 class AdminCsvExcelGuideScreen extends StatefulWidget {
-  const AdminCsvExcelGuideScreen({Key? key}) : super(key: key);
+  const AdminCsvExcelGuideScreen({super.key});
 
   @override
   State<AdminCsvExcelGuideScreen> createState() =>

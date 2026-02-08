@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 /// - Test execution time
 /// - Quality metrics
 class AdminTestResultsScreen extends StatelessWidget {
-  const AdminTestResultsScreen({Key? key}) : super(key: key);
+  const AdminTestResultsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

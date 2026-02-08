@@ -12,7 +12,7 @@ import '../../models/user.dart';
 /// - Test bank account display
 /// - View security logs (future feature)
 class AdminBankAccountConfigScreen extends StatefulWidget {
-  const AdminBankAccountConfigScreen({Key? key}) : super(key: key);
+  const AdminBankAccountConfigScreen({super.key});
 
   @override
   State<AdminBankAccountConfigScreen> createState() =>

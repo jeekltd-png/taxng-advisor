@@ -6,7 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 /// Admin-only screen for managing app version and updates
 class AdminAppVersionScreen extends StatefulWidget {
-  const AdminAppVersionScreen({Key? key}) : super(key: key);
+  const AdminAppVersionScreen({super.key});
 
   @override
   State<AdminAppVersionScreen> createState() => _AdminAppVersionScreenState();
@@ -15,7 +15,7 @@ class AdminAppVersionScreen extends StatefulWidget {
 class _AdminAppVersionScreenState extends State<AdminAppVersionScreen> {
   String _currentVersion = 'Loading...';
   String _buildNumber = '';
-  String _latestPlayStoreVersion =
+  final String _latestPlayStoreVersion =
       '2.4.0'; // Update this manually after each release
   bool _isLoading = true;
 

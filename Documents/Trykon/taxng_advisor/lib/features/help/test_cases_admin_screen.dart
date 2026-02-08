@@ -5,7 +5,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 /// Admin-only screen for accessing comprehensive test cases
 /// This screen is restricted to administrators and QA testers only
 class TestCasesAdminScreen extends StatefulWidget {
-  const TestCasesAdminScreen({Key? key}) : super(key: key);
+  const TestCasesAdminScreen({super.key});
 
   @override
   State<TestCasesAdminScreen> createState() => _TestCasesAdminScreenState();

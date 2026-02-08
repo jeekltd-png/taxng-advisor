@@ -180,7 +180,7 @@ class PerformanceTestDataGenerator {
 
 /// Widget to show test data generation UI
 class TestDataGeneratorScreen extends StatefulWidget {
-  const TestDataGeneratorScreen({Key? key}) : super(key: key);
+  const TestDataGeneratorScreen({super.key});
 
   @override
   State<TestDataGeneratorScreen> createState() =>

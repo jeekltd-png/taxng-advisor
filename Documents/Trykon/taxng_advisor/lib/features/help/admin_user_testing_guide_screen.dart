@@ -4,7 +4,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen: User Testing Guide
 class AdminUserTestingGuideScreen extends StatefulWidget {
-  const AdminUserTestingGuideScreen({Key? key}) : super(key: key);
+  const AdminUserTestingGuideScreen({super.key});
 
   @override
   State<AdminUserTestingGuideScreen> createState() =>

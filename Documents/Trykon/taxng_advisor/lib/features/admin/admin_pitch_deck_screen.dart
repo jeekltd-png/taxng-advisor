@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Admin screen with comprehensive pitch deck and presentation guide for TaxPadi
 class AdminPitchDeckScreen extends StatelessWidget {
-  const AdminPitchDeckScreen({Key? key}) : super(key: key);
+  const AdminPitchDeckScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -619,7 +619,7 @@ class AdminPitchDeckScreen extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              label + ':',
+              '$label:',
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),

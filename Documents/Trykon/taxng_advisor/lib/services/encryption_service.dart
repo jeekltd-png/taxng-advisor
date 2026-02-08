@@ -8,7 +8,7 @@ class EncryptionService {
   static const String _keyPrefix = 'taxng_';
   static const String _encKeyStorageKey = '${_keyPrefix}enc_key';
   static const String _encIvStorageKey = '${_keyPrefix}enc_iv';
-  static final _storage = const FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage();
 
   static late encrypt.Key _key;
   static late encrypt.IV _iv;

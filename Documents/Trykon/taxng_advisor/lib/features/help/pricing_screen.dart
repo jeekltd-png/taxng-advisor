@@ -5,7 +5,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Pricing and subscription tiers screen
 class PricingScreen extends StatefulWidget {
-  const PricingScreen({Key? key}) : super(key: key);
+  const PricingScreen({super.key});
 
   @override
   State<PricingScreen> createState() => _PricingScreenState();

@@ -7,10 +7,10 @@ class NotesDialog extends StatefulWidget {
   final CalculationNote? existingNote;
 
   const NotesDialog({
-    Key? key,
+    super.key,
     required this.calculationId,
     this.existingNote,
-  }) : super(key: key);
+  });
 
   @override
   State<NotesDialog> createState() => _NotesDialogState();
@@ -396,10 +396,10 @@ class NoteIndicatorButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const NoteIndicatorButton({
-    Key? key,
+    super.key,
     required this.calculationId,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen for app deployment and testing information
 class AdminDeploymentGuideScreen extends StatefulWidget {
-  const AdminDeploymentGuideScreen({Key? key}) : super(key: key);
+  const AdminDeploymentGuideScreen({super.key});
 
   @override
   State<AdminDeploymentGuideScreen> createState() =>

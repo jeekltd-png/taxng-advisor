@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 /// Document Vault for Business tier - Store and organize tax documents
 class DocumentVaultScreen extends StatefulWidget {
-  const DocumentVaultScreen({Key? key}) : super(key: key);
+  const DocumentVaultScreen({super.key});
 
   @override
   State<DocumentVaultScreen> createState() => _DocumentVaultScreenState();

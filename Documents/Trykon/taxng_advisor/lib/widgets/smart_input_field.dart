@@ -14,7 +14,7 @@ class SmartInputField extends StatefulWidget {
   final int? maxLines;
 
   const SmartInputField({
-    Key? key,
+    super.key,
     required this.calculatorKey,
     required this.fieldName,
     required this.label,
@@ -24,7 +24,7 @@ class SmartInputField extends StatefulWidget {
     this.prefixText,
     this.suffixText,
     this.maxLines,
-  }) : super(key: key);
+  });
 
   @override
   State<SmartInputField> createState() => _SmartInputFieldState();
@@ -203,10 +203,10 @@ class CopyFromLastButton extends StatelessWidget {
   final Function(Map<String, dynamic>) onCopy;
 
   const CopyFromLastButton({
-    Key? key,
+    super.key,
     required this.calculatorType,
     required this.onCopy,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

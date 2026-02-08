@@ -9,7 +9,7 @@ import 'package:taxng_advisor/services/paystack_service.dart';
 
 /// Screen for users to upgrade their subscription tier
 class UpgradeRequestScreen extends StatefulWidget {
-  const UpgradeRequestScreen({Key? key}) : super(key: key);
+  const UpgradeRequestScreen({super.key});
 
   @override
   State<UpgradeRequestScreen> createState() => _UpgradeRequestScreenState();

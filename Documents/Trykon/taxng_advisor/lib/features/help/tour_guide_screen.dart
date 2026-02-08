@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Standalone tour guide page accessible from Help menu
 class TourGuideScreen extends StatefulWidget {
-  const TourGuideScreen({Key? key}) : super(key: key);
+  const TourGuideScreen({super.key});
 
   @override
   State<TourGuideScreen> createState() => _TourGuideScreenState();
@@ -277,7 +277,7 @@ class _TourGuideScreenState extends State<TourGuideScreen> {
                                   ),
                                 );
                               }
-                            }).toList(),
+                            }),
                         ],
                       ),
                     ),

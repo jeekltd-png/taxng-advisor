@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// In-app feedback screen for user suggestions and bug reports
 class FeedbackScreen extends StatefulWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+  const FeedbackScreen({super.key});
 
   @override
   State<FeedbackScreen> createState() => _FeedbackScreenState();

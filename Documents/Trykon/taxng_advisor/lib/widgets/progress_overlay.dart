@@ -7,11 +7,11 @@ class ProgressOverlay extends StatelessWidget {
   final bool showPercentage;
 
   const ProgressOverlay({
-    Key? key,
+    super.key,
     required this.message,
     this.progress,
     this.showPercentage = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +130,7 @@ mixin ProgressMixin<T extends StatefulWidget> on State<T> {
     try {
       final result = await operation();
       hideProgress();
-      
+
       if (successMessage != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -139,11 +139,11 @@ mixin ProgressMixin<T extends StatefulWidget> on State<T> {
           ),
         );
       }
-      
+
       return result;
     } catch (e) {
       hideProgress();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -152,7 +152,7 @@ mixin ProgressMixin<T extends StatefulWidget> on State<T> {
           ),
         );
       }
-      
+
       rethrow;
     }
   }
@@ -166,12 +166,12 @@ class LinearProgressOverlay extends StatelessWidget {
   final int totalItems;
 
   const LinearProgressOverlay({
-    Key? key,
+    super.key,
     required this.message,
     required this.progress,
     required this.currentItem,
     required this.totalItems,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +201,8 @@ class LinearProgressOverlay extends StatelessWidget {
                     value: progress,
                     minHeight: 8,
                     backgroundColor: Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.green),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -228,11 +229,11 @@ class CompactProgressIndicator extends StatelessWidget {
   final Color? color;
 
   const CompactProgressIndicator({
-    Key? key,
+    super.key,
     this.message,
     this.size = 20,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

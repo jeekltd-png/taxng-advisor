@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/calculation_attachment.dart';
@@ -102,7 +101,7 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           calculationId: widget.calculationId ?? 'temp',
           fileName: fileName,
-          filePath: 'web:${fileName}', // Mark as web file
+          filePath: 'web:$fileName', // Mark as web file
           fileType: _getFileType(fileName),
           uploadDate: DateTime.now(),
           description: documentType,

@@ -18,7 +18,7 @@ class ValidatedTextField extends StatefulWidget {
   final Widget? suffix;
 
   const ValidatedTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     required this.fieldName,
@@ -31,7 +31,7 @@ class ValidatedTextField extends StatefulWidget {
     this.maxLines,
     this.enabled = true,
     this.suffix,
-  }) : super(key: key);
+  });
 
   @override
   State<ValidatedTextField> createState() => _ValidatedTextFieldState();
@@ -263,10 +263,10 @@ class ValidationSummary extends StatelessWidget {
   final VoidCallback? onDismiss;
 
   const ValidationSummary({
-    Key? key,
+    super.key,
     required this.result,
     this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -362,11 +362,11 @@ class ValidationIndicator extends StatelessWidget {
   final String? message;
 
   const ValidationIndicator({
-    Key? key,
+    super.key,
     required this.isValid,
     this.hasWarnings = false,
     this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

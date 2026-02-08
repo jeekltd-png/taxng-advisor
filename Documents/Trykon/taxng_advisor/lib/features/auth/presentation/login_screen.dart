@@ -440,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 14),
                         DropdownButtonFormField<String>(
-                          value: _selectedTaxOffice,
+                          initialValue: _selectedTaxOffice,
                           decoration: InputDecoration(
                             labelText: 'FIRS Tax Office',
                             filled: true,
@@ -495,7 +495,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 14),
                         DropdownButtonFormField<String>(
-                          value: _selectedIndustrySector,
+                          initialValue: _selectedIndustrySector,
                           decoration: InputDecoration(
                             labelText: 'Industry Sector',
                             helperText:

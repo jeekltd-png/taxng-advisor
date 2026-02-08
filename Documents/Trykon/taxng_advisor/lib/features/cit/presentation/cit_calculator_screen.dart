@@ -32,7 +32,7 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
 
   CitResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -116,7 +116,7 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
   Future<void> _showSyncStatus() async {
     // TODO: Uncomment after `flutter pub get` completes
     // final isOnline = await SyncService.isOnline();
-    final message = '💾 Saved';
+    const message = '💾 Saved';
     // isOnline
     // ? '✅ Saved and syncing to server...'
     // : '💾 Saved offline - will sync when online';

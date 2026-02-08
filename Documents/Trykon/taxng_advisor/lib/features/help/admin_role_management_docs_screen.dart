@@ -5,7 +5,7 @@ import 'package:taxng_advisor/models/user.dart';
 
 /// Multi-Level Admin System Documentation - ADMIN ONLY ACCESS
 class AdminRoleManagementDocsScreen extends StatefulWidget {
-  const AdminRoleManagementDocsScreen({Key? key}) : super(key: key);
+  const AdminRoleManagementDocsScreen({super.key});
 
   @override
   State<AdminRoleManagementDocsScreen> createState() =>

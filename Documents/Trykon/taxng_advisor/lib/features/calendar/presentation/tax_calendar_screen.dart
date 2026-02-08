@@ -1,4 +1,6 @@
 /// Tax Calendar Screen - View and manage tax deadlines
+library;
+
 import 'package:flutter/material.dart';
 import '../../../models/tax_deadline.dart';
 import '../../../services/tax_calendar_service.dart';

@@ -7,7 +7,7 @@ import 'package:printing/printing.dart';
 
 /// VAT Form 002 Generator - Business tier exclusive
 class VatForm002Screen extends StatefulWidget {
-  const VatForm002Screen({Key? key}) : super(key: key);
+  const VatForm002Screen({super.key});
 
   @override
   State<VatForm002Screen> createState() => _VatForm002ScreenState();

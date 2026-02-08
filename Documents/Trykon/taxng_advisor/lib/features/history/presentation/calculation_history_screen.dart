@@ -1,4 +1,6 @@
 /// Calculation History Screen - View and manage calculation history (Audit Trail)
+library;
+
 import 'package:flutter/material.dart';
 import '../../../models/calculation_history.dart';
 import '../../../services/calculation_history_service.dart';

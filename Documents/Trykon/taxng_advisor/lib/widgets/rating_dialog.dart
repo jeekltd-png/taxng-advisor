@@ -6,7 +6,7 @@ import 'package:taxng_advisor/services/user_activity_tracker.dart';
 /// Allows users to rate the TaxNG app with a 1-5 star rating.
 /// Automatically tracks the rating using UserActivityTracker.
 class RatingDialog extends StatefulWidget {
-  const RatingDialog({Key? key}) : super(key: key);
+  const RatingDialog({super.key});
 
   @override
   State<RatingDialog> createState() => _RatingDialogState();

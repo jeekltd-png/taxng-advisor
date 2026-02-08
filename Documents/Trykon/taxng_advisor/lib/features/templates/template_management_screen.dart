@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 /// Template Management Screen - View, edit, and delete calculation templates
 class TemplateManagementScreen extends StatefulWidget {
-  const TemplateManagementScreen({Key? key}) : super(key: key);
+  const TemplateManagementScreen({super.key});
 
   @override
   State<TemplateManagementScreen> createState() =>

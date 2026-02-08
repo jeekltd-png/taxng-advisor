@@ -9,10 +9,10 @@ class QuickImportButton extends StatelessWidget {
   final Function(Map<String, dynamic>) onDataImported;
 
   const QuickImportButton({
-    Key? key,
+    super.key,
     required this.calculatorType,
     required this.onDataImported,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

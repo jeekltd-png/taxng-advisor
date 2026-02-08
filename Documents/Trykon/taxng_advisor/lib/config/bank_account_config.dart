@@ -18,9 +18,9 @@ class BankAccountConfig {
   static const String primaryAccountName = 'TaxPadi Limited';
 
   /// Alternative bank account (optional)
-  static const String? alternateBankName = 'GTBank';
-  static const String? alternateAccountNumber = '0987654321';
-  static const String? alternateAccountName = 'TaxPadi Limited';
+  static const String alternateBankName = 'GTBank';
+  static const String alternateAccountNumber = '0987654321';
+  static const String alternateAccountName = 'TaxPadi Limited';
 
   /// Payment instructions
   static const String paymentInstructions =
@@ -60,13 +60,11 @@ class BankAccountConfig {
     });
 
     // Add alternate account if exists
-    if (alternateBankName != null &&
-        alternateAccountNumber != null &&
-        alternateAccountName != null) {
+    if (alternateAccountNumber != null) {
       accounts.add({
-        'bankName': alternateBankName!,
-        'accountNumber': alternateAccountNumber!,
-        'accountName': alternateAccountName!,
+        'bankName': alternateBankName,
+        'accountNumber': alternateAccountNumber,
+        'accountName': alternateAccountName,
         'isPrimary': 'false',
       });
     }

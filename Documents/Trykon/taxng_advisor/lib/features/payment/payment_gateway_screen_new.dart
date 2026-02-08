@@ -9,11 +9,11 @@ class PaymentGatewayScreen extends StatefulWidget {
   final String currency;
 
   const PaymentGatewayScreen({
-    Key? key,
+    super.key,
     required this.taxType,
     required this.taxAmount,
     required this.currency,
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentGatewayScreen> createState() => _PaymentGatewayScreenState();
@@ -296,7 +296,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
             const SizedBox(height: 24),
 
             // Payment method selection

@@ -32,7 +32,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
 
   PitResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
@@ -650,7 +650,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
                     ),
                   ),
                 );
-              }).toList(),
+              }),
               const SizedBox(height: 16),
               CalculationInfoItem(
                 label: 'Total PIT Payable',

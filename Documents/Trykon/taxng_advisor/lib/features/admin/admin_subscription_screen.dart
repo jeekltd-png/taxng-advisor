@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 /// Admin screen to manage subscription upgrades and user tiers
 class AdminSubscriptionScreen extends StatefulWidget {
-  const AdminSubscriptionScreen({Key? key}) : super(key: key);
+  const AdminSubscriptionScreen({super.key});
 
   @override
   State<AdminSubscriptionScreen> createState() =>

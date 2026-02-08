@@ -6,7 +6,7 @@ import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Payment History Screen - View all past payments
 class PaymentHistoryScreen extends StatefulWidget {
-  const PaymentHistoryScreen({Key? key}) : super(key: key);
+  const PaymentHistoryScreen({super.key});
 
   @override
   State<PaymentHistoryScreen> createState() => _PaymentHistoryScreenState();

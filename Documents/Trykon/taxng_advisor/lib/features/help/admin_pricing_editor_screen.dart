@@ -5,7 +5,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin screen for editing pricing tiers
 class AdminPricingEditorScreen extends StatefulWidget {
-  const AdminPricingEditorScreen({Key? key}) : super(key: key);
+  const AdminPricingEditorScreen({super.key});
 
   @override
   State<AdminPricingEditorScreen> createState() =>

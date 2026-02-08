@@ -12,7 +12,7 @@ class CalculationInfoItem extends StatelessWidget {
   final IconData? icon;
 
   const CalculationInfoItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.explanation,
@@ -21,7 +21,7 @@ class CalculationInfoItem extends StatelessWidget {
     this.color,
     this.isHighlight = false,
     this.icon,
-  }) : super(key: key);
+  });
 
   void _showInfoDialog(BuildContext context) {
     showDialog(

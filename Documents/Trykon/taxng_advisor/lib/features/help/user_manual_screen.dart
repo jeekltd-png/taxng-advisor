@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/user.dart';
 
 class UserManualScreen extends StatefulWidget {
-  const UserManualScreen({Key? key}) : super(key: key);
+  const UserManualScreen({super.key});
 
   @override
   State<UserManualScreen> createState() => _UserManualScreenState();

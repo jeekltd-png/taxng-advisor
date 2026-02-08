@@ -3,7 +3,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 
 /// Admin-only screen for payment implementation details
 class AdminPaymentImplementationScreen extends StatefulWidget {
-  const AdminPaymentImplementationScreen({Key? key}) : super(key: key);
+  const AdminPaymentImplementationScreen({super.key});
 
   @override
   State<AdminPaymentImplementationScreen> createState() =>

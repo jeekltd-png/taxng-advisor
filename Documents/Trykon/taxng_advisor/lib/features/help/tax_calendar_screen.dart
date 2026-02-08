@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Nigerian Tax Calendar with important deadlines and reminders
 class TaxCalendarScreen extends StatelessWidget {
-  const TaxCalendarScreen({Key? key}) : super(key: key);
+  const TaxCalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

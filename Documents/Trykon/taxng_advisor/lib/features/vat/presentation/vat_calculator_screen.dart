@@ -33,7 +33,7 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
 
   VatResult? result;
   bool _showResults = false;
-  List<CalculationAttachment> _attachments = [];
+  final List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
