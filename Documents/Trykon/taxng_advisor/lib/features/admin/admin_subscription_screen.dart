@@ -4,6 +4,7 @@ import 'package:taxng_advisor/services/subscription_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/user.dart';
 import 'package:intl/intl.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Admin screen to manage subscription upgrades and user tiers
 class AdminSubscriptionScreen extends StatefulWidget {
@@ -200,7 +201,7 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Marked as under review'),
-          backgroundColor: Colors.purple,
+          backgroundColor: Color(0xFF166534),
         ),
       );
     }
@@ -302,11 +303,13 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Subscription Management'),
-        backgroundColor: Colors.deepPurple,
+      appBar: TaxNGAppBar(
+        title: 'Subscription Management',
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
           tabs: [
             Tab(
               text: 'Pending (${_pendingRequests.length})',

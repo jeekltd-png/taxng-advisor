@@ -41,6 +41,11 @@ import 'package:taxng_advisor/features/sharing/presentation/cpa_dashboard_screen
 import 'package:taxng_advisor/features/expenses/presentation/expense_categories_screen.dart';
 import 'package:taxng_advisor/features/settings/presentation/language_settings_screen.dart';
 import 'package:taxng_advisor/features/settings/presentation/whatsapp_settings_screen.dart';
+import 'package:taxng_advisor/features/import/presentation/import_data_screen.dart';
+import 'package:taxng_advisor/features/import/presentation/import_history_screen.dart';
+import 'package:taxng_advisor/features/business/multi_user_management_screen.dart';
+import 'package:taxng_advisor/features/business/document_vault_screen.dart';
+import 'package:taxng_advisor/features/business/vat_form_002_screen.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/admin_access_control.dart';
@@ -73,10 +78,8 @@ void main() async {
       // Initialize theme from persisted preference
       await themeService.initialize();
 
-      // Only seed test users in debug mode
-      if (kDebugMode) {
-        await AuthService.seedTestUsers();
-      }
+      // Seed default users (admin + test accounts) on first launch
+      await AuthService.seedTestUsers();
     } catch (e) {
       debugPrint('Initialization error: $e');
     }
@@ -162,6 +165,11 @@ class TaxNgApp extends StatelessWidget {
             '/expenses': (_) => const ExpenseCategoriesScreen(),
             '/settings/language': (_) => const LanguageSettingsScreen(),
             '/settings/whatsapp': (_) => const WhatsAppSettingsScreen(),
+            '/import-data': (_) => const ImportDataScreen(),
+            '/import-history': (_) => const ImportHistoryScreen(),
+            '/business/team': (_) => const MultiUserManagementScreen(),
+            '/business/vault': (_) => const DocumentVaultScreen(),
+            '/business/vat-form': (_) => const VatForm002Screen(),
           },
         );
       },

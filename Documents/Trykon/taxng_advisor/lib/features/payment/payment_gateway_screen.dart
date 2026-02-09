@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/payment_service.dart';
 import 'package:taxng_advisor/features/help/payment_guide_screen.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Payment Gateway Screen - Choose payment method and process payment
 class PaymentGatewayScreen extends StatefulWidget {
@@ -196,13 +197,111 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     }
   }
 
+  Widget _buildPaymentMethodTile({
+    required String value,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isSelected = _selectedPaymentMethod == value;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedPaymentMethod = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.08) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.shade300,
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Row(
+            children: [
+              // Radio indicator
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? color : Colors.grey.shade400,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? Center(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: color,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 14),
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: isSelected ? color : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Pay ${widget.taxType} Tax'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
+      appBar: TaxNGAppBar(
+        title: 'Pay ${widget.taxType} Tax',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -294,49 +393,117 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
 
             // Tax account selection
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFF2196F3),
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: Text(
+              child: const Text(
                 'Government Tax Account',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
               ),
             ),
             const SizedBox(height: 12),
             ...PaymentService.govTaxAccounts.map((account) {
               final isSelected = _selectedTaxAccount == account;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Card(
-                  elevation: isSelected ? 4 : 2,
-                  color: isSelected ? Colors.blue.shade50 : null,
-                  child: RadioListTile<GovTaxAccount>(
-                    value: account,
-                    groupValue: _selectedTaxAccount,
-                    activeColor: Colors.blue,
-                    selected: isSelected,
-                    onChanged: (value) {
-                      setState(() => _selectedTaxAccount = value);
-                    },
-                    title: Text(
-                      account.bankName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.blue.shade900 : null,
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedTaxAccount = account),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected ? const Color(0xFFE8F5E9) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF4CAF50)
+                            : Colors.grey.shade300,
+                        width: isSelected ? 2 : 1,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.green.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : [],
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(account.accountName),
-                        Text(
-                          account.accountNumber,
-                          style: const TextStyle(fontFamily: 'monospace'),
+                        // Radio indicator
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF4CAF50)
+                                  : Colors.grey.shade400,
+                              width: 2,
+                            ),
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF4CAF50),
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 14),
+                        // Account details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                account.bankName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: isSelected
+                                      ? const Color(0xFF1B5E20)
+                                      : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                account.accountName,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isSelected
+                                      ? const Color(0xFF2E7D32)
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                              Text(
+                                account.accountNumber,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? const Color(0xFF2E7D32)
+                                      : Colors.grey.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -348,55 +515,48 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
 
             // Payment method selection
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFFFF9800),
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: Text(
+              child: const Text(
                 'Payment Method',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            RadioListTile(
+            _buildPaymentMethodTile(
               value: 'bank_transfer',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() => _selectedPaymentMethod = value as String);
-              },
-              title: const Text('Direct Bank Transfer'),
-              subtitle: const Text('Transfer to government account directly'),
+              title: 'Direct Bank Transfer',
+              subtitle: 'Transfer to government account directly',
+              icon: Icons.account_balance,
+              color: const Color(0xFF4CAF50),
             ),
-            RadioListTile(
+            _buildPaymentMethodTile(
               value: 'remita',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() => _selectedPaymentMethod = value as String);
-              },
-              title: const Text('Remita'),
-              subtitle: const Text('Pay via Remita platform'),
+              title: 'Remita',
+              subtitle: 'Pay via Remita platform',
+              icon: Icons.payment,
+              color: const Color(0xFF1565C0),
             ),
-            RadioListTile(
+            _buildPaymentMethodTile(
               value: 'flutterwave',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() => _selectedPaymentMethod = value as String);
-              },
-              title: const Text('Flutterwave'),
-              subtitle: const Text('Multiple payment options'),
+              title: 'Flutterwave',
+              subtitle: 'Multiple payment options',
+              icon: Icons.flash_on,
+              color: const Color(0xFFF57C00),
             ),
-            RadioListTile(
+            _buildPaymentMethodTile(
               value: 'paystack',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() => _selectedPaymentMethod = value as String);
-              },
-              title: const Text('Paystack'),
-              subtitle: const Text('Card, bank transfer, USSD'),
+              title: 'Paystack',
+              subtitle: 'Card, bank transfer, USSD',
+              icon: Icons.credit_card,
+              color: const Color(0xFF00897B),
             ),
             const SizedBox(height: 24),
 

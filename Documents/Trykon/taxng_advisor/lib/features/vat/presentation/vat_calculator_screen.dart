@@ -294,9 +294,9 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Value Added Tax (VAT) 2025',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'Value Added Tax (VAT) ${DateTime.now().year}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

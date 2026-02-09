@@ -8,6 +8,8 @@ import 'package:taxng_advisor/services/admin_access_control.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 import 'package:taxng_advisor/widgets/logout_rating_dialog.dart';
 import 'package:taxng_advisor/theme/colors.dart';
+import 'package:taxng_advisor/services/calculation_history_service.dart';
+import 'package:intl/intl.dart';
 
 /// Dashboard Screen - Main entry point
 class DashboardScreen extends StatefulWidget {
@@ -19,16 +21,27 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isAdmin = false;
+  bool _isBusiness = false;
+  List<Map<String, dynamic>> _recentCalcs = [];
 
   @override
   void initState() {
     super.initState();
-    _checkAdmin();
+    _loadUserData();
   }
 
-  Future<void> _checkAdmin() async {
+  Future<void> _loadUserData() async {
     final isAdmin = await AdminAccessControl.isAdmin();
-    if (mounted) setState(() => _isAdmin = isAdmin);
+    final user = await AuthService.currentUser();
+    final calcs =
+        await CalculationHistoryService.getRecentCalculations(limit: 3);
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+        _isBusiness = user?.isBusiness ?? false;
+        _recentCalcs = calcs;
+      });
+    }
   }
 
   Future<void> _handleLogout() async {
@@ -86,13 +99,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     'Your Padi for Nigerian Tax Matters',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
+
+            // ── Recent Calculations (before tax calculators) ──
+            _buildRecentCalculations(isDark),
+            const SizedBox(height: 24),
+
+            // ── Business Tools (only for Business users + Admins) ──
+            if (_isBusiness || _isAdmin) ...[
+              _buildBusinessTools(isDark),
+              const SizedBox(height: 24),
+            ],
 
             Text(
               'Tax Calculators',
@@ -104,62 +127,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.15,
-              children: [
-                _TaxTile(
-                    title: 'VAT',
-                    subtitle: 'Value Added Tax',
-                    route: '/vat',
-                    icon: Icons.receipt_rounded,
-                    color: const Color(0xFF16A34A),
-                    isDark: isDark),
-                _TaxTile(
-                    title: 'PIT',
-                    subtitle: 'Personal Income',
-                    route: '/pit',
-                    icon: Icons.person_rounded,
-                    color: const Color(0xFF0D9488),
-                    isDark: isDark),
-                _TaxTile(
-                    title: 'CIT',
-                    subtitle: 'Corporate Income',
-                    route: '/cit',
-                    icon: Icons.business_rounded,
-                    color: const Color(0xFF6366F1),
-                    isDark: isDark),
-                _TaxTile(
-                    title: 'WHT',
-                    subtitle: 'Withholding Tax',
-                    route: '/wht',
-                    icon: Icons.attach_money_rounded,
-                    color: const Color(0xFFEC4899),
-                    isDark: isDark),
-                _TaxTile(
-                    title: 'Payroll',
-                    subtitle: 'Employee Taxes',
-                    route: '/payroll',
-                    icon: Icons.payments_rounded,
-                    color: const Color(0xFF8B5CF6),
-                    isDark: isDark),
-                _TaxTile(
-                    title: 'Stamp Duty',
-                    subtitle: 'Instruments & Docs',
-                    route: '/stamp_duty',
-                    icon: Icons.description_rounded,
-                    color: const Color(0xFFF59E0B),
-                    isDark: isDark),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                final childAspectRatio =
+                    constraints.maxWidth > 600 ? 1.3 : 1.15;
+                return GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: childAspectRatio,
+                  children: [
+                    _TaxTile(
+                        title: 'VAT',
+                        subtitle: 'Value Added Tax',
+                        route: '/vat',
+                        icon: Icons.receipt_rounded,
+                        color: const Color(0xFF16A34A),
+                        isDark: isDark),
+                    _TaxTile(
+                        title: 'PIT',
+                        subtitle: 'Personal Income',
+                        route: '/pit',
+                        icon: Icons.person_rounded,
+                        color: const Color(0xFF0D9488),
+                        isDark: isDark),
+                    _TaxTile(
+                        title: 'CIT',
+                        subtitle: 'Corporate Income',
+                        route: '/cit',
+                        icon: Icons.business_rounded,
+                        color: const Color(0xFF6366F1),
+                        isDark: isDark),
+                    _TaxTile(
+                        title: 'WHT',
+                        subtitle: 'Withholding Tax',
+                        route: '/wht',
+                        icon: Icons.attach_money_rounded,
+                        color: const Color(0xFFEC4899),
+                        isDark: isDark),
+                    _TaxTile(
+                        title: 'Payroll',
+                        subtitle: 'Employee Taxes',
+                        route: '/payroll',
+                        icon: Icons.payments_rounded,
+                        color: const Color(0xFF8B5CF6),
+                        isDark: isDark),
+                    _TaxTile(
+                        title: 'Stamp Duty',
+                        subtitle: 'Instruments & Docs',
+                        route: '/stamp_duty',
+                        icon: Icons.description_rounded,
+                        color: const Color(0xFFF59E0B),
+                        isDark: isDark),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
 
             Text(
-              'Quick Actions',
+              'More Options',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -168,18 +198,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            _QuickActionButton(
-              icon: Icons.notifications_active_rounded,
-              label: 'Tax Reminders',
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/reminders'),
-            ),
-            const SizedBox(height: 10),
-            _QuickActionButton(
-              icon: Icons.help_center_rounded,
-              label: 'Help & FAQ',
-              isDark: isDark,
-              onTap: () => Navigator.pushNamed(context, '/help/faq'),
+            Row(
+              children: [
+                Expanded(
+                  child: _MoreOptionCard(
+                    icon: Icons.pie_chart_rounded,
+                    label: 'Tax Overview',
+                    color: const Color(0xFF16A34A),
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, '/tax-overview'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MoreOptionCard(
+                    icon: Icons.notifications_active_rounded,
+                    label: 'Reminders',
+                    color: const Color(0xFFF59E0B),
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, '/reminders'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MoreOptionCard(
+                    icon: Icons.help_center_rounded,
+                    label: 'Help',
+                    color: const Color(0xFF3B82F6),
+                    isDark: isDark,
+                    onTap: () => Navigator.pushNamed(context, '/help/faq'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -209,7 +259,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(Icons.calculate_rounded,
@@ -229,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     'Smart Tax Made Simple',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                     ),
@@ -255,6 +305,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 isDark: isDark),
             _buildDrawerItem(context, Icons.receipt_long_outlined,
                 'Payment History', '/payment/history',
+                isDark: isDark),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              leading: const Icon(Icons.upload_file_rounded,
+                  color: TaxNGColors.primary, size: 22),
+              title: const Text('Import Data',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: TaxNGColors.primary,
+                  )),
+              onTap: () => Navigator.pushNamed(context, '/import-data'),
+              dense: true,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            _buildDrawerItem(context, Icons.history_rounded, 'Import History',
+                '/import-history',
                 isDark: isDark),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -341,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               value: themeService.isDarkMode,
-              activeColor: TaxNGColors.primary,
+              activeThumbColor: TaxNGColors.primary,
               onChanged: (_) => themeService.toggleTheme(),
               dense: true,
             ),
@@ -384,100 +452,330 @@ class _DashboardScreenState extends State<DashboardScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
+
+  // ─── Recent Calculations Section ──────────────────────────────────
+
+  Widget _buildRecentCalculations(bool isDark) {
+    final fmt = NumberFormat('#,##0.00');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.history_rounded, color: TaxNGColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Recent Calculations',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : TaxNGColors.textDark,
+                ),
+              ),
+              const Spacer(),
+              if (_recentCalcs.isNotEmpty)
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/history'),
+                  child: const Text('View All', style: TextStyle(fontSize: 12)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (_recentCalcs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  children: [
+                    Icon(Icons.calculate_outlined,
+                        size: 40,
+                        color:
+                            isDark ? Colors.white24 : TaxNGColors.textLighter),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No calculations yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white38 : TaxNGColors.textLight,
+                      ),
+                    ),
+                    Text(
+                      'Start with a calculator below',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            isDark ? Colors.white24 : TaxNGColors.textLighter,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...(_recentCalcs.map((calc) {
+              final type = calc['type'] ?? 'Tax';
+              final amount = calc['amount'] ?? 0.0;
+              final date = calc['date'] as String?;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: TaxNGColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          type.toString().substring(
+                              0,
+                              type.toString().length > 3
+                                  ? 3
+                                  : type.toString().length),
+                          style: const TextStyle(
+                            color: TaxNGColors.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$type Calculation',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  isDark ? Colors.white : TaxNGColors.textDark,
+                            ),
+                          ),
+                          if (date != null)
+                            Text(
+                              date,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? Colors.white38
+                                    : TaxNGColors.textLight,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '₦${fmt.format(amount)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: TaxNGColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })),
+        ],
+      ),
+    );
+  }
+
+  // ─── Business Tools Section ───────────────────────────────────────
+
+  Widget _buildBusinessTools(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.business_center_rounded,
+                color: TaxNGColors.primary, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Business Tools',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : TaxNGColors.textDark,
+                letterSpacing: -0.3,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth > 600 ? 4 : 3;
+            return GridView.count(
+              crossAxisCount: crossAxisCount,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.0,
+              children: [
+                _BusinessToolTile(
+                  title: 'Team',
+                  icon: Icons.people_alt_rounded,
+                  color: const Color(0xFF6366F1),
+                  isDark: isDark,
+                  onTap: () => Navigator.pushNamed(context, '/business/team'),
+                ),
+                _BusinessToolTile(
+                  title: 'Vault',
+                  icon: Icons.folder_rounded,
+                  color: const Color(0xFF0D9488),
+                  isDark: isDark,
+                  onTap: () => Navigator.pushNamed(context, '/business/vault'),
+                ),
+                _BusinessToolTile(
+                  title: 'VAT 002',
+                  icon: Icons.description_rounded,
+                  color: const Color(0xFF16A34A),
+                  isDark: isDark,
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/business/vat-form'),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
-class _QuickActionButton extends StatefulWidget {
+/// Business tool tile card
+class _BusinessToolTile extends StatelessWidget {
+  final String title;
   final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+  final Color color;
   final bool isDark;
+  final VoidCallback onTap;
 
-  const _QuickActionButton({
+  const _BusinessToolTile({
+    required this.title,
     required this.icon,
-    required this.label,
+    required this.color,
     required this.onTap,
     this.isDark = false,
   });
 
   @override
-  State<_QuickActionButton> createState() => _QuickActionButtonState();
-}
-
-class _QuickActionButtonState extends State<_QuickActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _scaleAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.97).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _animController.forward(),
-      onTapUp: (_) {
-        _animController.reverse();
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      onTapCancel: () => _animController.reverse(),
-      child: AnimatedBuilder(
-        animation: _scaleAnim,
-        builder: (context, child) {
-          return Transform.scale(scale: _scaleAnim.value, child: child);
-        },
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        label: title,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: widget.isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
+            color: isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: widget.isDark
-                  ? const Color(0xFF2A2A3E)
-                  : TaxNGColors.borderLight,
+              color: isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight,
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: TaxNGColors.primary.withOpacity(0.08),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(widget.icon, color: TaxNGColors.primary, size: 22),
+                child: Icon(icon, size: 22, color: color),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: widget.isDark ? Colors.white : TaxNGColors.textDark,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : TaxNGColors.textDark,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MoreOptionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _MoreOptionCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.isDark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            color: isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : TaxNGColors.textDark,
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  color:
-                      widget.isDark ? Colors.white38 : TaxNGColors.textLight),
             ],
           ),
         ),
@@ -542,52 +840,57 @@ class _TaxTileState extends State<_TaxTile>
         Navigator.pushNamed(context, widget.route);
       },
       onTapCancel: () => _animController.reverse(),
-      child: AnimatedBuilder(
-        animation: _scaleAnim,
-        builder: (context, child) {
-          return Transform.scale(scale: _scaleAnim.value, child: child);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: widget.isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: widget.isDark
-                  ? const Color(0xFF2A2A3E)
-                  : TaxNGColors.borderLight,
+      child: Semantics(
+        button: true,
+        label: '${widget.title} calculator. ${widget.subtitle}',
+        child: AnimatedBuilder(
+          animation: _scaleAnim,
+          builder: (context, child) {
+            return Transform.scale(scale: _scaleAnim.value, child: child);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: widget.isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: widget.isDark
+                    ? const Color(0xFF2A2A3E)
+                    : TaxNGColors.borderLight,
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: widget.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: widget.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(widget.icon, size: 24, color: widget.color),
                 ),
-                child: Icon(widget.icon, size: 24, color: widget.color),
-              ),
-              const Spacer(),
-              Text(
-                widget.title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: widget.isDark ? Colors.white : TaxNGColors.textDark,
+                const Spacer(),
+                Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: widget.isDark ? Colors.white : TaxNGColors.textDark,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                widget.subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: widget.isDark ? Colors.white54 : TaxNGColors.textLight,
+                const SizedBox(height: 2),
+                Text(
+                  widget.subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color:
+                        widget.isDark ? Colors.white54 : TaxNGColors.textLight,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

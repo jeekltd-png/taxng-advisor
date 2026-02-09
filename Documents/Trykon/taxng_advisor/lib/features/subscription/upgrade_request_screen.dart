@@ -6,6 +6,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/pricing_tier.dart';
 import 'package:taxng_advisor/services/pricing_service.dart';
 import 'package:taxng_advisor/services/paystack_service.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Screen for users to upgrade their subscription tier
 class UpgradeRequestScreen extends StatefulWidget {
@@ -206,9 +207,8 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Upgrade Subscription'),
-        backgroundColor: Colors.green[700],
+      appBar: const TaxNGAppBar(
+        title: 'Upgrade Subscription',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

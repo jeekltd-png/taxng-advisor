@@ -227,9 +227,9 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Corporate Income Tax (CIT) 2025',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'Corporate Income Tax (CIT) ${DateTime.now().year}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

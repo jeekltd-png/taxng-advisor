@@ -3,8 +3,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/theme/colors.dart';
 
 /// Custom AppBar that displays user profile photo and name on the right side
+/// Uses a Light→Dark green gradient background.
 class TaxNGAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? additionalActions;
@@ -28,10 +30,20 @@ class TaxNGAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
-      backgroundColor: const Color(0xFF166534),
+      backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.white),
       actionsIconTheme: const IconThemeData(color: Colors.white),
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [TaxNGColors.primaryDark, TaxNGColors.primary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
       bottom: bottom,
       actions: [
         if (additionalActions != null) ...additionalActions!,

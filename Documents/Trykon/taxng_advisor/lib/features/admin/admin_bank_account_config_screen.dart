@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../config/bank_account_config.dart';
 import '../../services/auth_service.dart';
 import '../../models/user.dart';
+import '../../widgets/common/taxng_app_bar.dart';
 
 /// Admin-Only Screen for Managing Bank Account Configuration
 ///
@@ -23,6 +24,7 @@ class _AdminBankAccountConfigScreenState
     extends State<AdminBankAccountConfigScreen> {
   User? _currentUser;
   bool _isLoading = true;
+  List<Map<String, String>> _accounts = [];
 
   @override
   void initState() {
@@ -47,8 +49,12 @@ class _AdminBankAccountConfigScreenState
       return;
     }
 
+    final accounts = await BankAccountConfig.getBankAccounts();
+    if (!mounted) return;
+
     setState(() {
       _currentUser = user;
+      _accounts = accounts;
       _isLoading = false;
     });
   }
@@ -78,16 +84,14 @@ class _AdminBankAccountConfigScreenState
       );
     }
 
-    final accounts = BankAccountConfig.getBankAccounts();
+    final accounts = _accounts;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bank Account Configuration'),
-        backgroundColor: Colors.red[700],
-        foregroundColor: Colors.white,
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'Bank Account Configuration',
+        additionalActions: [
           IconButton(
-            icon: const Icon(Icons.security),
+            icon: const Icon(Icons.security, color: Colors.white),
             tooltip: 'Security Info',
             onPressed: _showSecurityInfo,
           ),

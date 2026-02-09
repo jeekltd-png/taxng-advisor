@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_paystack_plus/flutter_paystack_plus.dart';
 import 'package:taxng_advisor/models/user.dart';
 import 'package:taxng_advisor/models/pricing_tier.dart';
+import 'package:taxng_advisor/services/backend_service.dart';
 
-/// Service for handling Paystack payment processing
-/// CURRENTLY DISABLED - Using manual payment only due to package compatibility issues
+/// Service for handling Paystack payment processing.
+///
+/// IMPORTANT: The Paystack SECRET key must NEVER be in client code.
+/// All payment verification MUST go through the backend server.
 class PaystackService {
-  // Paystack public key — configure via environment variable in production
-  // ignore: unused_field
-  static const String _publicKey = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  // Paystack public key from environment variable (set at build time)
+  // Usage: flutter build --dart-define=PAYSTACK_PUBLIC_KEY=pk_live_xxx
+  static const String _publicKey = String.fromEnvironment(
+    'PAYSTACK_PUBLIC_KEY',
+    defaultValue: '',
+  );
+
+  /// Check if Paystack is configured for production
+  static bool get isConfigured =>
+      _publicKey.isNotEmpty && _publicKey.startsWith('pk_live_');
 
   /// Initialize Paystack with public key
   static Future<void> initialize() async {
@@ -68,22 +77,28 @@ class PaystackService {
     */
   }
 
-  /// Verify payment transaction on backend
-  /// In production, this should call your backend API to verify with Paystack
-  static Future<bool> verifyTransaction(String reference) async {
-    try {
-      // TODO: In production, call your backend API:
-      // final response = await http.get(
-      //   Uri.parse('https://your-backend.com/verify-payment/$reference'),
-      // );
-      // return response.statusCode == 200 && json.decode(response.body)['status'] == 'success';
+  /// Verify payment transaction via backend server.
+  /// The backend calls Paystack's verify endpoint using the SECRET key.
+  /// NEVER verify payments client-side — always use server-side verification.
+  static Future<PaymentVerificationResult> verifyTransaction(
+      String reference) async {
+    if (reference.isEmpty) {
+      return PaymentVerificationResult(
+        verified: false,
+        message: 'No payment reference provided',
+      );
+    }
 
-      // For now, assume payment is verified if we have a reference
-      // This is NOT secure for production - must verify on backend!
-      return reference.isNotEmpty;
+    try {
+      final result = await BackendService.verifyPayment(reference);
+      return result;
     } catch (e) {
       debugPrint('Payment verification error: $e');
-      return false;
+      return PaymentVerificationResult(
+        verified: false,
+        message: 'Verification failed: $e',
+        requiresManualReview: true,
+      );
     }
   }
 

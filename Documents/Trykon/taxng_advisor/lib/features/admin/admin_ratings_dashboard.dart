@@ -5,6 +5,7 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/user.dart';
 import 'package:taxng_advisor/models/user_activity.dart';
 import 'package:taxng_advisor/theme/colors.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 
 /// Admin Ratings Dashboard — Dedicated screen for viewing all app ratings
 ///
@@ -106,13 +107,11 @@ class _AdminRatingsDashboardState extends State<AdminRatingsDashboard> {
 
     return Scaffold(
       backgroundColor: isDark ? TaxNGColors.bgDark : TaxNGColors.bgLight,
-      appBar: AppBar(
-        title: const Text('App Ratings'),
-        backgroundColor: TaxNGColors.primaryDark,
-        foregroundColor: Colors.white,
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'App Ratings',
+        additionalActions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: _loadRatings,
           ),
         ],

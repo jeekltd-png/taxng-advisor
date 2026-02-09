@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _lastNameController = TextEditingController();
   bool _isRegister = false;
   bool _isBusiness = false;
+  bool _isLoading = false;
   bool _useEmailAsUsername = true; // Default to using email as username
   final _businessNameController = TextEditingController();
   final _tinController = TextEditingController();
@@ -72,59 +73,77 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
 
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (_isRegister) {
-      final email = _emailController.text.trim();
-      final firstName = _firstNameController.text.trim();
-      final lastName = _lastNameController.text.trim();
-      final businessName = _businessNameController.text.trim();
-      final tin = _tinController.text.trim();
-      final cac = _cacController.text.trim();
-      final bvn = _bvnController.text.trim();
-      final vat = _vatController.text.trim();
-      final paye = _payeController.text.trim();
-      final phone = _phoneController.text.trim();
-      final address = _addressController.text.trim();
+    try {
+      if (_isRegister) {
+        final email = _emailController.text.trim();
+        final firstName = _firstNameController.text.trim();
+        final lastName = _lastNameController.text.trim();
+        final businessName = _businessNameController.text.trim();
+        final tin = _tinController.text.trim();
+        final cac = _cacController.text.trim();
+        final bvn = _bvnController.text.trim();
+        final vat = _vatController.text.trim();
+        final paye = _payeController.text.trim();
+        final phone = _phoneController.text.trim();
+        final address = _addressController.text.trim();
 
-      final user = await AuthService.register(
-        username: username,
-        password: password,
-        email: email,
-        firstName: firstName.isNotEmpty ? firstName : null,
-        lastName: lastName.isNotEmpty ? lastName : null,
-        isBusiness: _isBusiness,
-        businessName: _isBusiness ? businessName : null,
-        tin: tin.isNotEmpty ? tin : null,
-        cacNumber: cac.isNotEmpty ? cac : null,
-        bvn: bvn.isNotEmpty ? bvn : null,
-        vatNumber: vat.isNotEmpty ? vat : null,
-        payeRef: paye.isNotEmpty ? paye : null,
-        phoneNumber: phone.isNotEmpty ? phone : null,
-        address: address.isNotEmpty ? address : null,
-        taxOffice: _selectedTaxOffice,
-        industrySector: _isBusiness ? _selectedIndustrySector : null,
+        final user = await AuthService.register(
+          username: username,
+          password: password,
+          email: email,
+          firstName: firstName.isNotEmpty ? firstName : null,
+          lastName: lastName.isNotEmpty ? lastName : null,
+          isBusiness: _isBusiness,
+          businessName: _isBusiness ? businessName : null,
+          tin: tin.isNotEmpty ? tin : null,
+          cacNumber: cac.isNotEmpty ? cac : null,
+          bvn: bvn.isNotEmpty ? bvn : null,
+          vatNumber: vat.isNotEmpty ? vat : null,
+          payeRef: paye.isNotEmpty ? paye : null,
+          phoneNumber: phone.isNotEmpty ? phone : null,
+          address: address.isNotEmpty ? address : null,
+          taxOffice: _selectedTaxOffice,
+          industrySector: _isBusiness ? _selectedIndustrySector : null,
+        );
+
+        if (!mounted) return;
+
+        if (user == null) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Username already exists')),
+          );
+          return;
+        }
+
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        final user = await AuthService.login(username, password);
+
+        if (!mounted) return;
+
+        if (user == null) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid credentials')),
+          );
+          return;
+        }
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
-
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Username already exists')),
-        );
-        return;
-      }
-
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
-      final user = await AuthService.login(username, password);
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid credentials')),
-        );
-        return;
-      }
-      Navigator.pushReplacementNamed(context, '/dashboard');
     }
   }
 
@@ -138,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: TaxNGColors.bgLight,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -248,10 +267,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: TaxNGColors.primary.withOpacity(0.06),
+                          color: TaxNGColors.primary.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: TaxNGColors.primary.withOpacity(0.15),
+                            color: TaxNGColors.primary.withValues(alpha: 0.15),
                           ),
                         ),
                         child: Row(
@@ -357,12 +376,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: _isBusiness
-                              ? TaxNGColors.secondary.withOpacity(0.08)
+                              ? TaxNGColors.secondary.withValues(alpha: 0.08)
                               : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _isBusiness
-                                ? TaxNGColors.secondary.withOpacity(0.3)
+                                ? TaxNGColors.secondary.withValues(alpha: 0.3)
                                 : TaxNGColors.borderLight,
                           ),
                         ),
@@ -555,7 +574,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: _submit,
+                        onPressed: _isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TaxNGColors.primary,
                           foregroundColor: Colors.white,
@@ -564,21 +583,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _isRegister ? 'Create Account' : 'Sign In',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.3,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _isRegister ? 'Create Account' : 'Sign In',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.arrow_forward_rounded,
+                                      size: 20),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, size: 20),
-                          ],
-                        ),
                       ),
                     ),
 
@@ -633,11 +663,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Profile / Import Data
+                    // Import Data
                     Center(
                       child: TextButton.icon(
                         onPressed: () =>
-                            Navigator.pushNamed(context, '/profile'),
+                            Navigator.pushNamed(context, '/import-data'),
                         icon: const Icon(Icons.download_rounded,
                             size: 18, color: TaxNGColors.textLight),
                         label: const Text(
@@ -692,6 +722,13 @@ class _LoginScreenState extends State<LoginScreen> {
     ValueChanged<String>? onChanged,
     FormFieldValidator<String>? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = enabled
+        ? (isDark ? TaxNGColors.bgDarkSecondary : Colors.white)
+        : (isDark ? TaxNGColors.bgDark : TaxNGColors.bgLight);
+    final borderColor =
+        isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight;
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -706,16 +743,16 @@ class _LoginScreenState extends State<LoginScreen> {
         hintText: hint,
         prefixIcon: Icon(icon, size: 20, color: TaxNGColors.primary),
         filled: true,
-        fillColor: enabled ? Colors.white : TaxNGColors.bgLight,
+        fillColor: fillColor,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: TaxNGColors.borderLight),
+          borderSide: BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: TaxNGColors.borderLight),
+          borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -727,7 +764,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: TaxNGColors.borderLight),
+          borderSide: BorderSide(color: borderColor),
         ),
         labelStyle: const TextStyle(
           fontSize: 14,

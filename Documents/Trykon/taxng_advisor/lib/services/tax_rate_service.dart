@@ -75,8 +75,21 @@ class TaxRateService extends ChangeNotifier {
       return 0;
     }
 
+    // Apply Consolidated Relief Allowance (CRA)
+    // CRA = ₦200,000 or 1% of gross income (whichever is higher)
+    //       + 20% of gross income
+    const craFixed = NigerianTaxRates.consolidatedReliefAllowance;
+    final onePercent = annualIncome * 0.01;
+    final higherOfFixed = craFixed > onePercent ? craFixed : onePercent;
+    final craPercent =
+        annualIncome * (NigerianTaxRates.consolidatedReliefPercent / 100);
+    final totalCRA = higherOfFixed + craPercent;
+
+    double taxableIncome = annualIncome - totalCRA;
+    if (taxableIncome <= 0) return 0;
+
     double tax = 0;
-    double remainingIncome = annualIncome;
+    double remainingIncome = taxableIncome;
 
     for (final band in pitBands) {
       if (remainingIncome <= 0) break;
@@ -86,7 +99,8 @@ class TaxRateService extends ChangeNotifier {
       final taxableInBand =
           remainingIncome > bandAmount ? bandAmount : remainingIncome;
 
-      tax += taxableInBand * band.rate;
+      // pitBands rates are in percentage (e.g., 7.0 = 7%), divide by 100
+      tax += taxableInBand * (band.rate / 100);
       remainingIncome -= taxableInBand;
     }
 
@@ -100,7 +114,27 @@ class TaxRateService extends ChangeNotifier {
       return {'Total Tax': 0};
     }
 
-    double remainingIncome = annualIncome;
+    // Apply CRA
+    const craFixed = NigerianTaxRates.consolidatedReliefAllowance;
+    final onePercent = annualIncome * 0.01;
+    final higherOfFixed = craFixed > onePercent ? craFixed : onePercent;
+    final craPercent =
+        annualIncome * (NigerianTaxRates.consolidatedReliefPercent / 100);
+    final totalCRA = higherOfFixed + craPercent;
+
+    double taxableIncome = annualIncome - totalCRA;
+    if (taxableIncome <= 0) {
+      breakdown['CRA'] = totalCRA;
+      breakdown['Taxable Income'] = 0;
+      breakdown['Total Tax'] = 0;
+      return breakdown;
+    }
+
+    breakdown['Gross Income'] = annualIncome;
+    breakdown['CRA'] = totalCRA;
+    breakdown['Taxable Income'] = taxableIncome;
+
+    double remainingIncome = taxableIncome;
 
     for (int i = 0; i < pitBands.length && remainingIncome > 0; i++) {
       final band = pitBands[i];
@@ -109,12 +143,14 @@ class TaxRateService extends ChangeNotifier {
       final taxableInBand =
           remainingIncome > bandAmount ? bandAmount : remainingIncome;
 
-      final taxInBand = taxableInBand * band.rate;
-      breakdown['Band ${i + 1} (${(band.rate * 100).toInt()}%)'] = taxInBand;
+      final taxInBand = taxableInBand * (band.rate / 100);
+      breakdown['Band ${i + 1} (${band.rate.toInt()}%)'] = taxInBand;
       remainingIncome -= taxableInBand;
     }
 
-    breakdown['Total Tax'] = breakdown.values.fold(0, (sum, tax) => sum + tax);
+    breakdown['Total Tax'] = breakdown.entries
+        .where((e) => e.key.startsWith('Band'))
+        .fold(0.0, (sum, e) => sum + e.value);
     return breakdown;
   }
 

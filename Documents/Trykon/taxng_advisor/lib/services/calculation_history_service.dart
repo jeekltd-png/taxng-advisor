@@ -136,4 +136,30 @@ class CalculationHistoryService extends ChangeNotifier {
     final jsonList = _history.map((h) => h.toJson()).toList();
     await prefs.setString(_historyKey, json.encode(jsonList));
   }
+
+  /// Static convenience — get recent calculations without a Provider.
+  static Future<List<Map<String, dynamic>>> getRecentCalculations(
+      {int limit = 5}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final historyJson = prefs.getString(_historyKey);
+      if (historyJson == null) return [];
+
+      final List<dynamic> list = json.decode(historyJson);
+      final histories = list.map((e) => CalculationHistory.fromJson(e)).toList()
+        ..sort((a, b) => b.calculatedAt.compareTo(a.calculatedAt));
+
+      return histories
+          .take(limit)
+          .map((h) => {
+                'type': h.type.name.toUpperCase(),
+                'amount': h.totalTax ?? 0.0,
+                'date':
+                    '${h.calculatedAt.day}/${h.calculatedAt.month}/${h.calculatedAt.year}',
+              })
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
 }

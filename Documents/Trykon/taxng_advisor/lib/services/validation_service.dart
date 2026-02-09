@@ -289,10 +289,10 @@ class ValidationService {
         severity: ValidationSeverity.warning,
         validate: (data) {
           final value = data['monthlyGross'] as double?;
-          if (value != null && value < 30000) {
+          if (value != null && value < 70000) {
             return RuleValidationResult(
               isValid: false,
-              message: 'Monthly gross salary is below minimum wage (₦30,000).',
+              message: 'Monthly gross salary is below minimum wage (₦70,000).',
             );
           }
           return RuleValidationResult(isValid: true);

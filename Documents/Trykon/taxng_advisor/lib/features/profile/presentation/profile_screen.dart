@@ -6,6 +6,7 @@ import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/models/user.dart';
 import 'package:taxng_advisor/features/help/privacy_policy_screen.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/theme/colors.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +17,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   UserProfile? _user;
-  final _importController = TextEditingController();
   String? _logoBase64;
 
   @override
@@ -28,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUser() async {
     final u = await AuthService.currentUser();
+    if (!mounted) return;
     setState(() => _user = u);
   }
 
@@ -35,6 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final box = HiveService.getProfileBox();
       final logo = box.get('company_logo') as String?;
+      if (!mounted) return;
       setState(() => _logoBase64 = logo);
     } catch (_) {}
   }
@@ -45,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       withData: true,
     );
 
-    if (res == null) return;
+    if (res == null || !mounted) return;
     final bytes = res.files.first.bytes;
     if (bytes == null) return;
 
@@ -54,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final box = HiveService.getProfileBox();
       await box.put('company_logo', base64Logo);
+      if (!mounted) return;
       setState(() => _logoBase64 = base64Logo);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Logo uploaded successfully!')),
@@ -80,162 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _pickFile() async {
-    // Show dialog with clear cancel option first
-    final shouldProceed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Import File'),
-        content: const Text(
-          'Select a JSON or CSV file from your device.\n\nYou can cancel anytime by:\n• Tapping "Cancel" below\n• Using your device back button\n• Tapping outside this dialog',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context, true),
-            icon: const Icon(Icons.folder_open),
-            label: const Text('Choose File'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldProceed != true) return;
-
-    final res = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json', 'csv'],
-      withData: true,
-    );
-
-    if (res == null) return;
-    final bytes = res.files.first.bytes;
-    if (bytes == null) return;
-    final text = utf8.decode(bytes);
-    _importController.text = text;
-  }
-
-  /// Parse CSV format: expects header row with field names
-  List<Map<String, dynamic>> _parseCSV(String csvText) {
-    final lines = csvText
-        .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty)
-        .toList();
-    if (lines.isEmpty) return [];
-
-    final headers = lines[0].split(',').map((h) => h.trim()).toList();
-    final records = <Map<String, dynamic>>[];
-
-    for (int i = 1; i < lines.length; i++) {
-      final values = lines[i].split(',').map((v) => v.trim()).toList();
-      if (values.length != headers.length) continue;
-
-      final record = <String, dynamic>{};
-      for (int j = 0; j < headers.length; j++) {
-        final value = values[j];
-        // Try to parse as number
-        final numValue = num.tryParse(value);
-        record[headers[j]] = numValue ?? value;
-      }
-      records.add(record);
-    }
-
-    return records;
-  }
-
-  Future<void> _importJson() async {
-    final text = _importController.text.trim();
-    if (text.isEmpty) return;
-
-    try {
-      // Try to detect format (JSON or CSV)
-      final isCSV =
-          text.contains(',') && !text.startsWith('{') && !text.startsWith('[');
-
-      if (isCSV) {
-        _importCSV(text);
-      } else {
-        _importJSONFormat(text);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Import error: $e')),
-      );
-    }
-  }
-
-  Future<void> _importCSV(String csvText) async {
-    final records = _parseCSV(csvText);
-    if (records.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No valid records found in CSV')),
-      );
-      return;
-    }
-
-    // Process first record
-    final firstRecord = records[0];
-    final recordType = firstRecord['type'] as String?;
-
-    if (recordType == 'CIT') {
-      final turnover = (firstRecord['turnover'] as num?)?.toDouble();
-      final profit = (firstRecord['profit'] as num?)?.toDouble();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Imported ${records.length} CIT record(s) — opening calculator')),
-      );
-
-      Navigator.pushNamed(context, '/cit', arguments: {
-        'turnover': turnover,
-        'profit': profit,
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('CSV type "$recordType" import ready for implementation')),
-      );
-    }
-  }
-
-  Future<void> _importJSONFormat(String jsonText) async {
-    final Map<String, dynamic> data = jsonDecode(jsonText);
-    // For demo: if CIT data present, save to local storage (legacy service)
-    if (data['type'] == 'CIT') {
-      // If data contains turnover/profit, navigate to CIT calculator with args
-      final payload = data['data'] as Map<String, dynamic>?;
-      final turnover = payload != null && payload['turnover'] != null
-          ? (payload['turnover'] as num).toDouble()
-          : null;
-      final profit = payload != null && payload['profit'] != null
-          ? (payload['profit'] as num).toDouble()
-          : null;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Imported CIT data — opening calculator')),
-      );
-
-      // Pass arguments to CIT screen so it can prefill and calculate
-      Navigator.pushNamed(context, '/cit', arguments: {
-        'turnover': turnover,
-        'profit': profit,
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('JSON type not recognized')),
-      );
-    }
-  }
-
   @override
   void dispose() {
-    _importController.dispose();
     super.dispose();
   }
 
@@ -283,8 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'TCC Expires: ${_user!.tccExpiryDate!.toString().substring(0, 10)}',
                     style: TextStyle(
                       color: _user!.tccExpiryDate!.isBefore(DateTime.now())
-                          ? Colors.red
-                          : Colors.green,
+                          ? Theme.of(context).colorScheme.error
+                          : TaxNGColors.success,
                       fontWeight: FontWeight.w500,
                     )),
               const SizedBox(height: 16),
@@ -297,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               height: 150,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
+                border: Border.all(color: Theme.of(context).dividerColor),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: _logoBase64 != null
@@ -305,20 +154,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       base64Decode(_logoBase64!),
                       fit: BoxFit.contain,
                     )
-                  : const Center(
+                  : Center(
                       child: Text('No logo uploaded',
-                          style: TextStyle(color: Colors.grey)),
+                          style: TextStyle(color: Theme.of(context).hintColor)),
                     ),
             ),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 ElevatedButton.icon(
                   onPressed: _pickLogoFile,
                   icon: const Icon(Icons.image),
                   label: const Text('Upload Logo'),
                 ),
-                const SizedBox(width: 8),
                 if (_logoBase64 != null)
                   ElevatedButton.icon(
                     onPressed: _removeLogo,
@@ -330,43 +180,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
-            const Text('Import Data (JSON or CSV)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const Text(
-              'Paste JSON/CSV data or choose a file. CSV headers must match field names.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _importController,
-              minLines: 4,
-              maxLines: 8,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Paste JSON or CSV data here',
+            // Import Data section — styled to match the Import Data screen
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: TaxNGColors.borderLight),
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/help/sample-data'),
-                  icon: const Icon(Icons.data_object),
-                  label: const Text('View Samples'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _pickFile,
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Choose file'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _importJson,
-                  child: const Text('Import'),
-                ),
-              ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: TaxNGColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.upload_file_rounded,
+                            color: TaxNGColors.primary, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Import Data',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: TaxNGColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              'CSV, JSON & Excel (.xlsx) • Bank statements, invoices, etc.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: TaxNGColors.textLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Quick action buttons row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/import-data'),
+                          icon: const Icon(Icons.folder_open_rounded, size: 18),
+                          label: const Text('Choose File'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TaxNGColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/import-data'),
+                          icon:
+                              const Icon(Icons.cloud_upload_rounded, size: 18),
+                          label: const Text('Import'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TaxNGColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // View import history link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/import-history'),
+                        icon: const Icon(Icons.history_rounded, size: 18),
+                        label: const Text('View Import History'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: TaxNGColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             const Divider(),
@@ -421,9 +339,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Delete Account',
-                  style: TextStyle(color: Colors.red)),
+              leading: Icon(Icons.delete_forever,
+                  color: Theme.of(context).colorScheme.error),
+              title: Text('Delete Account',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
               subtitle: const Text('Permanently delete your account and data'),
               onTap: () => _showDeleteAccountDialog(context),
             ),

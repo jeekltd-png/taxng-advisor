@@ -184,7 +184,10 @@ class SubscriptionService {
   static Future<void> updateUserTier(String userId, String newTier) async {
     final users = await AuthService.listUsers();
     // Find the user to verify they exist
-    users.firstWhere((u) => u.id == userId);
+    final user = users.where((u) => u.id == userId).firstOrNull;
+    if (user == null) {
+      throw StateError('User not found: $userId');
+    }
 
     final box = await AuthService.openUsersBox();
 

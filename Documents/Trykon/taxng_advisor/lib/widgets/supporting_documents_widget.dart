@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/calculation_attachment.dart';
@@ -29,6 +31,9 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
   final _mediaPicker = MediaPickerService();
   final _attachmentService = AttachmentService();
   bool _isUploading = false;
+
+  /// Store file bytes in memory for preview (keyed by attachment ID)
+  static final Map<String, Uint8List> _fileBytes = {};
 
   @override
   void initState() {
@@ -97,8 +102,13 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
       // On web, we have bytes; on mobile/desktop, we have a file path
       if (kIsWeb && pickedFile.bytes != null) {
         // For web, store the bytes-based document info
+        final attachmentId = DateTime.now().millisecondsSinceEpoch.toString();
+
+        // Save bytes for preview
+        _fileBytes[attachmentId] = Uint8List.fromList(pickedFile.bytes!);
+
         final tempAttachment = CalculationAttachment(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: attachmentId,
           calculationId: widget.calculationId ?? 'temp',
           fileName: fileName,
           filePath: 'web:$fileName', // Mark as web file
@@ -418,12 +428,21 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
                                 : Icons.insert_drive_file,
                         color: Colors.blue,
                       ),
-                      title: Text(doc.fileName),
+                      title: Text(
+                        doc.fileName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       subtitle: Text(doc.description ?? 'No description'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _previewDocument(doc);
+                      },
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
                           widget.onDocumentRemoved(doc);
+                          _fileBytes.remove(doc.id);
                           Navigator.pop(context);
                         },
                       ),
@@ -433,6 +452,254 @@ class _SupportingDocumentsWidgetState extends State<SupportingDocumentsWidget> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Preview a document — images shown inline, CSV/text shown as text,
+  /// PDF/other shown with info card.
+  void _previewDocument(CalculationAttachment doc) {
+    final bytes = _fileBytes[doc.id];
+    final ext = doc.fileName.split('.').last.toLowerCase();
+    final isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].contains(ext);
+    final isText = ['csv', 'txt'].contains(ext);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+            maxWidth: MediaQuery.of(context).size.width * 0.95,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.green[700],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isImage
+                          ? Icons.image
+                          : isText
+                              ? Icons.description
+                              : Icons.insert_drive_file,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        doc.fileName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white, size: 22),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Info bar
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Colors.grey[100],
+                child: Row(
+                  children: [
+                    _infoChip(Icons.category, doc.description ?? 'Document'),
+                    const SizedBox(width: 12),
+                    _infoChip(Icons.straighten, doc.fileSizeFormatted),
+                    const SizedBox(width: 12),
+                    _infoChip(
+                      Icons.calendar_today,
+                      '${doc.uploadDate.day}/${doc.uploadDate.month}/${doc.uploadDate.year}',
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content area
+              Flexible(
+                child: bytes != null
+                    ? _buildPreviewContent(bytes, ext, isImage, isText)
+                    : _buildNoPreviewContent(doc),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[600]),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviewContent(
+      Uint8List bytes, String ext, bool isImage, bool isText) {
+    if (isImage) {
+      return InteractiveViewer(
+        minScale: 0.5,
+        maxScale: 4.0,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Image.memory(
+            bytes,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => _buildErrorPreview(),
+          ),
+        ),
+      );
+    }
+
+    if (isText) {
+      String text;
+      try {
+        text = utf8.decode(bytes);
+      } catch (_) {
+        text = String.fromCharCodes(bytes);
+      }
+      return Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: SingleChildScrollView(
+          child: SelectableText(
+            text,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // PDF / other — show file info
+    return _buildFileInfoPreview(ext);
+  }
+
+  Widget _buildNoPreviewContent(CalculationAttachment doc) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.visibility_off, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Preview not available',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'The file data is no longer in memory.\nRe-upload the document to enable preview.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorPreview() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.broken_image, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'Unable to display image',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileInfoPreview(String ext) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: ext == 'pdf' ? Colors.red[50] : Colors.blue[50],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                ext == 'pdf' ? Icons.picture_as_pdf : Icons.insert_drive_file,
+                size: 48,
+                color: ext == 'pdf' ? Colors.red[700] : Colors.blue[700],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '.${ext.toUpperCase()} File',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Preview is not supported for this file type.\nThe document has been attached successfully.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
+          ],
         ),
       ),
     );

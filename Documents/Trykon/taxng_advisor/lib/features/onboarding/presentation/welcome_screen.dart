@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:math';
 
 /// Onboarding carousel welcome screen with animated bubbles
@@ -17,6 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   final List<Bubble> _bubbles = [];
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  String _versionString = '';
 
   static const _pages = [
     _OnboardingPage(
@@ -64,6 +66,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     // Create bubbles
     for (int i = 0; i < 20; i++) {
       _bubbles.add(Bubble());
+    }
+
+    // Load version from package_info_plus
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        _versionString = 'v${info.version} (Build ${info.buildNumber})';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _versionString = '');
     }
   }
 
@@ -122,7 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -143,15 +161,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                           ),
                         ),
-                        child: const Text(
-                          'v3.1.0 (Build 39)',
-                          style: TextStyle(
+                        child: Text(
+                          _versionString,
+                          style: const TextStyle(
                             fontSize: 11,
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -187,10 +205,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.25),
+                                  color: Colors.white.withValues(alpha: 0.25),
                                 ),
                               ),
                               child: Icon(
@@ -219,7 +237,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 height: 1.5,
                               ),
                             ),
@@ -232,12 +250,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 // Page indicator
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: SmoothPageIndicator(
                     controller: _pageController,
                     count: _pages.length,
                     effect: WormEffect(
-                      dotColor: Colors.white.withOpacity(0.3),
+                      dotColor: Colors.white.withValues(alpha: 0.3),
                       activeDotColor: Colors.white,
                       dotHeight: 8,
                       dotWidth: 8,
@@ -248,13 +266,41 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 // Buttons
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Skip button (visible on non-last pages)
+                      if (_currentPage < _pages.length - 1)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Skip',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 4),
+
                       // Continue / Get Started button
                       SizedBox(
                         width: double.infinity,
-                        height: 54,
+                        height: 48,
                         child: ElevatedButton(
                           onPressed: () {
                             if (_currentPage < _pages.length - 1) {
@@ -269,7 +315,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xFF166534),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -287,12 +333,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       // Register button
                       SizedBox(
                         width: double.infinity,
-                        height: 54,
+                        height: 48,
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.pushReplacementNamed(
@@ -305,7 +351,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             foregroundColor: Colors.white,
                             side:
                                 const BorderSide(color: Colors.white, width: 2),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -323,7 +369,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                       // Debug - Seed button (only in debug mode)
                       if (kDebugMode) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(
@@ -332,6 +378,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.white70,
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: const Text(
                               'Debug - Seed / Login Users',
@@ -341,19 +390,63 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                       ],
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
 
-                      // Fine print
-                      Text(
-                        'By continuing, you agree to our Terms of Service\nand Privacy Policy',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white.withOpacity(0.8),
-                          height: 1.3,
-                        ),
+                      // Fine print with tappable links
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'By continuing, you agree to our ',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withValues(alpha: 0.8),
+                              height: 1.3,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(
+                                context, '/help/privacy-policy'),
+                            child: Text(
+                              'Terms',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                                decorationColor:
+                                    Colors.white.withValues(alpha: 0.8),
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            ' & ',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withValues(alpha: 0.8),
+                              height: 1.3,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(
+                                context, '/help/privacy-policy'),
+                            child: Text(
+                              'Privacy Policy',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                                decorationColor:
+                                    Colors.white.withValues(alpha: 0.8),
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                     ],
                   ),
                 ),
@@ -418,7 +511,7 @@ class BubblePainter extends CustomPainter {
       }
 
       final paint = Paint()
-        ..color = Colors.white.withOpacity(bubble.opacity)
+        ..color = Colors.white.withValues(alpha: bubble.opacity)
         ..style = PaintingStyle.fill;
 
       final position = Offset(
@@ -431,7 +524,7 @@ class BubblePainter extends CustomPainter {
 
       // Draw bubble highlight
       final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(bubble.opacity * 0.5)
+        ..color = Colors.white.withValues(alpha: bubble.opacity * 0.5)
         ..style = PaintingStyle.fill;
 
       canvas.drawCircle(
@@ -443,5 +536,6 @@ class BubblePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(BubblePainter oldDelegate) => true;
+  bool shouldRepaint(BubblePainter oldDelegate) =>
+      oldDelegate.animation != animation;
 }

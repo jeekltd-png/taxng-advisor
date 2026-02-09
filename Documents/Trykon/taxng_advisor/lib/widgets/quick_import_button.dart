@@ -92,7 +92,7 @@ class QuickImportButton extends StatelessWidget {
               child: InkWell(
                 onTap: () {
                   Navigator.pop(context);
-                  _pickAndImportFile(context);
+                  Navigator.pushNamed(context, '/import-data');
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Padding(

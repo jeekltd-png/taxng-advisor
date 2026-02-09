@@ -6,7 +6,7 @@ import '../config/bank_account_config.dart';
 ///
 /// Shows all available bank accounts with copy-to-clipboard functionality
 /// and payment instructions.
-class BankAccountDetailsCard extends StatelessWidget {
+class BankAccountDetailsCard extends StatefulWidget {
   /// Optional callback when user copies account details
   final VoidCallback? onCopy;
 
@@ -23,6 +23,29 @@ class BankAccountDetailsCard extends StatelessWidget {
     this.compact = false,
   });
 
+  @override
+  State<BankAccountDetailsCard> createState() => _BankAccountDetailsCardState();
+}
+
+class _BankAccountDetailsCardState extends State<BankAccountDetailsCard> {
+  List<Map<String, String>> _accounts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccounts();
+  }
+
+  Future<void> _loadAccounts() async {
+    final accounts = await BankAccountConfig.getBankAccounts();
+    if (!mounted) return;
+    setState(() {
+      _accounts = accounts;
+      _isLoading = false;
+    });
+  }
+
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -32,15 +55,25 @@ class BankAccountDetailsCard extends StatelessWidget {
         duration: const Duration(seconds: 2),
       ),
     );
-    onCopy?.call();
+    widget.onCopy?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    final accounts = BankAccountConfig.getBankAccounts();
-    final padding = compact ? 12.0 : 16.0;
-    final titleSize = compact ? 16.0 : 18.0;
-    final textSize = compact ? 13.0 : 14.0;
+    final padding = widget.compact ? 12.0 : 16.0;
+    final titleSize = widget.compact ? 16.0 : 18.0;
+    final textSize = widget.compact ? 13.0 : 14.0;
+
+    if (_isLoading) {
+      return Card(
+        elevation: 4,
+        color: Colors.green[50],
+        child: Padding(
+          padding: EdgeInsets.all(padding),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
     return Card(
       elevation: 4,
@@ -56,7 +89,7 @@ class BankAccountDetailsCard extends StatelessWidget {
                 Icon(
                   Icons.account_balance,
                   color: Colors.green[700],
-                  size: compact ? 28 : 32,
+                  size: widget.compact ? 28 : 32,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -71,7 +104,7 @@ class BankAccountDetailsCard extends StatelessWidget {
                           color: Colors.green[900],
                         ),
                       ),
-                      if (!compact)
+                      if (!widget.compact)
                         Text(
                           'Make payment to any account below',
                           style: TextStyle(
@@ -88,7 +121,7 @@ class BankAccountDetailsCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Bank Accounts
-            ...accounts.map((account) => _buildAccountCard(
+            ..._accounts.map((account) => _buildAccountCard(
                   context,
                   bankName: account['bankName']!,
                   accountNumber: account['accountNumber']!,
@@ -97,7 +130,7 @@ class BankAccountDetailsCard extends StatelessWidget {
                   textSize: textSize,
                 )),
 
-            if (showInstructions) ...[
+            if (widget.showInstructions) ...[
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),

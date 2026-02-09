@@ -3,15 +3,14 @@ import 'dart:math';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:crypto/crypto.dart' as crypto;
 
 class EncryptionService {
   static const String _keyPrefix = 'taxng_';
   static const String _encKeyStorageKey = '${_keyPrefix}enc_key';
-  static const String _encIvStorageKey = '${_keyPrefix}enc_iv';
   static const _storage = FlutterSecureStorage();
 
   static late encrypt.Key _key;
-  static late encrypt.IV _iv;
   static late encrypt.Encrypter _encrypter;
   static bool _initialized = false;
 
@@ -22,26 +21,27 @@ class EncryptionService {
     return base64Url.encode(values);
   }
 
+  /// Generate a random IV for each encryption operation
+  static encrypt.IV _generateRandomIV() {
+    final random = Random.secure();
+    final ivBytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return encrypt.IV(Uint8List.fromList(ivBytes));
+  }
+
   /// Initialize encryption service.
-  /// Persists the key/IV in flutter_secure_storage so they survive restarts.
+  /// Persists only the key in flutter_secure_storage (IV is per-operation).
   static Future<void> initialize() async {
     try {
-      // Try to load existing key & IV from secure storage
       String? storedKey = await _storage.read(key: _encKeyStorageKey);
-      String? storedIv = await _storage.read(key: _encIvStorageKey);
 
-      if (storedKey == null || storedIv == null) {
-        // First run — generate and persist key + IV
+      if (storedKey == null) {
+        // First run — generate and persist key
         final keyBytes = _generateSecureRandom(32);
-        final ivBytes = _generateSecureRandom(16);
         await _storage.write(key: _encKeyStorageKey, value: keyBytes);
-        await _storage.write(key: _encIvStorageKey, value: ivBytes);
         storedKey = keyBytes;
-        storedIv = ivBytes;
       }
 
       _key = encrypt.Key.fromBase64(storedKey);
-      _iv = encrypt.IV.fromBase64(storedIv);
       _encrypter = encrypt.Encrypter(encrypt.AES(_key));
       _initialized = true;
       debugPrint('✅ Encryption service initialized');
@@ -49,38 +49,50 @@ class EncryptionService {
       debugPrint('⚠️ Encryption service init failed: $e');
       // Fallback — generate ephemeral key (data won't persist across restarts)
       _key = encrypt.Key.fromLength(32);
-      _iv = encrypt.IV.fromLength(16);
       _encrypter = encrypt.Encrypter(encrypt.AES(_key));
       _initialized = true;
     }
   }
 
-  /// Encrypt sensitive data
+  /// Encrypt sensitive data with a random IV prepended to the ciphertext.
+  /// Format: base64(IV) + ':' + base64(ciphertext)
   static String encryptData(String data) {
     if (!_initialized) {
-      debugPrint('⚠️ EncryptionService not initialized, returning data as-is');
-      return data;
+      throw StateError(
+          'EncryptionService not initialized. Call initialize() first.');
     }
     try {
-      final encrypted = _encrypter.encrypt(data, iv: _iv);
-      return encrypted.base64;
+      final iv = _generateRandomIV();
+      final encrypted = _encrypter.encrypt(data, iv: iv);
+      // Prepend the IV so decryption can extract it
+      return '${iv.base64}:${encrypted.base64}';
     } catch (e) {
       debugPrint('❌ Encryption failed: $e');
-      return data; // Return unencrypted if encryption fails
+      rethrow; // Never silently return plaintext
     }
   }
 
-  /// Decrypt data
+  /// Decrypt data. Supports both new format (iv:ciphertext) and legacy format.
   static String decryptData(String encryptedData) {
     if (!_initialized) {
-      return '';
+      throw StateError(
+          'EncryptionService not initialized. Call initialize() first.');
     }
     try {
-      final decrypted = _encrypter.decrypt64(encryptedData, iv: _iv);
-      return decrypted;
+      if (encryptedData.contains(':')) {
+        // New format: iv:ciphertext
+        final parts = encryptedData.split(':');
+        final iv = encrypt.IV.fromBase64(parts[0]);
+        final ciphertext = parts.sublist(1).join(':');
+        return _encrypter.decrypt64(ciphertext, iv: iv);
+      } else {
+        // Legacy format — try with a zero IV for backward compatibility
+        final legacyIv = encrypt.IV.fromLength(16);
+        return _encrypter.decrypt64(encryptedData, iv: legacyIv);
+      }
     } catch (e) {
       debugPrint('❌ Decryption failed: $e');
-      return ''; // Return empty if decryption fails
+      return '';
     }
   }
 
@@ -177,9 +189,11 @@ class EncryptionService {
     }
   }
 
-  /// Hash sensitive data (for comparison without storing plaintext)
+  /// Hash sensitive data using SHA-256 (one-way, for comparison)
   static String hashData(String data) {
-    return _encrypter.encrypt(data, iv: _iv).base64;
+    final bytes = utf8.encode(data);
+    final digest = crypto.sha256.convert(bytes);
+    return digest.toString();
   }
 
   /// Verify hashed data
