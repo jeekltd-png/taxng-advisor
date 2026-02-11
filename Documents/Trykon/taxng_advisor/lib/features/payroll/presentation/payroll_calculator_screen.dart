@@ -27,10 +27,10 @@ class PayrollCalculatorScreen extends StatefulWidget {
 class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _monthlyGrossController = TextEditingController(text: '250000');
+  final _monthlyGrossController = TextEditingController();
   final _pensionRateController = TextEditingController(text: '8');
   final _nhfRateController = TextEditingController(text: '2.5');
-  final _otherDeductionsController = TextEditingController(text: '5000');
+  final _otherDeductionsController = TextEditingController();
 
   PayrollResult? result;
   bool _showResults = false;

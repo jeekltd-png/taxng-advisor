@@ -1,11 +1,11 @@
 {
-    "name": "taxng_advisor",
-    "short_name": "taxng_advisor",
+    "name": "TaxNG — Smart Tax Advisor",
+    "short_name": "TaxNG",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#166534",
+    "theme_color": "#16A34A",
+    "description": "Your smart Nigerian tax compliance advisor. Calculate VAT, PIT, CIT, WHT, Payroll and Stamp Duty.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

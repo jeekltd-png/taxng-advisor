@@ -24,7 +24,7 @@ class WhtCalculatorScreen extends StatefulWidget {
 class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController(text: '5000000');
+  final _amountController = TextEditingController();
 
   WhtType _selectedType = WhtType.dividends;
   WhtResult? result;

@@ -25,11 +25,11 @@ class VatCalculatorScreen extends StatefulWidget {
 class _VatCalculatorScreenState extends State<VatCalculatorScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _standardSalesController = TextEditingController(text: '7000000');
-  final _zeroRatedSalesController = TextEditingController(text: '3000000');
-  final _exemptSalesController = TextEditingController(text: '1500000');
-  final _totalInputVatController = TextEditingController(text: '850000');
-  final _exemptInputVatController = TextEditingController(text: '0');
+  final _standardSalesController = TextEditingController();
+  final _zeroRatedSalesController = TextEditingController();
+  final _exemptSalesController = TextEditingController();
+  final _totalInputVatController = TextEditingController();
+  final _exemptInputVatController = TextEditingController();
 
   VatResult? result;
   bool _showResults = false;

@@ -26,7 +26,7 @@ class StampDutyScreen extends StatefulWidget {
 class _StampDutyScreenState extends State<StampDutyScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController(text: '50000000');
+  final _amountController = TextEditingController();
 
   StampDutyType _selectedType = StampDutyType.sale;
   StampDutyResult? result;

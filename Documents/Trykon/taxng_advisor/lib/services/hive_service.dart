@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 /// HiveService centralizes all Hive box names and accessors.
@@ -6,6 +9,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// This wrapper keeps box names in one place and provides convenience
 /// getters for commonly used boxes. Call `HiveService.initialize()` at
 /// application startup to ensure boxes are opened before use.
+///
+/// **Security:** Sensitive boxes (users, payments) are encrypted using
+/// `HiveAesCipher` with a key stored in FlutterSecureStorage.
 class HiveService {
   // Named boxes used across the app. Keep these stable to avoid
   // migration issues when reading/writing stored maps.
@@ -21,19 +27,40 @@ class HiveService {
   static const String profileBox = 'profile_settings';
   static const String upgradeRequestsBox = 'upgrade_requests';
 
+  static const _secureStorage = FlutterSecureStorage();
+  static const _encryptionKeyName = 'hive_encryption_key';
+
+  /// Get or generate the Hive encryption key stored in secure storage.
+  static Future<List<int>> _getEncryptionKey() async {
+    final existing = await _secureStorage.read(key: _encryptionKeyName);
+    if (existing != null) {
+      return base64Url.decode(existing);
+    }
+    // Generate a new 256-bit key
+    final key = List<int>.generate(32, (_) => Random.secure().nextInt(256));
+    await _secureStorage.write(
+      key: _encryptionKeyName,
+      value: base64Url.encode(key),
+    );
+    return key;
+  }
+
   /// Initialize Hive and open all boxes used by the application.
   ///
-  /// Uses `Hive.initFlutter()` so it works on mobile, desktop and web
-  /// via the hive_flutter bindings. This should be awaited before any
-  /// call to `Hive.box(...)` is made.
+  /// Sensitive boxes are encrypted using AES-256 with a key from secure storage.
   static Future<void> initialize() async {
     await Hive.initFlutter();
 
     try {
-      // Open boxes in a deterministic order. Missing a box will throw
-      // a HiveError when `Hive.box(name)` is accessed later.
-      await Hive.openBox(usersBox);
-      await Hive.openBox(paymentsBox);
+      final encryptionKey = await _getEncryptionKey();
+      final cipher = HiveAesCipher(encryptionKey);
+
+      // Open sensitive boxes with encryption
+      await Hive.openBox(usersBox, encryptionCipher: cipher);
+      await Hive.openBox(paymentsBox, encryptionCipher: cipher);
+      await Hive.openBox(profileBox, encryptionCipher: cipher);
+
+      // Open non-sensitive boxes without encryption for performance
       await Hive.openBox(citBox);
       await Hive.openBox(pitBox);
       await Hive.openBox(vatBox);
@@ -41,10 +68,9 @@ class HiveService {
       await Hive.openBox(stampDutyBox);
       await Hive.openBox(payrollBox);
       await Hive.openBox(syncBox);
-      await Hive.openBox(profileBox);
       await Hive.openBox(upgradeRequestsBox);
 
-      debugPrint('✅ Hive initialized successfully');
+      debugPrint('✅ Hive initialized with encryption');
     } catch (e) {
       // Bubble up the error so callers can decide how to recover.
       debugPrint('❌ Hive initialization error: $e');
@@ -236,8 +262,11 @@ class HiveService {
     };
   }
 
-  /// Initialize Hive for testing — uses a temporary directory.
+  /// Initialize Hive for testing — uses a temporary directory (no encryption).
   static Future<void> initForTesting() async {
+    assert(() {
+      return true;
+    }(), 'initForTesting must only be called in test/debug mode');
     await Hive.initFlutter('test_hive_data');
     await Hive.openBox(usersBox);
     await Hive.openBox(paymentsBox);

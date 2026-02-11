@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxng_advisor/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:taxng_advisor/features/auth/presentation/login_screen.dart';
 import 'package:taxng_advisor/features/auth/presentation/forgot_password_screen.dart';
@@ -78,16 +79,25 @@ void main() async {
       // Initialize theme from persisted preference
       await themeService.initialize();
 
-      // Seed default users (admin + test accounts) on first launch
-      await AuthService.seedTestUsers();
+      // Seed default users only in debug mode — never in production
+      if (kDebugMode) {
+        await AuthService.seedTestUsers();
+      }
     } catch (e) {
       debugPrint('Initialization error: $e');
     }
 
+    // Check if onboarding has been seen
+    bool onboardingSeen = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      onboardingSeen = prefs.getBool('onboarding_seen') ?? false;
+    } catch (_) {}
+
     runApp(
       ChangeNotifierProvider.value(
         value: themeService,
-        child: const TaxNgApp(),
+        child: TaxNgApp(showOnboarding: !onboardingSeen),
       ),
     );
   }, (error, stackTrace) {
@@ -97,7 +107,8 @@ void main() async {
 }
 
 class TaxNgApp extends StatelessWidget {
-  const TaxNgApp({super.key});
+  final bool showOnboarding;
+  const TaxNgApp({super.key, this.showOnboarding = true});
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +120,7 @@ class TaxNgApp extends StatelessWidget {
           theme: TaxNGTheme.lightTheme(),
           darkTheme: TaxNGTheme.darkTheme(),
           themeMode: themeService.themeMode,
-          home: const WelcomeScreen(),
+          home: showOnboarding ? const WelcomeScreen() : const LoginScreen(),
           routes: {
             '/welcome': (_) => const WelcomeScreen(),
             '/login': (_) => const LoginScreen(),

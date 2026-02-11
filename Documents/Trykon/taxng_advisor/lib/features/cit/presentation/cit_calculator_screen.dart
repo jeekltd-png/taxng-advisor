@@ -27,8 +27,8 @@ class CitCalculatorScreen extends StatefulWidget {
 class _CitCalculatorScreenState extends State<CitCalculatorScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _turnoverController = TextEditingController(text: '75000000');
-  final _profitController = TextEditingController(text: '15000000');
+  final _turnoverController = TextEditingController();
+  final _profitController = TextEditingController();
 
   CitResult? result;
   bool _showResults = false;

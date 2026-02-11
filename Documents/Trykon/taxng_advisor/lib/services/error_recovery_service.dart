@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// Error types for categorization
 enum ErrorType {
@@ -100,7 +100,9 @@ class ErrorRecoveryService {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          error.toString(),
+                          kDebugMode
+                              ? error.toString()
+                              : 'Error details available in debug mode.',
                           style: TextStyle(
                             fontSize: 10,
                             fontFamily: 'monospace',
@@ -136,15 +138,18 @@ class ErrorRecoveryService {
 
   /// Detect error type from exception
   static ErrorType _detectErrorType(dynamic error) {
-    if (error is SocketException || error.toString().contains('network')) {
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('socket') ||
+        errorStr.contains('network') ||
+        errorStr.contains('connection')) {
       return ErrorType.network;
-    } else if (error is FileSystemException ||
-        error.toString().contains('file') ||
-        error.toString().contains('permission')) {
+    } else if (errorStr.contains('filesystem') ||
+        errorStr.contains('file') ||
+        errorStr.contains('permission')) {
       return ErrorType.fileSystem;
-    } else if (error.toString().contains('storage') ||
-        error.toString().contains('hive') ||
-        error.toString().contains('box')) {
+    } else if (errorStr.contains('storage') ||
+        errorStr.contains('hive') ||
+        errorStr.contains('box')) {
       return ErrorType.storage;
     } else if (error is FormatException ||
         error.toString().contains('validation') ||
@@ -245,16 +250,16 @@ class ErrorRecoveryService {
     String? context,
     Map<String, dynamic>? additionalData,
   }) {
-    print('=== ERROR LOG ===');
-    print('Context: ${context ?? 'Unknown'}');
-    print('Error: $error');
+    debugPrint('=== ERROR LOG ===');
+    debugPrint('Context: ${context ?? 'Unknown'}');
+    debugPrint('Error: $error');
     if (stackTrace != null) {
-      print('Stack Trace:\n$stackTrace');
+      debugPrint('Stack Trace:\n$stackTrace');
     }
     if (additionalData != null) {
-      print('Additional Data: $additionalData');
+      debugPrint('Additional Data: $additionalData');
     }
-    print('=================');
+    debugPrint('=================');
   }
 
   /// Wrap an operation with error handling

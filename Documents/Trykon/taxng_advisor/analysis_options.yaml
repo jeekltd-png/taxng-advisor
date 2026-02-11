@@ -12,7 +12,6 @@ analyzer:
   exclude:
     - '**/*.g.dart'
     - 'build/**'
-    - 'test/**'
 
 linter:
   rules:

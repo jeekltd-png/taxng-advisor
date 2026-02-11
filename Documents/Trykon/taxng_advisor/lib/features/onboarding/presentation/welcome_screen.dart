@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 /// Onboarding carousel welcome screen with animated bubbles
@@ -275,7 +276,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              (await SharedPreferences.getInstance())
+                                  .setBool('onboarding_seen', true);
+                              if (!context.mounted) return;
                               Navigator.pushReplacementNamed(context, '/login');
                             },
                             style: TextButton.styleFrom(
@@ -302,13 +306,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_currentPage < _pages.length - 1) {
                               _pageController.nextPage(
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
                               );
                             } else {
+                              (await SharedPreferences.getInstance())
+                                  .setBool('onboarding_seen', true);
+                              if (!context.mounted) return;
                               Navigator.pushReplacementNamed(context, '/login');
                             }
                           },
@@ -340,7 +347,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         width: double.infinity,
                         height: 48,
                         child: OutlinedButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            (await SharedPreferences.getInstance())
+                                .setBool('onboarding_seen', true);
+                            if (!context.mounted) return;
                             Navigator.pushReplacementNamed(
                               context,
                               '/login',

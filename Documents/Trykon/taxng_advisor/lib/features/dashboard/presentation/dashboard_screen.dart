@@ -22,6 +22,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isAdmin = false;
   bool _isBusiness = false;
+  String _userName = '';
   List<Map<String, dynamic>> _recentCalcs = [];
 
   @override
@@ -39,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _isAdmin = isAdmin;
         _isBusiness = user?.isBusiness ?? false;
+        _userName = user?.firstName ?? user?.username ?? '';
         _recentCalcs = calcs;
       });
     }
@@ -67,171 +69,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: isDark ? TaxNGColors.bgDark : TaxNGColors.bgLight,
       drawer: _buildDrawer(context, isDark),
       appBar: const TaxNGAppBar(title: 'TaxNG'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SyncStatusIndicator(),
-            const SizedBox(height: 20),
+      body: RefreshIndicator(
+        onRefresh: _loadUserData,
+        color: TaxNGColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SyncStatusIndicator(),
+              const SizedBox(height: 20),
 
-            // Welcome card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: TaxNGColors.heroGradient,
-                borderRadius: BorderRadius.circular(20),
+              // Welcome card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: TaxNGColors.heroGradient,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _userName.isNotEmpty
+                          ? '👋 Welcome, $_userName'
+                          : '👋 Welcome to TaxNG',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Your Padi for Nigerian Tax Matters',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 24),
+
+              // ── Recent Calculations (before tax calculators) ──
+              _buildRecentCalculations(isDark),
+              const SizedBox(height: 24),
+
+              // ── Business Tools (only for Business users + Admins) ──
+              if (_isBusiness || _isAdmin) ...[
+                _buildBusinessTools(isDark),
+                const SizedBox(height: 24),
+              ],
+
+              Text(
+                'Tax Calculators',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : TaxNGColors.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 14),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                  final childAspectRatio =
+                      constraints.maxWidth > 600 ? 1.3 : 1.15;
+                  return GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: childAspectRatio,
+                    children: [
+                      _TaxTile(
+                          title: 'VAT',
+                          subtitle: 'Value Added Tax',
+                          route: '/vat',
+                          icon: Icons.receipt_rounded,
+                          color: const Color(0xFF16A34A),
+                          isDark: isDark),
+                      _TaxTile(
+                          title: 'PIT',
+                          subtitle: 'Personal Income',
+                          route: '/pit',
+                          icon: Icons.person_rounded,
+                          color: const Color(0xFF0D9488),
+                          isDark: isDark),
+                      _TaxTile(
+                          title: 'CIT',
+                          subtitle: 'Corporate Income',
+                          route: '/cit',
+                          icon: Icons.business_rounded,
+                          color: const Color(0xFF6366F1),
+                          isDark: isDark),
+                      _TaxTile(
+                          title: 'WHT',
+                          subtitle: 'Withholding Tax',
+                          route: '/wht',
+                          icon: Icons.attach_money_rounded,
+                          color: const Color(0xFFEC4899),
+                          isDark: isDark),
+                      _TaxTile(
+                          title: 'Payroll',
+                          subtitle: 'Employee Taxes',
+                          route: '/payroll',
+                          icon: Icons.payments_rounded,
+                          color: const Color(0xFF8B5CF6),
+                          isDark: isDark),
+                      _TaxTile(
+                          title: 'Stamp Duty',
+                          subtitle: 'Instruments & Docs',
+                          route: '/stamp_duty',
+                          icon: Icons.description_rounded,
+                          color: const Color(0xFFF59E0B),
+                          isDark: isDark),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
+              Text(
+                'More Options',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : TaxNGColors.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
                 children: [
-                  const Text(
-                    '👋 Welcome to TaxNG',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                  Expanded(
+                    child: _MoreOptionCard(
+                      icon: Icons.pie_chart_rounded,
+                      label: 'Tax Overview',
+                      color: const Color(0xFF16A34A),
+                      isDark: isDark,
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/tax-overview'),
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Your Padi for Nigerian Tax Matters',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.85),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MoreOptionCard(
+                      icon: Icons.notifications_active_rounded,
+                      label: 'Reminders',
+                      color: const Color(0xFFF59E0B),
+                      isDark: isDark,
+                      onTap: () => Navigator.pushNamed(context, '/reminders'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MoreOptionCard(
+                      icon: Icons.help_center_rounded,
+                      label: 'Help',
+                      color: const Color(0xFF3B82F6),
+                      isDark: isDark,
+                      onTap: () => Navigator.pushNamed(context, '/help/faq'),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Recent Calculations (before tax calculators) ──
-            _buildRecentCalculations(isDark),
-            const SizedBox(height: 24),
-
-            // ── Business Tools (only for Business users + Admins) ──
-            if (_isBusiness || _isAdmin) ...[
-              _buildBusinessTools(isDark),
-              const SizedBox(height: 24),
             ],
-
-            Text(
-              'Tax Calculators',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : TaxNGColors.textDark,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 14),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
-                final childAspectRatio =
-                    constraints.maxWidth > 600 ? 1.3 : 1.15;
-                return GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: childAspectRatio,
-                  children: [
-                    _TaxTile(
-                        title: 'VAT',
-                        subtitle: 'Value Added Tax',
-                        route: '/vat',
-                        icon: Icons.receipt_rounded,
-                        color: const Color(0xFF16A34A),
-                        isDark: isDark),
-                    _TaxTile(
-                        title: 'PIT',
-                        subtitle: 'Personal Income',
-                        route: '/pit',
-                        icon: Icons.person_rounded,
-                        color: const Color(0xFF0D9488),
-                        isDark: isDark),
-                    _TaxTile(
-                        title: 'CIT',
-                        subtitle: 'Corporate Income',
-                        route: '/cit',
-                        icon: Icons.business_rounded,
-                        color: const Color(0xFF6366F1),
-                        isDark: isDark),
-                    _TaxTile(
-                        title: 'WHT',
-                        subtitle: 'Withholding Tax',
-                        route: '/wht',
-                        icon: Icons.attach_money_rounded,
-                        color: const Color(0xFFEC4899),
-                        isDark: isDark),
-                    _TaxTile(
-                        title: 'Payroll',
-                        subtitle: 'Employee Taxes',
-                        route: '/payroll',
-                        icon: Icons.payments_rounded,
-                        color: const Color(0xFF8B5CF6),
-                        isDark: isDark),
-                    _TaxTile(
-                        title: 'Stamp Duty',
-                        subtitle: 'Instruments & Docs',
-                        route: '/stamp_duty',
-                        icon: Icons.description_rounded,
-                        color: const Color(0xFFF59E0B),
-                        isDark: isDark),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            Text(
-              'More Options',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : TaxNGColors.textDark,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _MoreOptionCard(
-                    icon: Icons.pie_chart_rounded,
-                    label: 'Tax Overview',
-                    color: const Color(0xFF16A34A),
-                    isDark: isDark,
-                    onTap: () => Navigator.pushNamed(context, '/tax-overview'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _MoreOptionCard(
-                    icon: Icons.notifications_active_rounded,
-                    label: 'Reminders',
-                    color: const Color(0xFFF59E0B),
-                    isDark: isDark,
-                    onTap: () => Navigator.pushNamed(context, '/reminders'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _MoreOptionCard(
-                    icon: Icons.help_center_rounded,
-                    label: 'Help',
-                    color: const Color(0xFF3B82F6),
-                    isDark: isDark,
-                    onTap: () => Navigator.pushNamed(context, '/help/faq'),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -680,8 +690,9 @@ class _BusinessToolTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Semantics(
         button: true,
         label: title,
@@ -740,8 +751,9 @@ class _MoreOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Semantics(
         button: true,
         label: label,

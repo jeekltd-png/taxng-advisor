@@ -26,9 +26,9 @@ class PitCalculatorScreen extends StatefulWidget {
 class _PitCalculatorScreenState extends State<PitCalculatorScreen>
     with FormValidationMixin {
   final _formKey = GlobalKey<FormState>();
-  final _grossIncomeController = TextEditingController(text: '5000000');
-  final _otherDeductionsController = TextEditingController(text: '200000');
-  final _annualRentPaidController = TextEditingController(text: '1200000');
+  final _grossIncomeController = TextEditingController();
+  final _otherDeductionsController = TextEditingController();
+  final _annualRentPaidController = TextEditingController();
 
   PitResult? result;
   bool _showResults = false;
