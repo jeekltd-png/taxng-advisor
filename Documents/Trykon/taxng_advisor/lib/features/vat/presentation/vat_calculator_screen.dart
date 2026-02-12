@@ -13,6 +13,9 @@ import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 
 /// VAT Calculator Screen
 class VatCalculatorScreen extends StatefulWidget {
@@ -23,7 +26,7 @@ class VatCalculatorScreen extends StatefulWidget {
 }
 
 class _VatCalculatorScreenState extends State<VatCalculatorScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _standardSalesController = TextEditingController();
   final _zeroRatedSalesController = TextEditingController();
@@ -33,12 +36,26 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
 
   VatResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   @override
   void initState() {
     super.initState();
     ValidationService.registerRules('VAT', ValidationService.getVATRules());
+
+    // Mark as real data when user edits any field
+    for (final c in [
+      _standardSalesController,
+      _zeroRatedSalesController,
+      _exemptSalesController,
+      _totalInputVatController,
+      _exemptInputVatController,
+    ]) {
+      c.addListener(() {
+        if (_isExampleData && c.text.isNotEmpty) _isExampleData = false;
+      });
+    }
 
     // Handle imported data from route
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,15 +69,23 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
   }
 
   void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
     setState(() {
-      _standardSalesController.text =
-          (data['standardSales'] ?? 7000000).toString();
-      _zeroRatedSalesController.text =
-          (data['zeroRatedSales'] ?? 3000000).toString();
-      _exemptSalesController.text = (data['exemptSales'] ?? 1500000).toString();
-      _totalInputVatController.text =
-          (data['totalInputVat'] ?? 850000).toString();
-      _exemptInputVatController.text = (data['exemptInputVat'] ?? 0).toString();
+      if (data['standardSales'] != null) {
+        _standardSalesController.text = data['standardSales'].toString();
+      }
+      if (data['zeroRatedSales'] != null) {
+        _zeroRatedSalesController.text = data['zeroRatedSales'].toString();
+      }
+      if (data['exemptSales'] != null) {
+        _exemptSalesController.text = data['exemptSales'].toString();
+      }
+      if (data['totalInputVat'] != null) {
+        _totalInputVatController.text = data['totalInputVat'].toString();
+      }
+      if (data['exemptInputVat'] != null) {
+        _exemptInputVatController.text = data['exemptInputVat'].toString();
+      }
     });
 
     Future.delayed(const Duration(milliseconds: 300), _calculateVAT);
@@ -87,6 +112,11 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
           backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('VAT', isExampleData: _isExampleData)) {
       return;
     }
 
@@ -130,6 +160,10 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
       );
       _showResults = true;
     });
+
+    // Track calculator usage for admin analytics
+    UserActivityTracker.trackCalculatorUse('vat',
+        details: 'Standard: $standardSales, Zero-rated: $zeroRatedSales');
   }
 
   @override
@@ -294,6 +328,7 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'VAT'),
             Text(
               'Value Added Tax (VAT) ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -301,13 +336,18 @@ class _VatCalculatorScreenState extends State<VatCalculatorScreen>
             const SizedBox(height: 8),
             Text(
               'Enter your VAT-related transactions',
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  fontSize: 13),
             ),
             const SizedBox(height: 24),
 
             // Information Card
             Card(
-              color: Colors.blue[50],
+              color: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withOpacity(0.3),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

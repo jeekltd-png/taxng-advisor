@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:taxng_advisor/services/tax_analytics_service.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
@@ -59,7 +60,7 @@ class UndoService {
     required TaxCalculationItem calculation,
   }) async {
     final operationId = DateTime.now().millisecondsSinceEpoch.toString();
-    
+
     // Get the full calculation data from Hive
     final parts = calculation.id.split(':');
     if (parts.length != 2) {
@@ -172,7 +173,8 @@ class UndoService {
         'items': deletedItems,
         'count': deletedItems.length,
       },
-      description: 'Deleted ${deletedItems.length} calculation${deletedItems.length != 1 ? 's' : ''}',
+      description:
+          'Deleted ${deletedItems.length} calculation${deletedItems.length != 1 ? 's' : ''}',
     );
 
     await _saveOperation(operation);
@@ -250,7 +252,8 @@ class UndoService {
         'parameters': parameters,
         'count': originalValues.length,
       },
-      description: '$operationName on ${originalValues.length} calculation${originalValues.length != 1 ? 's' : ''}',
+      description:
+          '$operationName on ${originalValues.length} calculation${originalValues.length != 1 ? 's' : ''}',
     );
 
     await _saveOperation(operation);
@@ -262,12 +265,13 @@ class UndoService {
     try {
       final box = await Hive.openBox(_undoBoxName);
       final operationMap = box.get(operationId);
-      
+
       if (operationMap == null) {
         return false;
       }
 
-      final operation = UndoOperation.fromMap(Map<String, dynamic>.from(operationMap));
+      final operation =
+          UndoOperation.fromMap(Map<String, dynamic>.from(operationMap));
 
       switch (operation.type) {
         case UndoOperationType.delete:
@@ -285,7 +289,7 @@ class UndoService {
       await box.delete(operationId);
       return true;
     } catch (e) {
-      print('Error undoing operation: $e');
+      debugPrint('Error undoing operation: $e');
       return false;
     }
   }
@@ -293,7 +297,7 @@ class UndoService {
   /// Undo a delete operation
   static Future<void> _undoDelete(UndoOperation operation) async {
     final items = operation.data['items'];
-    
+
     if (items != null) {
       // Bulk delete undo
       for (final item in items) {
@@ -403,23 +407,25 @@ class UndoService {
   }
 
   /// Get recent operations
-  static Future<List<UndoOperation>> getRecentOperations({int limit = 10}) async {
+  static Future<List<UndoOperation>> getRecentOperations(
+      {int limit = 10}) async {
     try {
       final box = await Hive.openBox(_undoBoxName);
       final operations = <UndoOperation>[];
 
       for (final value in box.values) {
         try {
-          operations.add(UndoOperation.fromMap(Map<String, dynamic>.from(value)));
+          operations
+              .add(UndoOperation.fromMap(Map<String, dynamic>.from(value)));
         } catch (e) {
-          print('Error parsing operation: $e');
+          debugPrint('Error parsing operation: $e');
         }
       }
 
       operations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return operations.take(limit).toList();
     } catch (e) {
-      print('Error getting recent operations: $e');
+      debugPrint('Error getting recent operations: $e');
       return [];
     }
   }
@@ -442,9 +448,10 @@ class UndoService {
 
       for (final value in box.values) {
         try {
-          operations.add(UndoOperation.fromMap(Map<String, dynamic>.from(value)));
+          operations
+              .add(UndoOperation.fromMap(Map<String, dynamic>.from(value)));
         } catch (e) {
-          print('Error parsing operation: $e');
+          debugPrint('Error parsing operation: $e');
         }
       }
 
@@ -465,7 +472,7 @@ class UndoService {
         }
       }
     } catch (e) {
-      print('Error cleaning up history: $e');
+      debugPrint('Error cleaning up history: $e');
     }
   }
 
@@ -475,7 +482,7 @@ class UndoService {
       final box = await Hive.openBox(_undoBoxName);
       await box.clear();
     } catch (e) {
-      print('Error clearing history: $e');
+      debugPrint('Error clearing history: $e');
     }
   }
 }

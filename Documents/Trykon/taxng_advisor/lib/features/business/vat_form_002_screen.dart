@@ -510,10 +510,11 @@ class _VatForm002ScreenState extends State<VatForm002Screen> {
         );
       }
     } catch (e) {
+      debugPrint('Error generating PDF: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error generating PDF: $e'),
+            content: Text('Could not generate PDF. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

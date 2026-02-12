@@ -12,9 +12,13 @@ import 'package:taxng_advisor/widgets/validated_text_field.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
-// TODO: Uncomment after `flutter pub get` completes
-// import 'package:taxng_advisor/services/hive_service.dart';
-// import 'package:taxng_advisor/services/sync_service.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
+import 'package:taxng_advisor/widgets/quick_import_button.dart';
+import 'package:taxng_advisor/widgets/template_action_buttons.dart';
+import 'package:taxng_advisor/services/hive_service.dart';
+import 'package:taxng_advisor/services/sync_service.dart';
 
 /// CIT Calculator Screen with Input and Results
 class CitCalculatorScreen extends StatefulWidget {
@@ -25,13 +29,14 @@ class CitCalculatorScreen extends StatefulWidget {
 }
 
 class _CitCalculatorScreenState extends State<CitCalculatorScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _turnoverController = TextEditingController();
   final _profitController = TextEditingController();
 
   CitResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   @override
@@ -40,12 +45,20 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
     // Register validation rules
     ValidationService.registerRules('CIT', ValidationService.getCITRules());
 
+    // Mark as real data when user edits any field
+    for (final c in [_turnoverController, _profitController]) {
+      c.addListener(() {
+        if (_isExampleData && c.text.isNotEmpty) _isExampleData = false;
+      });
+    }
+
     // If opened with route arguments (imported data), prefill and calculate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null &&
           (args['turnover'] != null || args['profit'] != null)) {
+        _isExampleData = false;
         if (args['turnover'] != null) {
           _turnoverController.text = (args['turnover'] as num).toString();
         }
@@ -59,11 +72,22 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
     });
   }
 
+  void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
+    setState(() {
+      if (data['turnover'] != null) {
+        _turnoverController.text = data['turnover'].toString();
+      }
+      if (data['profit'] != null) {
+        _profitController.text = data['profit'].toString();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 300), _calculateCIT);
+  }
+
   void _calculateWithDummyData() {
-    result = CitCalculator.calculate(
-      turnover: 75000000,
-      profit: 15000000,
-    );
+    // Calculate with default (empty) controller values
+    _calculateCIT();
   }
 
   void _calculateCIT() async {
@@ -74,6 +98,11 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
 
     // Validate before calculating
     if (!await canSubmit('CIT', data)) {
+      return;
+    }
+
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('CIT', isExampleData: _isExampleData)) {
       return;
     }
 
@@ -101,25 +130,26 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
 
       // Save to local storage (legacy service)
       CitStorageService.saveEstimate(result!);
-      // TODO: Uncomment after `flutter pub get` completes
-      // HiveService.saveCIT(result!.toMap());
+      HiveService.saveCIT(result!.toMap());
 
       ErrorRecoveryService.showSuccess(
         context,
         '✅ CIT calculated successfully',
       );
 
+      // Track calculator usage for admin analytics
+      UserActivityTracker.trackCalculatorUse('cit',
+          details: 'Turnover: ${data['turnover']}, Profit: ${data['profit']}');
+
       _showSyncStatus();
     }
   }
 
   Future<void> _showSyncStatus() async {
-    // TODO: Uncomment after `flutter pub get` completes
-    // final isOnline = await SyncService.isOnline();
-    const message = '💾 Saved';
-    // isOnline
-    // ? '✅ Saved and syncing to server...'
-    // : '💾 Saved offline - will sync when online';
+    final isOnline = await SyncService.isOnline();
+    final message = isOnline
+        ? '✅ Saved and syncing to server...'
+        : '💾 Saved offline - will sync when online';
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,9 +219,12 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
         originalCurrency: paymentData['originalCurrency'],
         originalAmount: paymentData['originalAmount'],
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment recorded and confirmation sent')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Payment recorded and confirmation sent')),
+        );
+      }
     }
   }
 
@@ -222,11 +255,16 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const TaxNGAppBar(title: 'CIT Calculator'),
+      floatingActionButton: QuickImportButton(
+        calculatorType: 'CIT',
+        onDataImported: _handleImportedData,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'CIT'),
             Text(
               'Corporate Income Tax (CIT) ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -234,9 +272,75 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
             const SizedBox(height: 8),
             Text(
               'Enter your business financial details',
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  fontSize: 13),
             ),
             const SizedBox(height: 24),
+
+            // Information Card
+            Card(
+              color: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.3),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.blue[700]),
+                        const SizedBox(width: 8),
+                        Text(
+                          'How to Use',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      '1. Annual Business Turnover: Enter your company\'s total annual revenue.',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '2. Chargeable Profit: Enter the taxable profit after allowable deductions.',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber[700]!, width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.lightbulb_outline,
+                              color: Colors.amber[700], size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Tip: CIT rate depends on company size — Small (≤₦25M turnover): 0%, Medium (₦25M–₦100M): 20%, Large (>₦100M): 30%.',
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.amber[900]),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             /// Input Form Section
             Card(
@@ -300,6 +404,25 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      TemplateActionButtons(
+                        taxType: 'CIT',
+                        currentData: {
+                          'turnover':
+                              double.tryParse(_turnoverController.text) ?? 0,
+                          'profit':
+                              double.tryParse(_profitController.text) ?? 0,
+                        },
+                        onTemplateLoaded: (data) {
+                          setState(() {
+                            _turnoverController.text =
+                                (data['turnover'] ?? 0).toString();
+                            _profitController.text =
+                                (data['profit'] ?? 0).toString();
+                          });
+                          _calculateCIT();
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -355,7 +478,10 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
               ),
               const SizedBox(height: 16),
               Card(
-                color: Colors.blue[50],
+                color: Theme.of(context)
+                    .colorScheme
+                    .primaryContainer
+                    .withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
@@ -375,19 +501,23 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
               const SizedBox(height: 12),
               Row(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _showPaymentDialog(context),
-                    icon: const Icon(Icons.payment),
-                    label: const Text('Record Payment'),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showPaymentDialog(context),
+                      icon: const Icon(Icons.payment),
+                      label: const Text('Record Payment'),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _openPaymentGateway(context),
-                    icon: const Icon(Icons.shopping_cart),
-                    label: const Text('Pay Now'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _openPaymentGateway(context),
+                      icon: const Icon(Icons.shopping_cart),
+                      label: const Text('Pay Now'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ),
                 ],

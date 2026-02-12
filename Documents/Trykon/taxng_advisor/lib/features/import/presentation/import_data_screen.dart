@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:taxng_advisor/services/data_import_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 import 'package:taxng_advisor/theme/colors.dart';
 import 'package:intl/intl.dart';
@@ -50,6 +50,7 @@ class _ImportDataScreenState extends State<ImportDataScreen>
     'Balance',
     'VAT Amount',
     'Amount',
+    'Tax Status',
     'Ignore',
   ];
 
@@ -72,7 +73,7 @@ class _ImportDataScreenState extends State<ImportDataScreen>
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv', 'txt', 'xlsx', 'xls'],
+        allowedExtensions: ['csv', 'txt', 'xlsx', 'xls', 'pdf'],
         withData: true,
       );
 
@@ -92,12 +93,14 @@ class _ImportDataScreenState extends State<ImportDataScreen>
 
       if (ext == 'xlsx' || ext == 'xls') {
         _processExcel(Uint8List.fromList(bytes), file.name);
+      } else if (ext == 'pdf') {
+        _processPdf(Uint8List.fromList(bytes), file.name);
       } else {
         final csvText = utf8.decode(bytes);
         _processData(csvText, file.name);
       }
     } catch (e) {
-      _showError('Error reading file: $e');
+      _showError('Could not read file. Please check the format and try again.');
     }
   }
 
@@ -120,7 +123,8 @@ class _ImportDataScreenState extends State<ImportDataScreen>
         _showSheetPicker(bytes, sheetNames, fileName);
       }
     } catch (e) {
-      _showError('Error parsing Excel: $e');
+      _showError(
+          'Could not parse Excel file. Please ensure it is a valid .xlsx or .xls file.');
     }
   }
 
@@ -170,6 +174,30 @@ class _ImportDataScreenState extends State<ImportDataScreen>
     );
   }
 
+  // ─── PDF processing ────────────────────────────────────────────────
+
+  void _processPdf(Uint8List bytes, String fileName) {
+    try {
+      if (!DataImportService.isPdfTextBased(bytes)) {
+        _showError(
+          'This PDF appears to be scanned/image-based. '
+          'Only text-based PDFs (digital bank statements) are supported.',
+        );
+        return;
+      }
+
+      final rows = DataImportService.parsePdf(bytes);
+      if (rows.isEmpty) {
+        _showError('Could not extract tabular data from this PDF.');
+        return;
+      }
+      _finishParsing(rows, fileName);
+    } catch (e) {
+      _showError(
+          'Could not process the PDF. It may be encrypted or unsupported.');
+    }
+  }
+
   // ─── Paste handler ────────────────────────────────────────────────
 
   void _handlePaste() {
@@ -192,7 +220,8 @@ class _ImportDataScreenState extends State<ImportDataScreen>
       final rows = DataImportService.parseCsv(csvText);
       _finishParsing(rows, fileName);
     } catch (e) {
-      _showError('Parse error: $e');
+      _showError(
+          'Could not parse the data. Please check the format and try again.');
     }
   }
 
@@ -238,11 +267,27 @@ class _ImportDataScreenState extends State<ImportDataScreen>
 
     final agg = DataImportService.aggregateColumn(_parsedData, amountCol);
 
+    // Find Tax Status column if user mapped one
+    int? statusCol;
+    _columnMappings.forEach((col, role) {
+      if (role == 'Tax Status') statusCol = col;
+    });
+    // Also try auto-detecting from headers
+    statusCol ??= DataImportService.detectTaxStatusColumn(_parsedData);
+
     Map<String, double> taxTotals;
     if (_selectedTaxType == 'VAT') {
       taxTotals = DataImportService.calculateVatTotals(_parsedData, amountCol);
     } else if (_selectedTaxType == 'WHT') {
       taxTotals = DataImportService.calculateWhtTotals(_parsedData, amountCol);
+    } else if (_selectedTaxType == 'PIT' || _selectedTaxType == 'CIT') {
+      // Use deduction-aware classification
+      final deductions = DataImportService.calculateDeductionTotals(
+        _parsedData,
+        amountCol,
+        statusCol: statusCol,
+      );
+      taxTotals = deductions;
     } else {
       final total = agg['sum'] as double;
       taxTotals = {'totalAmount': total};
@@ -265,6 +310,14 @@ class _ImportDataScreenState extends State<ImportDataScreen>
       data: _parsedData,
       taxType: _selectedTaxType,
       columnMappings: _columnMappings,
+      taxTotals: _taxTotals,
+      aggregation: _aggregation,
+    );
+
+    // Track data import for admin analytics
+    UserActivityTracker.trackDataImport(
+      _fileName ?? 'Unknown',
+      taxType: _selectedTaxType,
     );
   }
 
@@ -292,9 +345,8 @@ class _ImportDataScreenState extends State<ImportDataScreen>
     final route = routeMap[taxType];
     if (route == null || !mounted) return;
 
-    // Get total amount to pass
-    final totalAmount = _taxTotals['totalAmount'] ?? 0.0;
-    final formattedAmount = _currencyFormat.format(totalAmount);
+    // Build calculator-specific arguments from parsed totals
+    final args = _buildCalculatorArgs(taxType);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -311,7 +363,7 @@ class _ImportDataScreenState extends State<ImportDataScreen>
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Going to the $taxType calculation screen with ₦$formattedAmount…',
+                'Applying imported data to the $taxType calculator…',
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
@@ -324,9 +376,55 @@ class _ImportDataScreenState extends State<ImportDataScreen>
 
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pushNamed(context, route);
+        Navigator.pushNamed(context, route, arguments: args);
       }
     });
+  }
+
+  /// Maps parsed tax totals to calculator field names.
+  Map<String, dynamic> _buildCalculatorArgs(String taxType) {
+    switch (taxType) {
+      case 'VAT':
+        return {
+          'standardSales':
+              _taxTotals['standardRated'] ?? _taxTotals['totalAmount'] ?? 0,
+          'zeroRatedSales': _taxTotals['zeroRated'] ?? 0,
+          'exemptSales': _taxTotals['exempt'] ?? 0,
+          'totalInputVat': _taxTotals['inputVat'] ?? 0,
+          'exemptInputVat': _taxTotals['exemptInputVat'] ?? 0,
+        };
+      case 'PIT':
+        return {
+          'grossIncome':
+              _taxTotals['totalIncome'] ?? _taxTotals['totalAmount'] ?? 0,
+          'otherDeductions':
+              _taxTotals['totalDeductions'] ?? _taxTotals['deductible'] ?? 0,
+          'annualRentPaid': 0,
+        };
+      case 'CIT':
+        return {
+          'turnover':
+              _taxTotals['totalIncome'] ?? _taxTotals['totalAmount'] ?? 0,
+          'profit': (_taxTotals['totalIncome'] ??
+                  _taxTotals['totalAmount'] ??
+                  0) -
+              (_taxTotals['totalDeductions'] ?? _taxTotals['deductible'] ?? 0),
+        };
+      case 'WHT':
+        return {
+          'amount': _taxTotals['totalAmount'] ?? 0,
+        };
+      case 'Payroll':
+        return {
+          'monthlyGross': (_taxTotals['totalAmount'] ?? 0) / 12,
+        };
+      case 'Stamp Duty':
+        return {
+          'amount': _taxTotals['totalAmount'] ?? 0,
+        };
+      default:
+        return {};
+    }
   }
 
   // ─── Build ────────────────────────────────────────────────────────
@@ -424,7 +522,7 @@ class _ImportDataScreenState extends State<ImportDataScreen>
                       ),
                     ),
                     Text(
-                      'CSV, JSON & Excel (.xlsx) • Bank statements, invoices, etc.',
+                      'CSV, Excel, PDF • Bank statements, invoices, etc.',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.white54 : TaxNGColors.textLight,
@@ -463,15 +561,23 @@ class _ImportDataScreenState extends State<ImportDataScreen>
           const SizedBox(height: 14),
           Row(
             children: [
-              TextButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const _SampleDataScreen()),
-                ),
-                icon: const Icon(Icons.code, size: 18),
-                label: const Text('View Samples'),
-                style: TextButton.styleFrom(
-                  foregroundColor: TaxNGColors.primary,
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const _SampleDataScreen()),
+                  ),
+                  icon: const Icon(Icons.code, size: 18),
+                  label: const Text('View Data Format'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TaxNGColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1328,7 +1434,6 @@ class _ImportDataScreenState extends State<ImportDataScreen>
                     if (v != null) {
                       setState(() => _selectedTaxType = v);
                       _recalculate();
-                      _navigateToCalculator(v);
                     }
                   },
                 ),
@@ -1336,45 +1441,216 @@ class _ImportDataScreenState extends State<ImportDataScreen>
             ],
           ),
           const SizedBox(height: 14),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: _taxTotals.entries.map((e) {
-              return _summaryChip(
-                _formatLabel(e.key),
-                '₦${_currencyFormat.format(e.value)}',
-              );
-            }).toList(),
+
+          // Assessed values — shows what each value maps to in the calculator
+          _buildAssessedValues(),
+
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _navigateToCalculator(_selectedTaxType),
+              icon: const Icon(Icons.send, size: 18),
+              label: Text('Apply to $_selectedTaxType Calculator'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: TaxNGColors.primaryDark,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _summaryChip(String label, String value) {
+  // ─── Assessed Values Display ──────────────────────────────────────
+
+  /// Build the assessed-values display that shows which values
+  /// from the imported data will map to which calculator field,
+  /// displayed above the "Apply to Calculator" button.
+  Widget _buildAssessedValues() {
+    final args = _buildCalculatorArgs(_selectedTaxType);
+    if (args.isEmpty) return const SizedBox();
+
+    // Build descriptive field labels per tax type
+    final fieldDescriptions = _getFieldDescriptions(_selectedTaxType);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 2),
-          Text(value,
-              style: const TextStyle(
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, color: Colors.amber[300], size: 16),
+              const SizedBox(width: 6),
+              const Text(
+                'Assessed Values for Calculator',
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800)),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...args.entries.map((entry) {
+            final fieldName = entry.key;
+            final value =
+                (entry.value is num) ? (entry.value as num).toDouble() : 0.0;
+            final description =
+                fieldDescriptions[fieldName] ?? _formatLabel(fieldName);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    _getFieldIcon(fieldName),
+                    color: Colors.white70,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      description,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '₦${_currencyFormat.format(value)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const Divider(color: Colors.white24, height: 16),
+          // Evidence note
+          Row(
+            children: [
+              Icon(Icons.verified_outlined,
+                  color: Colors.greenAccent[200], size: 14),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Import saved as evidence  •  ${_parsedData.length - 1} rows analysed from ${_fileName ?? "file"}',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/import-history'),
+                child: Text(
+                  'View History',
+                  style: TextStyle(
+                    color: Colors.amber[300],
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.amber[300],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  /// Returns human-readable descriptions for each calculator field per tax type.
+  Map<String, String> _getFieldDescriptions(String taxType) {
+    switch (taxType) {
+      case 'VAT':
+        return {
+          'standardSales': 'Standard-Rated Sales (7.5%)',
+          'zeroRatedSales': 'Zero-Rated Sales (0%)',
+          'exemptSales': 'VAT Exempt Sales',
+          'totalInputVat': 'Input VAT (Purchases)',
+          'exemptInputVat': 'Exempt Input VAT',
+        };
+      case 'PIT':
+        return {
+          'grossIncome': 'Gross Annual Income',
+          'otherDeductions': 'Allowable Deductions',
+          'annualRentPaid': 'Annual Rent Paid',
+        };
+      case 'CIT':
+        return {
+          'turnover': 'Business Turnover (Revenue)',
+          'profit': 'Assessable Profit (Income − Deductions)',
+        };
+      case 'WHT':
+        return {
+          'amount': 'Transaction Amount (WHT Base)',
+        };
+      case 'Payroll':
+        return {
+          'monthlyGross': 'Monthly Gross Salary (Annual ÷ 12)',
+        };
+      case 'Stamp Duty':
+        return {
+          'amount': 'Instrument Value (Stamp Duty Base)',
+        };
+      default:
+        return {};
+    }
+  }
+
+  /// Returns an appropriate icon for each calculator field.
+  IconData _getFieldIcon(String fieldName) {
+    switch (fieldName) {
+      case 'standardSales':
+      case 'turnover':
+      case 'grossIncome':
+        return Icons.trending_up;
+      case 'zeroRatedSales':
+        return Icons.money_off;
+      case 'exemptSales':
+      case 'exemptInputVat':
+        return Icons.block;
+      case 'totalInputVat':
+        return Icons.shopping_cart;
+      case 'otherDeductions':
+      case 'profit':
+        return Icons.remove_circle_outline;
+      case 'annualRentPaid':
+        return Icons.home;
+      case 'amount':
+        return Icons.attach_money;
+      case 'monthlyGross':
+        return Icons.payments;
+      default:
+        return Icons.label_outline;
+    }
   }
 
   String _formatLabel(String key) {

@@ -63,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save logo: $e')),
+        const SnackBar(content: Text('Failed to save logo. Please try again.')),
       );
     }
   }
@@ -78,7 +78,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to remove logo: $e')),
+        const SnackBar(
+            content: Text('Failed to remove logo. Please try again.')),
       );
     }
   }
@@ -117,7 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text('CAC Reg. No: ${_user!.cacNumber}',
                     style: const TextStyle(fontWeight: FontWeight.w500)),
               if (_user!.bvn != null && _user!.bvn!.isNotEmpty)
-                Text('BVN: ${_user!.bvn}',
+                Text(
+                    'BVN: ${'*' * (_user!.bvn!.length - 4)}${_user!.bvn!.substring(_user!.bvn!.length - 4)}',
                     style: const TextStyle(fontWeight: FontWeight.w500)),
               if (_user!.vatNumber != null && _user!.vatNumber!.isNotEmpty)
                 Text('VAT Reg. No: ${_user!.vatNumber}',
@@ -416,8 +418,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error deleting account: $e'),
+            const SnackBar(
+              content: Text('Failed to delete account. Please try again.'),
               backgroundColor: Colors.red,
             ),
           );

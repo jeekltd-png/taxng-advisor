@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'notes_service_stub.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -42,7 +43,8 @@ class CalculationNote {
       note: map['note'],
       attachments: List<String>.from(map['attachments'] ?? []),
       createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : null,
+      updatedAt:
+          map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : null,
       category: map['category'],
       tags: List<String>.from(map['tags'] ?? []),
     );
@@ -73,7 +75,7 @@ class NotesService {
         return CalculationNote.fromMap(Map<String, dynamic>.from(noteMap));
       }
     } catch (e) {
-      print('Error getting note: $e');
+      debugPrint('Error getting note: $e');
     }
     return null;
   }
@@ -82,12 +84,13 @@ class NotesService {
   static Future<void> deleteNote(String calculationId) async {
     try {
       final box = await Hive.openBox(_notesBoxName);
-      
+
       // Get note to find attachments
       final noteMap = box.get(calculationId);
       if (noteMap != null) {
-        final note = CalculationNote.fromMap(Map<String, dynamic>.from(noteMap));
-        
+        final note =
+            CalculationNote.fromMap(Map<String, dynamic>.from(noteMap));
+
         // Delete attachments
         for (final filePath in note.attachments) {
           try {
@@ -96,11 +99,11 @@ class NotesService {
               await file.delete();
             }
           } catch (e) {
-            print('Error deleting attachment: $e');
+            debugPrint('Error deleting attachment: $e');
           }
         }
       }
-      
+
       await box.delete(calculationId);
     } catch (e) {
       throw Exception('Error deleting note: $e');
@@ -113,7 +116,7 @@ class NotesService {
       final box = await Hive.openBox(_notesBoxName);
       return box.containsKey(calculationId);
     } catch (e) {
-      print('Error checking note: $e');
+      debugPrint('Error checking note: $e');
       return false;
     }
   }
@@ -123,18 +126,18 @@ class NotesService {
     try {
       final box = await Hive.openBox(_notesBoxName);
       final notes = <CalculationNote>[];
-      
+
       for (final value in box.values) {
         try {
           notes.add(CalculationNote.fromMap(Map<String, dynamic>.from(value)));
         } catch (e) {
-          print('Error parsing note: $e');
+          debugPrint('Error parsing note: $e');
         }
       }
-      
+
       return notes;
     } catch (e) {
-      print('Error getting all notes: $e');
+      debugPrint('Error getting all notes: $e');
       return [];
     }
   }
@@ -144,14 +147,14 @@ class NotesService {
     try {
       final allNotes = await getAllNotes();
       final lowerQuery = query.toLowerCase();
-      
+
       return allNotes.where((note) {
         return note.note.toLowerCase().contains(lowerQuery) ||
             note.category?.toLowerCase().contains(lowerQuery) == true ||
             note.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
       }).toList();
     } catch (e) {
-      print('Error searching notes: $e');
+      debugPrint('Error searching notes: $e');
       return [];
     }
   }
@@ -161,34 +164,44 @@ class NotesService {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'],
+        allowedExtensions: [
+          'pdf',
+          'jpg',
+          'jpeg',
+          'png',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx'
+        ],
       );
 
       if (result != null && result.files.single.path != null) {
         final file = File(result.files.single.path!);
-        
+
         // Get app directory
         final appDir = await getApplicationDocumentsDirectory();
-        final attachmentsDir = Directory(path.join(appDir.path, _attachmentsFolderName));
-        
+        final attachmentsDir =
+            Directory(path.join(appDir.path, _attachmentsFolderName));
+
         // Create attachments directory if it doesn't exist
         if (!await attachmentsDir.exists()) {
           await attachmentsDir.create(recursive: true);
         }
-        
+
         // Generate unique filename
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         final extension = path.extension(file.path);
         final newFileName = 'attachment_$timestamp$extension';
         final newPath = path.join(attachmentsDir.path, newFileName);
-        
+
         // Copy file to app directory
         await file.copy(newPath);
-        
+
         return newPath;
       }
     } catch (e) {
-      print('Error adding attachment: $e');
+      debugPrint('Error adding attachment: $e');
     }
     return null;
   }
@@ -225,7 +238,7 @@ class NotesService {
         }
       }
     } catch (e) {
-      print('Error getting attachment size: $e');
+      debugPrint('Error getting attachment size: $e');
     }
     return 'Unknown';
   }
@@ -235,15 +248,15 @@ class NotesService {
     try {
       final allNotes = await getAllNotes();
       final categoryCounts = <String, int>{};
-      
+
       for (final note in allNotes) {
         final category = note.category ?? 'Uncategorized';
         categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
       }
-      
+
       return categoryCounts;
     } catch (e) {
-      print('Error getting notes by category: $e');
+      debugPrint('Error getting notes by category: $e');
       return {};
     }
   }
@@ -253,14 +266,14 @@ class NotesService {
     try {
       final allNotes = await getAllNotes();
       final tags = <String>{};
-      
+
       for (final note in allNotes) {
         tags.addAll(note.tags);
       }
-      
+
       return tags.toList()..sort();
     } catch (e) {
-      print('Error getting all tags: $e');
+      debugPrint('Error getting all tags: $e');
       return [];
     }
   }

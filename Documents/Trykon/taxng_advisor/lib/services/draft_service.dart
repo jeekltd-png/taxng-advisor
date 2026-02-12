@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 
@@ -49,7 +50,7 @@ class DraftService {
       });
       _onSave?.call();
     } catch (e) {
-      print('Error saving draft: $e');
+      debugPrint('Error saving draft: $e');
     }
   }
 
@@ -65,7 +66,7 @@ class DraftService {
         };
       }
     } catch (e) {
-      print('Error loading draft: $e');
+      debugPrint('Error loading draft: $e');
     }
     return null;
   }
@@ -76,7 +77,7 @@ class DraftService {
       final box = await Hive.openBox(_draftBoxName);
       await box.delete(calculatorKey);
     } catch (e) {
-      print('Error deleting draft: $e');
+      debugPrint('Error deleting draft: $e');
     }
   }
 
@@ -86,7 +87,7 @@ class DraftService {
       final box = await Hive.openBox(_draftBoxName);
       return box.containsKey(calculatorKey);
     } catch (e) {
-      print('Error checking draft: $e');
+      debugPrint('Error checking draft: $e');
       return false;
     }
   }
@@ -136,7 +137,7 @@ class RecentValuesService {
 
       await box.put(key, recentValues);
     } catch (e) {
-      print('Error saving recent value: $e');
+      debugPrint('Error saving recent value: $e');
     }
   }
 
@@ -154,7 +155,7 @@ class RecentValuesService {
         return values.map((v) => v.toString()).toList();
       }
     } catch (e) {
-      print('Error getting recent values: $e');
+      debugPrint('Error getting recent values: $e');
     }
     return [];
   }
@@ -169,7 +170,7 @@ class RecentValuesService {
       final key = '${calculatorKey}_$fieldName';
       await box.delete(key);
     } catch (e) {
-      print('Error clearing recent values: $e');
+      debugPrint('Error clearing recent values: $e');
     }
   }
 
@@ -217,7 +218,7 @@ class RecentValuesService {
         return values.first as Map<String, dynamic>;
       }
     } catch (e) {
-      print('Error getting last calculation: $e');
+      debugPrint('Error getting last calculation: $e');
     }
     return null;
   }

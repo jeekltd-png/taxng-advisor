@@ -4,6 +4,8 @@ import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_activity_tracker.dart';
 import '../../models/user_activity.dart';
+import '../../widgets/common/taxng_app_bar.dart';
+import '../../theme/colors.dart';
 
 /// Admin-Only User Activity Tracker Screen
 ///
@@ -103,13 +105,11 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Activity Tracker'),
-        backgroundColor: Colors.deepPurple[700],
-        foregroundColor: Colors.white,
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'User Activity Tracker',
+        additionalActions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadData,
             tooltip: 'Refresh',
           ),
@@ -159,12 +159,12 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
 
   Widget _buildAdminBanner() {
     return Card(
-      color: Colors.deepPurple[50],
+      color: TaxNGColors.primaryLight.withOpacity(0.15),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Icon(Icons.admin_panel_settings, color: Colors.deepPurple[700]),
+            Icon(Icons.admin_panel_settings, color: TaxNGColors.primaryDark),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -174,13 +174,12 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
                     'Admin User Activity Dashboard',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple[900],
+                      color: TaxNGColors.primaryDark,
                     ),
                   ),
                   Text(
                     'Logged in as: ${_currentUser!.username}',
-                    style:
-                        TextStyle(fontSize: 12, color: Colors.deepPurple[700]),
+                    style: TextStyle(fontSize: 12, color: TaxNGColors.primary),
                   ),
                 ],
               ),
@@ -249,6 +248,10 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
                       DropdownMenuItem(
                           value: 'feedback', child: Text('Feedback')),
                       DropdownMenuItem(value: 'rating', child: Text('Ratings')),
+                      DropdownMenuItem(
+                          value: 'data_import', child: Text('Data Imports')),
+                      DropdownMenuItem(
+                          value: 'page_view', child: Text('Page Views')),
                     ],
                     onChanged: (value) {
                       setState(() => _selectedActivityType = value!);
@@ -271,6 +274,8 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
     final feedback = _statistics['feedback_submissions'] ?? 0;
     final ratings = _statistics['ratings_submitted'] ?? 0;
     final uniqueUsers = _statistics['unique_users'] ?? 0;
+    final dataImports = _statistics['data_imports'] ?? 0;
+    final totalCalcUses = _statistics['total_calculator_uses'] ?? 0;
 
     return GridView.count(
       crossAxisCount: 2,
@@ -284,9 +289,13 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
         _buildMetricCard(
             'Unique Users', uniqueUsers, Icons.people, Colors.green),
         _buildMetricCard('Logins', logins, Icons.login, Colors.orange),
-        _buildMetricCard('Logouts', logouts, Icons.logout, Colors.red),
+        _buildMetricCard(
+            'Calculator Uses', totalCalcUses, Icons.calculate, Colors.indigo),
+        _buildMetricCard(
+            'Data Imports', dataImports, Icons.upload_file, Colors.teal),
         _buildMetricCard('Feedback', feedback, Icons.feedback, Colors.purple),
         _buildMetricCard('Ratings', ratings, Icons.star, Colors.amber),
+        _buildMetricCard('Logouts', logouts, Icons.logout, Colors.red),
       ],
     );
   }
@@ -600,6 +609,14 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
         icon = Icons.star;
         color = Colors.amber;
         break;
+      case 'data_import':
+        icon = Icons.upload_file;
+        color = Colors.teal;
+        break;
+      case 'page_view':
+        icon = Icons.visibility;
+        color = Colors.cyan;
+        break;
       default:
         icon = Icons.info;
         color = Colors.grey;
@@ -640,6 +657,10 @@ class _AdminUserActivityScreenState extends State<AdminUserActivityScreen> {
         return 'Submitted feedback';
       case 'rating':
         return 'Rated app ${activity.rating}⭐';
+      case 'data_import':
+        return 'Imported data${activity.details != null ? ': ${activity.details}' : ''}';
+      case 'page_view':
+        return 'Viewed ${activity.details ?? 'page'}';
       default:
         return activity.activityType;
     }

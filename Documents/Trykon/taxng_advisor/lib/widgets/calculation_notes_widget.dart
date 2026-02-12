@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../models/calculation_attachment.dart';
 import '../services/attachment_service.dart';
@@ -51,7 +51,8 @@ class _CalculationNotesWidgetState extends State<CalculationNotesWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e')),
+          const SnackBar(
+              content: Text('Failed to pick image. Please try again.')),
         );
       }
     } finally {
@@ -71,7 +72,8 @@ class _CalculationNotesWidgetState extends State<CalculationNotesWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick document: $e')),
+          const SnackBar(
+              content: Text('Failed to pick document. Please try again.')),
         );
       }
     } finally {
@@ -116,7 +118,8 @@ class _CalculationNotesWidgetState extends State<CalculationNotesWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save attachment: $e')),
+          const SnackBar(
+              content: Text('Failed to save attachment. Please try again.')),
         );
       }
     }
@@ -154,7 +157,9 @@ class _CalculationNotesWidgetState extends State<CalculationNotesWidget> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to remove attachment: $e')),
+            const SnackBar(
+                content:
+                    Text('Failed to remove attachment. Please try again.')),
           );
         }
       }
@@ -170,12 +175,16 @@ class _CalculationNotesWidgetState extends State<CalculationNotesWidget> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (attachment.fileType == 'image')
-              Image.file(
-                File(attachment.filePath),
+            if (attachment.fileType == 'image' && !kIsWeb)
+              Image.network(
+                attachment.filePath,
                 height: 300,
                 fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.broken_image, size: 80),
               )
+            else if (attachment.fileType == 'image')
+              const Icon(Icons.image, size: 80, color: Colors.grey)
             else ...[
               Text('Type: ${attachment.fileType.toUpperCase()}'),
               const SizedBox(height: 8),

@@ -105,7 +105,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ? _lastNameController.text.trim()
               : null,
           isBusiness: _isBusiness,
-          businessName: _isBusiness ? _businessNameController.text.trim() : null,
+          businessName:
+              _isBusiness ? _businessNameController.text.trim() : null,
           tin: _tinController.text.trim().isNotEmpty
               ? _tinController.text.trim()
               : null,
@@ -176,8 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Something went wrong. Please try again or contact support.'),
+          content: Text(
+              'Something went wrong. Please try again or contact support.'),
           backgroundColor: TaxNGColors.error,
         ),
       );
@@ -202,7 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -211,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     IconButton(
                       onPressed: () =>
                           Navigator.pushReplacementNamed(context, '/welcome'),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 20),
                       style: IconButton.styleFrom(
                         backgroundColor: cardColor,
                         shape: RoundedRectangleBorder(
@@ -233,7 +236,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       _isRegister
                           ? 'Set up your TaxNG profile to get started'
                           : 'Sign in to continue managing your taxes',
-                      style: TextStyle(fontSize: 15, color: subtitleColor, height: 1.4),
+                      style: TextStyle(
+                          fontSize: 15, color: subtitleColor, height: 1.4),
                     ),
                     const SizedBox(height: 28),
 
@@ -277,11 +281,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         autofill: const [AutofillHints.email],
                         onChanged: _onEmailChanged,
                         validator: (v) {
-                          if (_isRegister && (v == null || v.isEmpty)) return 'Required';
+                          if (_isRegister && (v == null || v.isEmpty))
+                            return 'Required';
                           if (v != null &&
                               v.isNotEmpty &&
-                              !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v))
+                              !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                  .hasMatch(v)) {
                             return 'Enter a valid email address';
+                          }
                           return null;
                         },
                       ),
@@ -318,12 +325,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildField(
                         controller: _usernameController,
                         label: 'Username',
-                        hint: _useEmailAsUsername ? 'Using email as username' : 'Choose a username',
+                        hint: _useEmailAsUsername
+                            ? 'Using email as username'
+                            : 'Choose a username',
                         icon: Icons.alternate_email_rounded,
                         enabled: !_useEmailAsUsername,
                         action: TextInputAction.next,
                         autofill: const [AutofillHints.username],
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 14),
                     ],
@@ -336,7 +346,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         icon: Icons.person_rounded,
                         action: TextInputAction.next,
                         autofill: const [AutofillHints.username],
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 14),
                     ],
@@ -347,21 +358,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Password',
                       icon: Icons.lock_outline_rounded,
                       obscure: _obscurePassword,
-                      action: _isRegister ? TextInputAction.next : TextInputAction.done,
+                      action: _isRegister
+                          ? TextInputAction.next
+                          : TextInputAction.done,
                       autofill: _isRegister
                           ? const [AutofillHints.newPassword]
                           : const [AutofillHints.password],
                       suffix: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                          _obscurePassword
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
                           size: 20,
-                          color: isDark ? Colors.white54 : TaxNGColors.textLight,
+                          color:
+                              isDark ? Colors.white54 : TaxNGColors.textLight,
                         ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
-                        if (_isRegister) return AuthService.validatePasswordStrength(v);
+                        if (_isRegister)
+                          return AuthService.validatePasswordStrength(v);
                         return null;
                       },
                     ),
@@ -377,15 +395,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         action: TextInputAction.next,
                         suffix: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded,
                             size: 20,
-                            color: isDark ? Colors.white54 : TaxNGColors.textLight,
+                            color:
+                                isDark ? Colors.white54 : TaxNGColors.textLight,
                           ),
-                          onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword),
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (v != _passwordController.text) return 'Passwords do not match';
+                          if (v != _passwordController.text)
+                            return 'Passwords do not match';
                           return null;
                         },
                       ),
@@ -412,11 +436,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       const SizedBox(height: 14),
-                      _buildBusinessToggle(isDark, textColor, subtitleColor, cardColor),
+                      _buildBusinessToggle(
+                          isDark, textColor, subtitleColor, cardColor),
                       if (_isBusiness) ..._buildBusinessFields(isDark),
                       // Terms checkbox
                       const SizedBox(height: 18),
-                      _buildTermsCheckbox(isDark, textColor, subtitleColor, cardColor),
+                      _buildTermsCheckbox(
+                          isDark, textColor, subtitleColor, cardColor),
                     ],
 
                     const SizedBox(height: 24),
@@ -453,7 +479,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         letterSpacing: 0.3),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(Icons.arrow_forward_rounded, size: 20),
+                                  const Icon(Icons.arrow_forward_rounded,
+                                      size: 20),
                                 ],
                               ),
                       ),
@@ -466,7 +493,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushNamed(context, '/forgot-password'),
                           child: Text('Forgot Password?',
                               style: TextStyle(
-                                  color: subtitleColor, fontWeight: FontWeight.w500)),
+                                  color: subtitleColor,
+                                  fontWeight: FontWeight.w500)),
                         ),
                       ),
                     ],
@@ -479,13 +507,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             _isRegister
                                 ? 'Already have an account? '
                                 : "Don't have an account? ",
-                            style: TextStyle(color: subtitleColor, fontSize: 14),
+                            style:
+                                TextStyle(color: subtitleColor, fontSize: 14),
                           ),
                           InkWell(
-                            onTap: () => setState(() => _isRegister = !_isRegister),
+                            onTap: () =>
+                                setState(() => _isRegister = !_isRegister),
                             borderRadius: BorderRadius.circular(4),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
                               child: Text(
                                 _isRegister ? 'Sign In' : 'Register',
                                 style: const TextStyle(
@@ -501,20 +532,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 12),
                     Center(
                       child: TextButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, '/import-data'),
-                        icon: Icon(Icons.download_rounded, size: 18, color: subtitleColor),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/import-data'),
+                        icon: Icon(Icons.download_rounded,
+                            size: 18, color: subtitleColor),
                         label: Text('Import Data',
-                            style: TextStyle(color: subtitleColor, fontSize: 13)),
+                            style:
+                                TextStyle(color: subtitleColor, fontSize: 13)),
                       ),
                     ),
                     if (kDebugMode) ...[
                       const SizedBox(height: 4),
                       Center(
                         child: TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/debug/users'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/debug/users'),
                           child: Text('Debug - Seed / Login Users',
                               style: TextStyle(
-                                  color: isDark ? Colors.white24 : TaxNGColors.textLighter,
+                                  color: isDark
+                                      ? Colors.white24
+                                      : TaxNGColors.textLighter,
                                   fontSize: 12)),
                         ),
                       ),
@@ -532,7 +569,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ── Business Fields ──────────────────────────────────────────────
   List<Widget> _buildBusinessFields(bool isDark) {
-    final borderColor = isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight;
+    final borderColor =
+        isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight;
     final fillColor = isDark ? TaxNGColors.bgDarkSecondary : Colors.white;
     return [
       const SizedBox(height: 14),
@@ -541,7 +579,8 @@ class _LoginScreenState extends State<LoginScreen> {
         label: 'Business Name',
         icon: Icons.domain_rounded,
         action: TextInputAction.next,
-        validator: (v) => _isBusiness && (v == null || v.isEmpty) ? 'Required' : null,
+        validator: (v) =>
+            _isBusiness && (v == null || v.isEmpty) ? 'Required' : null,
       ),
       const SizedBox(height: 14),
       _buildField(
@@ -577,7 +616,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       const SizedBox(height: 14),
       DropdownButtonFormField<String>(
-        value: _selectedTaxOffice,
+        initialValue: _selectedTaxOffice,
         decoration: InputDecoration(
           labelText: 'FIRS Tax Office',
           filled: true,
@@ -590,17 +629,21 @@ class _LoginScreenState extends State<LoginScreen> {
               borderSide: BorderSide(color: borderColor)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: TaxNGColors.primary, width: 2)),
+              borderSide:
+                  const BorderSide(color: TaxNGColors.primary, width: 2)),
         ),
         dropdownColor: fillColor,
         items: const [
           DropdownMenuItem(value: null, child: Text('Select tax office')),
           DropdownMenuItem(value: 'Lagos Island', child: Text('Lagos Island')),
-          DropdownMenuItem(value: 'Lagos Mainland', child: Text('Lagos Mainland')),
+          DropdownMenuItem(
+              value: 'Lagos Mainland', child: Text('Lagos Mainland')),
           DropdownMenuItem(value: 'Ikeja', child: Text('Ikeja')),
           DropdownMenuItem(value: 'Abuja Wuse', child: Text('Abuja Wuse')),
-          DropdownMenuItem(value: 'Abuja Central', child: Text('Abuja Central')),
-          DropdownMenuItem(value: 'Port Harcourt', child: Text('Port Harcourt')),
+          DropdownMenuItem(
+              value: 'Abuja Central', child: Text('Abuja Central')),
+          DropdownMenuItem(
+              value: 'Port Harcourt', child: Text('Port Harcourt')),
           DropdownMenuItem(value: 'Kano', child: Text('Kano')),
           DropdownMenuItem(value: 'Ibadan', child: Text('Ibadan')),
           DropdownMenuItem(value: 'Enugu', child: Text('Enugu')),
@@ -610,7 +653,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       const SizedBox(height: 14),
       DropdownButtonFormField<String>(
-        value: _selectedIndustrySector,
+        initialValue: _selectedIndustrySector,
         decoration: InputDecoration(
           labelText: 'Industry Sector',
           helperText: 'Oil & Gas sector payments will be in USD',
@@ -624,17 +667,22 @@ class _LoginScreenState extends State<LoginScreen> {
               borderSide: BorderSide(color: borderColor)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: TaxNGColors.primary, width: 2)),
+              borderSide:
+                  const BorderSide(color: TaxNGColors.primary, width: 2)),
         ),
         dropdownColor: fillColor,
         items: const [
           DropdownMenuItem(value: null, child: Text('Select industry')),
-          DropdownMenuItem(value: 'oil_and_gas', child: Text('Oil and Gas / Petroleum (USD)')),
-          DropdownMenuItem(value: 'manufacturing', child: Text('Manufacturing')),
+          DropdownMenuItem(
+              value: 'oil_and_gas',
+              child: Text('Oil and Gas / Petroleum (USD)')),
+          DropdownMenuItem(
+              value: 'manufacturing', child: Text('Manufacturing')),
           DropdownMenuItem(value: 'technology', child: Text('Technology')),
           DropdownMenuItem(value: 'finance', child: Text('Finance / Banking')),
           DropdownMenuItem(value: 'retail', child: Text('Retail / Trading')),
-          DropdownMenuItem(value: 'services', child: Text('Professional Services')),
+          DropdownMenuItem(
+              value: 'services', child: Text('Professional Services')),
           DropdownMenuItem(value: 'other', child: Text('Other')),
         ],
         onChanged: (v) => setState(() => _selectedIndustrySector = v),
@@ -663,9 +711,11 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(label,
-                style: TextStyle(fontWeight: FontWeight.w600, color: color, fontSize: 14)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, color: color, fontSize: 14)),
           ),
-          Switch.adaptive(value: value, onChanged: onChanged, activeColor: color),
+          Switch.adaptive(
+              value: value, onChanged: onChanged, activeColor: color),
         ],
       ),
     );
@@ -690,7 +740,8 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         children: [
           Icon(Icons.business_rounded,
-              color: _isBusiness ? TaxNGColors.secondary : TaxNGColors.textLight,
+              color:
+                  _isBusiness ? TaxNGColors.secondary : TaxNGColors.textLight,
               size: 22),
           const SizedBox(width: 12),
           Expanded(
@@ -698,7 +749,10 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Business Account',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: textColor)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: textColor)),
                 Text('Register as a business entity',
                     style: TextStyle(fontSize: 12, color: subtitleColor)),
               ],
@@ -737,16 +791,20 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              _agreedToTerms ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+              _agreedToTerms
+                  ? Icons.check_box_rounded
+                  : Icons.check_box_outline_blank_rounded,
               color: _agreedToTerms ? TaxNGColors.primary : subtitleColor,
               size: 22,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Wrap(children: [
-                Text('I agree to the ', style: TextStyle(fontSize: 13, color: textColor)),
-                GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, '/help/privacy-policy'),
+                Text('I agree to the ',
+                    style: TextStyle(fontSize: 13, color: textColor)),
+                InkWell(
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/help/privacy-policy'),
                   child: const Text('Terms of Service',
                       style: TextStyle(
                           fontSize: 13,
@@ -755,8 +813,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: TextDecoration.underline)),
                 ),
                 Text(' and ', style: TextStyle(fontSize: 13, color: textColor)),
-                GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, '/help/privacy-policy'),
+                InkWell(
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/help/privacy-policy'),
                   child: const Text('Privacy Policy',
                       style: TextStyle(
                           fontSize: 13,
@@ -793,7 +852,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final fillColor = enabled
         ? (isDark ? TaxNGColors.bgDarkSecondary : Colors.white)
         : (isDark ? TaxNGColors.bgDark : TaxNGColors.bgLight);
-    final borderColor = isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight;
+    final borderColor =
+        isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight;
 
     return TextFormField(
       controller: controller,
@@ -816,11 +876,14 @@ class _LoginScreenState extends State<LoginScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: fillColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: borderColor)),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: borderColor)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: TaxNGColors.primary, width: 2)),
@@ -828,10 +891,15 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: TaxNGColors.error)),
         disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
-        labelStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white54 : TaxNGColors.textMedium),
-        floatingLabelStyle:
-            TextStyle(fontSize: 13, color: TaxNGColors.primary, fontWeight: FontWeight.w600),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: borderColor)),
+        labelStyle: TextStyle(
+            fontSize: 14,
+            color: isDark ? Colors.white54 : TaxNGColors.textMedium),
+        floatingLabelStyle: TextStyle(
+            fontSize: 13,
+            color: TaxNGColors.primary,
+            fontWeight: FontWeight.w600),
       ),
       validator: validator,
     );

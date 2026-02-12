@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/user_activity_tracker.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
 import 'dart:math';
 
 /// Performance Test Data Generator
@@ -223,9 +224,8 @@ class _TestDataGeneratorScreenState extends State<TestDataGeneratorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Test Data Generator'),
-        backgroundColor: Colors.deepPurple[700],
+      appBar: const TaxNGAppBar(
+        title: 'Test Data Generator',
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

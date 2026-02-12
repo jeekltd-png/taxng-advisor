@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/theme/colors.dart';
 
 /// Admin-only screen for currency conversion documentation and implementation
 class CurrencyConversionAdminScreen extends StatefulWidget {
@@ -40,9 +41,22 @@ class _CurrencyConversionAdminScreenState
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Currency Conversion - Admin Documentation'),
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [TaxNGColors.primaryDark, TaxNGColors.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           bottom: const TabBar(
             isScrollable: true,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: 'Overview'),
               Tab(text: 'Implementation'),

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 /// Quick import button widget for calculator screens
 /// Allows users to quickly import CSV/JSON data without navigating to Profile
@@ -252,25 +251,6 @@ class QuickImportButton extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _pickAndImportFile(BuildContext context) async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['csv', 'json', 'txt'],
-        withData: true,
-      );
-
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
-        final content = String.fromCharCodes(file.bytes!);
-
-        _processImportedData(context, content, file.name);
-      }
-    } catch (e) {
-      _showError(context, 'File selection error: $e');
-    }
   }
 
   void _showPasteDialog(BuildContext context) {

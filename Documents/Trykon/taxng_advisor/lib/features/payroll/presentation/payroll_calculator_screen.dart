@@ -14,6 +14,9 @@ import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 
 /// Payroll Calculator Screen
 class PayrollCalculatorScreen extends StatefulWidget {
@@ -25,7 +28,7 @@ class PayrollCalculatorScreen extends StatefulWidget {
 }
 
 class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _monthlyGrossController = TextEditingController();
   final _pensionRateController = TextEditingController(text: '8');
@@ -34,6 +37,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
 
   PayrollResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   @override
@@ -42,6 +46,13 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
     // Register validation rules
     ValidationService.registerRules(
         'Payroll', ValidationService.getPAYERules());
+
+    // Mark as real data when user edits the gross salary field
+    _monthlyGrossController.addListener(() {
+      if (_isExampleData && _monthlyGrossController.text.isNotEmpty) {
+        _isExampleData = false;
+      }
+    });
 
     // Handle imported data from route
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,6 +63,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
               args['pensionRate'] != null ||
               args['nhfRate'] != null ||
               args['otherDeductions'] != null)) {
+        _isExampleData = false;
         if (args['monthlyGross'] != null) {
           _monthlyGrossController.text =
               (args['monthlyGross'] as num).toString();
@@ -74,6 +86,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
   }
 
   void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
     setState(() {
       if (data['monthlyGross'] != null) {
         _monthlyGrossController.text = data['monthlyGross'].toString();
@@ -117,6 +130,12 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
       return;
     }
 
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('Payroll',
+        isExampleData: _isExampleData)) {
+      return;
+    }
+
     final result = await ErrorRecoveryService.withErrorHandling(
       context,
       () async {
@@ -146,6 +165,10 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
         context,
         '✅ Payroll calculated successfully',
       );
+
+      // Track calculator usage for admin analytics
+      UserActivityTracker.trackCalculatorUse('payroll',
+          details: 'Monthly gross: ${data['monthlyGross']}');
     }
   }
 
@@ -310,6 +333,7 @@ class _PayrollCalculatorScreenState extends State<PayrollCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'Payroll'),
             Text(
               'Payroll Calculator ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

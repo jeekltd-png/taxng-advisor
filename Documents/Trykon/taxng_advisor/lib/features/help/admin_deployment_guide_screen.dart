@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/theme/colors.dart';
 
 /// Admin-only screen for app deployment and testing information
 class AdminDeploymentGuideScreen extends StatefulWidget {
@@ -38,7 +39,17 @@ class _AdminDeploymentGuideScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Deployment & Testing Guide'),
-        backgroundColor: Colors.orange[700],
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [TaxNGColors.primaryDark, TaxNGColors.primary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

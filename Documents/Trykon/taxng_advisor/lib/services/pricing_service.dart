@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:taxng_advisor/models/pricing_tier.dart';
 
@@ -33,7 +34,7 @@ class PricingService {
           .map((e) => PricingTier.fromMap(Map<String, dynamic>.from(e)))
           .toList();
     } catch (e) {
-      print('Error loading pricing tiers: $e');
+      debugPrint('Error loading pricing tiers: $e');
       return PricingTier.getDefaultTiers();
     }
   }

@@ -175,10 +175,11 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
                       );
                     }
                   } catch (e) {
+                    debugPrint('Failed to undo: $e');
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Failed to undo: $e'),
+                          content: Text('Could not undo. Please try again.'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -190,6 +191,7 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
           );
         }
       } catch (e) {
+        debugPrint('Error deleting calculations: $e');
         // Hide progress if error
         if (mounted) {
           ProgressOverlay.hide(context);
@@ -197,7 +199,7 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting calculations: $e'),
+              content: Text('Could not delete calculations. Please try again.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -1099,10 +1101,11 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
       // Show success with share option
       _showExportSuccessDialog(filePath, 'CSV');
     } catch (e) {
+      debugPrint('Export failed: $e');
       ProgressOverlay.hide(context); // Close progress
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Export failed: $e'),
+          content: Text('Export failed. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1127,10 +1130,11 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
       // Show success with share option
       _showExportSuccessDialog(filePath, 'Excel');
     } catch (e) {
+      debugPrint('Export failed: $e');
       ProgressOverlay.hide(context); // Close progress
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Export failed: $e'),
+          content: Text('Export failed. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1156,10 +1160,11 @@ class _CalculationHistoryScreenState extends State<CalculationHistoryScreen> {
       // Show success with share option
       _showExportSuccessDialog(filePath, 'PDF');
     } catch (e) {
+      debugPrint('Export failed: $e');
       ProgressOverlay.hide(context); // Close progress
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Export failed: $e'),
+          content: Text('Export failed. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );

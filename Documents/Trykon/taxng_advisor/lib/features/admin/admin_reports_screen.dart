@@ -92,9 +92,11 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
         }
       }
     } catch (e) {
+      debugPrint('Error loading data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading data: $e')),
+          const SnackBar(
+              content: Text('Could not load data. Please try again.')),
         );
       }
     } finally {
@@ -134,8 +136,9 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
         ),
       );
     } catch (e) {
+      debugPrint('Error exporting CSV: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error exporting CSV: $e')),
+        const SnackBar(content: Text('CSV export failed. Please try again.')),
       );
     }
   }
@@ -247,10 +250,11 @@ class _AdminReportsScreenState extends State<AdminReportsScreen>
         );
       }
     } catch (e) {
+      debugPrint('Error exporting PDF: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error exporting PDF: $e'),
+            content: Text('PDF export failed. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

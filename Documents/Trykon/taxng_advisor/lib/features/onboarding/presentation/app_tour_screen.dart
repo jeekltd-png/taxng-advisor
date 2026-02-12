@@ -88,7 +88,7 @@ class _AppTourScreenState extends State<AppTourScreen> {
       final box = HiveService.getProfileBox();
       await box.put('tour_completed', true);
     } catch (e) {
-      print('Error marking tour as completed: $e');
+      debugPrint('Error marking tour as completed: $e');
     }
   }
 

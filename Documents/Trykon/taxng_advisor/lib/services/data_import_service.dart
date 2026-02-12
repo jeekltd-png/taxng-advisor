@@ -1,9 +1,21 @@
 import 'dart:typed_data';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as xl;
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart' as spdf;
 
-/// Service to parse, store, and aggregate imported financial data (CSV/Excel).
+/// Tax classification for imported rows.
+enum TaxStatus {
+  taxableIncome,
+  fullyDeductible,
+  halfDeductible,
+  nonDeductible,
+  businessApply,
+  unclassified,
+}
+
+/// Service to parse, store, and aggregate imported financial data (CSV/Excel/PDF).
 class DataImportService {
   static const String _boxName = 'imported_data';
 
@@ -55,6 +67,107 @@ class DataImportService {
   static List<String> getExcelSheetNames(Uint8List bytes) {
     final excel = xl.Excel.decodeBytes(bytes);
     return excel.tables.keys.toList();
+  }
+
+  // ─── PDF Parsing ──────────────────────────────────────────────────
+
+  /// Extract tabular text from a PDF file and return as rows/columns.
+  /// Works with text-based PDFs (digital bank statements, invoices).
+  /// Scanned/image PDFs will return minimal or no data.
+  static List<List<dynamic>> parsePdf(Uint8List bytes) {
+    try {
+      final document = spdf.PdfDocument(inputBytes: bytes);
+      final allRows = <List<dynamic>>[];
+
+      for (var i = 0; i < document.pages.count; i++) {
+        final text = spdf.PdfTextExtractor(document)
+            .extractText(startPageIndex: i, endPageIndex: i);
+
+        if (text.trim().isEmpty) continue;
+
+        final lines = text
+            .split('\n')
+            .map((l) => l.trim())
+            .where((l) => l.isNotEmpty)
+            .toList();
+
+        for (final line in lines) {
+          // Split on 2+ spaces or tab — typical for PDF tabular data
+          final cells = line
+              .split(RegExp(r'\s{2,}|\t'))
+              .map((c) => c.trim())
+              .where((c) => c.isNotEmpty)
+              .toList();
+
+          if (cells.length >= 2) {
+            // Try to convert numeric-looking cells to numbers
+            final parsed = cells.map<dynamic>((c) {
+              final cleaned = c.replaceAll(',', '').replaceAll(' ', '');
+              final num = double.tryParse(cleaned);
+              return num ?? c;
+            }).toList();
+            allRows.add(parsed);
+          }
+        }
+      }
+
+      document.dispose();
+
+      if (allRows.isEmpty) return [];
+
+      // Normalise column count to the most frequent width
+      final widthCounts = <int, int>{};
+      for (final row in allRows) {
+        widthCounts[row.length] = (widthCounts[row.length] ?? 0) + 1;
+      }
+      final targetWidth =
+          widthCounts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+
+      final normalised = <List<dynamic>>[];
+      for (final row in allRows) {
+        if (row.length == targetWidth) {
+          normalised.add(row);
+        } else if (row.length > targetWidth) {
+          normalised.add(row.sublist(0, targetWidth));
+        }
+        // Skip rows that are too short (likely headers/footers)
+      }
+
+      // If the first row looks like a header (mostly text), keep it;
+      // otherwise generate synthetic headers
+      if (normalised.isNotEmpty) {
+        final firstRow = normalised.first;
+        final textCount = firstRow
+            .where((c) =>
+                c is String &&
+                double.tryParse(c.toString().replaceAll(',', '')) == null)
+            .length;
+        if (textCount < firstRow.length * 0.5) {
+          // Add synthetic headers
+          final headers = List.generate(
+              targetWidth, (i) => 'Column ${String.fromCharCode(65 + i)}');
+          normalised.insert(0, headers);
+        }
+      }
+
+      return normalised;
+    } catch (e) {
+      debugPrint('PDF parse error: $e');
+      return [];
+    }
+  }
+
+  /// Check if a PDF has extractable text (not just scanned images).
+  static bool isPdfTextBased(Uint8List bytes) {
+    try {
+      final document = spdf.PdfDocument(inputBytes: bytes);
+      final text = spdf.PdfTextExtractor(document)
+          .extractText(startPageIndex: 0, endPageIndex: 0);
+      document.dispose();
+      return text.trim().length > 20;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Detect which columns look like monetary amounts.
@@ -198,6 +311,136 @@ class DataImportService {
     };
   }
 
+  // ─── Deduction Classification ─────────────────────────────────────
+
+  /// Classify a row's tax status based on a status column value.
+  static TaxStatus classifyTaxStatus(String statusText) {
+    final lower = statusText.toLowerCase().trim();
+
+    if (lower.contains('taxable income') || lower.contains('taxable')) {
+      return TaxStatus.taxableIncome;
+    }
+    if (lower.contains('non-deductible') || lower.contains('non deductible')) {
+      return TaxStatus.nonDeductible;
+    }
+    if (lower.contains('50% deductible') || lower.contains('half deductible')) {
+      return TaxStatus.halfDeductible;
+    }
+    if (lower.contains('deductible expense') ||
+        lower.contains('fully deductible') ||
+        lower.contains('deductible')) {
+      return TaxStatus.fullyDeductible;
+    }
+    if (lower.contains('business') && lower.contains('apply')) {
+      return TaxStatus.businessApply;
+    }
+    return TaxStatus.unclassified;
+  }
+
+  /// Detect which column contains tax status / classification labels.
+  static int? detectTaxStatusColumn(List<List<dynamic>> rows) {
+    if (rows.isEmpty) return null;
+    final headers = rows.first;
+    final keywords = [
+      'status',
+      'tax status',
+      'classification',
+      'category',
+      'type',
+      'tax type',
+      'deduction',
+    ];
+    for (var i = 0; i < headers.length; i++) {
+      final h = headers[i].toString().toLowerCase().trim();
+      if (keywords.any((k) => h.contains(k))) return i;
+    }
+    return null;
+  }
+
+  /// Calculate deduction-aware totals for PIT/CIT.
+  /// Uses a tax-status column to classify each row and aggregate
+  /// gross income, total deductions, and net taxable amount.
+  static Map<String, double> calculateDeductionTotals(
+    List<List<dynamic>> rows,
+    int amountCol, {
+    int? statusCol,
+    double businessUsePercent = 1.0,
+  }) {
+    if (rows.length < 2) {
+      return {
+        'grossIncome': 0,
+        'fullyDeductible': 0,
+        'halfDeductible': 0,
+        'nonDeductible': 0,
+        'businessDeductible': 0,
+        'totalDeductions': 0,
+        'taxableAmount': 0,
+        'rowCount': 0,
+      };
+    }
+
+    final dataRows = rows.sublist(1);
+    double grossIncome = 0;
+    double fullyDeductible = 0;
+    double halfDeductible = 0;
+    double nonDeductible = 0;
+    double businessDeductible = 0;
+    int classifiedRows = 0;
+
+    for (final row in dataRows) {
+      if (amountCol >= row.length) continue;
+      final amount = _toDouble(row[amountCol]);
+      if (amount == null) continue;
+
+      if (statusCol != null && statusCol < row.length) {
+        final status = classifyTaxStatus(row[statusCol].toString());
+        classifiedRows++;
+
+        switch (status) {
+          case TaxStatus.taxableIncome:
+            grossIncome += amount.abs();
+          case TaxStatus.fullyDeductible:
+            fullyDeductible += amount.abs();
+          case TaxStatus.halfDeductible:
+            halfDeductible += amount.abs() * 0.5;
+          case TaxStatus.nonDeductible:
+            nonDeductible += amount.abs();
+          case TaxStatus.businessApply:
+            businessDeductible += amount.abs() * businessUsePercent;
+          case TaxStatus.unclassified:
+            // Positive = income, negative = expense by convention
+            if (amount >= 0) {
+              grossIncome += amount;
+            } else {
+              fullyDeductible += amount.abs();
+            }
+        }
+      } else {
+        // No status column: positive = income, negative = expense
+        if (amount >= 0) {
+          grossIncome += amount;
+        } else {
+          fullyDeductible += amount.abs();
+        }
+      }
+    }
+
+    final totalDeductions =
+        fullyDeductible + halfDeductible + businessDeductible;
+    final taxableAmount = grossIncome - totalDeductions;
+
+    return {
+      'grossIncome': grossIncome,
+      'fullyDeductible': fullyDeductible,
+      'halfDeductible': halfDeductible,
+      'nonDeductible': nonDeductible,
+      'businessDeductible': businessDeductible,
+      'totalDeductions': totalDeductions,
+      'taxableAmount': taxableAmount < 0 ? 0 : taxableAmount,
+      'rowCount': classifiedRows.toDouble(),
+    };
+  }
+
   // ─── Persistence ──────────────────────────────────────────────────
 
   /// Save an import session to Hive (with full data for history replay).
@@ -207,6 +450,8 @@ class DataImportService {
     required List<List<dynamic>> data,
     required String taxType,
     Map<int, String>? columnMappings,
+    Map<String, double>? taxTotals,
+    Map<String, dynamic>? aggregation,
   }) async {
     final box = await Hive.openBox(_boxName);
     final imports = List<Map<String, dynamic>>.from(
@@ -225,6 +470,8 @@ class DataImportService {
       'columnMappings': columnMappings?.map(
         (k, v) => MapEntry(k.toString(), v),
       ),
+      'taxTotals': taxTotals?.map((k, v) => MapEntry(k, v)),
+      'aggregation': aggregation,
     });
     await box.put('imports_$userId', imports);
 

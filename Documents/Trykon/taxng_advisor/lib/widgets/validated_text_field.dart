@@ -419,14 +419,32 @@ mixin FormValidationMixin<T extends StatefulWidget> on State<T> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(
-              result.hasErrors ? Icons.error : Icons.warning,
-              color: result.hasErrors ? Colors.red : Colors.orange,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (result.hasErrors ? Colors.red : Colors.orange)
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                result.hasErrors ? Icons.error_outline : Icons.warning_amber,
+                color: result.hasErrors
+                    ? Colors.red.shade700
+                    : Colors.orange.shade700,
+                size: 28,
+              ),
             ),
-            const SizedBox(width: 8),
-            Text(result.hasErrors ? 'Validation Errors' : 'Warnings'),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                result.hasErrors ? 'Please Fix Errors' : 'Warnings',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            ),
           ],
         ),
         content: SingleChildScrollView(
@@ -435,28 +453,65 @@ mixin FormValidationMixin<T extends StatefulWidget> on State<T> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (result.hasErrors) ...[
-                const Text(
-                  'Please fix the following errors:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  'The following fields need attention:',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 ...result.getAllErrors().map((error) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text('• $error',
-                          style: const TextStyle(color: Colors.red)),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.cancel,
+                              size: 18, color: Colors.red.shade400),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              error,
+                              style: TextStyle(
+                                color: Colors.red.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     )),
               ],
               if (result.hasWarnings) ...[
                 if (result.hasErrors) const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Warnings:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...result.getAllWarnings().map((warning) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text('• $warning',
-                          style: const TextStyle(color: Colors.orange)),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.warning_amber,
+                              size: 18, color: Colors.orange.shade400),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              warning,
+                              style: TextStyle(
+                                color: Colors.orange.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     )),
               ],
             ],
@@ -471,9 +526,14 @@ mixin FormValidationMixin<T extends StatefulWidget> on State<T> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: result.hasErrors ? Colors.grey : Colors.green,
+              backgroundColor:
+                  result.hasErrors ? Colors.red.shade600 : Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: Text(result.hasErrors ? 'OK' : 'Continue Anyway'),
+            child: Text(result.hasErrors ? 'OK, I\'ll Fix' : 'Continue Anyway'),
           ),
         ],
       ),

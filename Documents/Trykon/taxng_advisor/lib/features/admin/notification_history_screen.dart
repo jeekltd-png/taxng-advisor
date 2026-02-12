@@ -5,6 +5,8 @@ import '../../models/user.dart';
 import '../../models/email_notification.dart';
 import '../../services/auth_service.dart';
 import '../../services/email_notification_service.dart';
+import '../../widgets/common/taxng_app_bar.dart';
+import '../../theme/colors.dart';
 
 class NotificationHistoryScreen extends StatefulWidget {
   const NotificationHistoryScreen({super.key});
@@ -72,20 +74,18 @@ class _NotificationHistoryScreenState extends State<NotificationHistoryScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notification History'),
-        backgroundColor: Colors.purple[700],
-        foregroundColor: Colors.white,
+      appBar: const TaxNGAppBar(
+        title: 'Notification History',
       ),
       body: Column(
         children: [
           // Admin Info Banner
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.purple[50],
+            color: TaxNGColors.primaryLight.withOpacity(0.15),
             child: Row(
               children: [
-                const Icon(Icons.email, color: Colors.purple),
+                Icon(Icons.email, color: TaxNGColors.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Email Notification History (Simulated)',

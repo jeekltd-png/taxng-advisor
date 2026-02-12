@@ -182,6 +182,9 @@ class TaxNgApp extends StatelessWidget {
             '/business/vault': (_) => const DocumentVaultScreen(),
             '/business/vat-form': (_) => const VatForm002Screen(),
           },
+          onUnknownRoute: (settings) => MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          ),
         );
       },
     );

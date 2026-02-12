@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -6,7 +7,8 @@ class VatDocument {
   final String id;
   final String filePath;
   final String filename;
-  final String fileType; // 'purchase_invoice', 'sales_invoice', 'bank_statement', 'other'
+  final String
+      fileType; // 'purchase_invoice', 'sales_invoice', 'bank_statement', 'other'
   final DateTime uploadedAt;
   final String vatPeriod;
   final int vatYear;
@@ -116,7 +118,7 @@ class VatDocumentService {
 
       return document;
     } catch (e) {
-      print('Error picking document: $e');
+      debugPrint('Error picking document: $e');
       return null;
     }
   }
@@ -248,8 +250,7 @@ class VatDocumentService {
     final summary = getDocumentSummary(period, year);
 
     // Minimum requirements for FIRS submission
-    return summary['purchaseInvoices'] > 0 && 
-           summary['salesInvoices'] > 0;
+    return summary['purchaseInvoices'] > 0 && summary['salesInvoices'] > 0;
   }
 
   /// Get document count by period

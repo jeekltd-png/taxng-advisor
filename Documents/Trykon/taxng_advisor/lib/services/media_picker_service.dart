@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -72,7 +71,7 @@ class MediaPickerService {
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        
+
         // On web, bytes are available but path is not
         if (kIsWeb) {
           return PickedFileResult(
@@ -111,7 +110,7 @@ class MediaPickerService {
   /// Determine file type from extension
   String getFileType(String extension) {
     final ext = extension.toLowerCase();
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].contains(ext)) {
       return 'image';
     } else if (ext == 'pdf') {
@@ -179,6 +178,4 @@ class PickedFileResult {
       return '${(size / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
   }
-
-  File? get file => path.isNotEmpty ? File(path) : null;
 }

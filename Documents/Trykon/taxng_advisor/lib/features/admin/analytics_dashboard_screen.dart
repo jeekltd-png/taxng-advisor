@@ -4,12 +4,14 @@ import 'package:intl/intl.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../services/analytics_service.dart';
+import '../../widgets/common/taxng_app_bar.dart';
 
 class AnalyticsDashboardScreen extends StatefulWidget {
   const AnalyticsDashboardScreen({super.key});
 
   @override
-  State<AnalyticsDashboardScreen> createState() => _AnalyticsDashboardScreenState();
+  State<AnalyticsDashboardScreen> createState() =>
+      _AnalyticsDashboardScreenState();
 }
 
 class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
@@ -35,7 +37,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Access denied. Main Admin privileges required.')),
+          const SnackBar(
+              content: Text('Access denied. Main Admin privileges required.')),
         );
       }
       return;
@@ -71,13 +74,11 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analytics Dashboard'),
-        backgroundColor: Colors.purple[700],
-        foregroundColor: Colors.white,
-        actions: [
+      appBar: TaxNGAppBar(
+        title: 'Analytics Dashboard',
+        additionalActions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
               setState(() {
                 _isLoading = true;
@@ -104,7 +105,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               const SizedBox(height: 24),
 
               // User Growth Chart
-              _buildSectionHeader('User Growth (Last 30 Days)', Icons.trending_up),
+              _buildSectionHeader(
+                  'User Growth (Last 30 Days)', Icons.trending_up),
               const SizedBox(height: 16),
               _buildUserGrowthChart(),
               const SizedBox(height: 32),
@@ -122,7 +124,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               const SizedBox(height: 32),
 
               // Admin Activity
-              _buildSectionHeader('Admin Activity (Last 7 Days)', Icons.admin_panel_settings),
+              _buildSectionHeader(
+                  'Admin Activity (Last 7 Days)', Icons.admin_panel_settings),
               const SizedBox(height: 16),
               _buildAdminActivityChart(),
               const SizedBox(height: 24),
@@ -211,7 +214,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         Expanded(
           child: _buildMetricCard(
             title: 'Conversion Rate',
-            value: '${(_subscriptions['conversion_rate'] ?? 0.0).toStringAsFixed(1)}%',
+            value:
+                '${(_subscriptions['conversion_rate'] ?? 0.0).toStringAsFixed(1)}%',
             icon: Icons.trending_up,
             color: Colors.green,
             subtitle: 'Free to Paid',
@@ -221,7 +225,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         Expanded(
           child: _buildMetricCard(
             title: 'Avg Response',
-            value: '${(_tickets['avg_response_time_hours'] ?? 0.0).toStringAsFixed(1)}h',
+            value:
+                '${(_tickets['avg_response_time_hours'] ?? 0.0).toStringAsFixed(1)}h',
             icon: Icons.timer,
             color: Colors.orange,
             subtitle: 'Ticket response',
@@ -284,15 +289,16 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildUserGrowthChart() {
-    final dailyGrowth = _userGrowth['daily_growth'] as Map<DateTime, int>? ?? {};
-    
+    final dailyGrowth =
+        _userGrowth['daily_growth'] as Map<DateTime, int>? ?? {};
+
     if (dailyGrowth.isEmpty) {
       return _buildEmptyState('No user growth data available');
     }
 
     final spots = <FlSpot>[];
     final sortedDates = dailyGrowth.keys.toList()..sort();
-    
+
     for (int i = 0; i < sortedDates.length; i++) {
       final date = sortedDates[i];
       final count = dailyGrowth[date]!;
@@ -335,7 +341,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 reservedSize: 30,
                 interval: 5,
                 getTitlesWidget: (value, meta) {
-                  if (value.toInt() < 0 || value.toInt() >= sortedDates.length) {
+                  if (value.toInt() < 0 ||
+                      value.toInt() >= sortedDates.length) {
                     return const Text('');
                   }
                   final date = sortedDates[value.toInt()];
@@ -349,8 +356,10 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
@@ -374,7 +383,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
 
   Widget _buildSubscriptionPieChart() {
     final tierCounts = _subscriptions['tier_counts'] as Map<String, int>? ?? {};
-    
+
     if (tierCounts.isEmpty || tierCounts.values.every((c) => c == 0)) {
       return _buildEmptyState('No subscription data available');
     }
@@ -429,7 +438,7 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
 
   Widget _buildTicketStatusChart() {
     final statusCounts = _tickets['status_counts'] as Map<String, int>? ?? {};
-    
+
     if (statusCounts.isEmpty || statusCounts.values.every((c) => c == 0)) {
       return _buildEmptyState('No ticket data available');
     }
@@ -448,7 +457,8 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
               toY: count.toDouble(),
               color: colors[i],
               width: 30,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(4)),
             ),
           ],
         ),
@@ -503,8 +513,10 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: false),
           barGroups: barGroups,
@@ -514,8 +526,9 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   }
 
   Widget _buildAdminActivityChart() {
-    final actionCounts = _adminActivity['action_counts'] as Map<String, int>? ?? {};
-    
+    final actionCounts =
+        _adminActivity['action_counts'] as Map<String, int>? ?? {};
+
     if (actionCounts.isEmpty) {
       return _buildEmptyState('No admin activity data available');
     }

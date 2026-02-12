@@ -367,9 +367,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         ),
                       );
                     } catch (e) {
+                      debugPrint('Error generating PDF: $e');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Error generating PDF: $e'),
+                          content:
+                              Text('Could not generate PDF. Please try again.'),
                           backgroundColor: Colors.red,
                         ),
                       );

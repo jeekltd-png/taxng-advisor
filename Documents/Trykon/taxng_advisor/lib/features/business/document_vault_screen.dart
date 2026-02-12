@@ -86,9 +86,10 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
         _showCategoryDialog(file);
       }
     } catch (e) {
+      debugPrint('Error picking file: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error picking file: $e'),
+          content: Text('Could not select file. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );

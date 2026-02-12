@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -22,10 +23,10 @@ class SyncService {
     _connectivity.onConnectivityChanged.listen((result) {
       final isOnline = result != ConnectivityResult.none;
       if (isOnline && !_isSyncing) {
-        print('🟢 Device is online - Starting sync...');
+        debugPrint('🟢 Device is online - Starting sync...');
         performSync();
       } else if (!isOnline) {
-        print('🔴 Device is offline - Sync paused');
+        debugPrint('🔴 Device is offline - Sync paused');
       }
     });
   }
@@ -44,24 +45,24 @@ class SyncService {
   /// Perform sync operation
   static Future<void> performSync() async {
     if (_isSyncing) {
-      print('⏳ Sync already in progress, skipping...');
+      debugPrint('⏳ Sync already in progress, skipping...');
       return;
     }
 
     try {
       _isSyncing = true;
-      print('🔄 Starting sync...');
+      debugPrint('🔄 Starting sync...');
 
       // Get pending records from Hive
       final pending = HiveService.getPendingRecords();
 
       if (pending.isEmpty) {
-        print('✅ No pending records to sync');
+        debugPrint('✅ No pending records to sync');
         _isSyncing = false;
         return;
       }
 
-      print('📤 Uploading ${pending.length} pending records...');
+      debugPrint('📤 Uploading ${pending.length} pending records...');
 
       // Upload each pending record
       int successCount = 0;
@@ -70,10 +71,11 @@ class SyncService {
         if (success) successCount++;
       }
 
-      print('✅ Sync completed: $successCount/${pending.length} records synced');
+      debugPrint(
+          '✅ Sync completed: $successCount/${pending.length} records synced');
       _isSyncing = false;
     } catch (e) {
-      print('❌ Sync failed: $e');
+      debugPrint('❌ Sync failed: $e');
       _isSyncing = false;
     }
   }
@@ -85,7 +87,7 @@ class SyncService {
     try {
       final token = await _getAuthToken();
       if (token == null) {
-        print('⚠️  No auth token available, cannot upload $taxType');
+        debugPrint('⚠️  No auth token available, cannot upload $taxType');
         return false;
       }
 
@@ -108,17 +110,17 @@ class SyncService {
           );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Synced $taxType record');
+        debugPrint('✅ Synced $taxType record');
         await HiveService.markAsSynced(taxType, record['id'] ?? 'unknown');
         return true;
       } else {
-        print(
+        debugPrint(
             '⚠️  Server error for $taxType: ${response.statusCode} - ${response.body}');
         await _markAsFailed(record, 'HTTP ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      print('❌ Failed to sync $taxType record: $e');
+      debugPrint('❌ Failed to sync $taxType record: $e');
       await _markAsFailed(record, e.toString());
       return false;
     }
@@ -141,16 +143,16 @@ class SyncService {
   /// Pull remote data from server
   static Future<void> pullRemoteData() async {
     if (!await isOnline()) {
-      print('📴 Offline - cannot pull remote data');
+      debugPrint('📴 Offline - cannot pull remote data');
       return;
     }
 
     try {
-      print('📥 Pulling data from server...');
+      debugPrint('📥 Pulling data from server...');
 
       final token = await _getAuthToken();
       if (token == null) {
-        print('⚠️  No auth token available for pulling data');
+        debugPrint('⚠️  No auth token available for pulling data');
         return;
       }
 
@@ -170,13 +172,13 @@ class SyncService {
           mergedCount++;
         }
 
-        print('✅ Pulled and merged $mergedCount records from server');
+        debugPrint('✅ Pulled and merged $mergedCount records from server');
       } else {
-        print(
+        debugPrint(
             '⚠️  Failed to pull remote data: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('❌ Failed to pull remote data: $e');
+      debugPrint('❌ Failed to pull remote data: $e');
     }
   }
 
@@ -185,13 +187,13 @@ class SyncService {
     try {
       final type = remoteRecord['type'] as String?;
       if (type == null) {
-        print('⚠️  Remote record has no type field');
+        debugPrint('⚠️  Remote record has no type field');
         return;
       }
 
       final boxName = _getBoxNameForType(type);
       if (boxName == null) {
-        print('⚠️  Unknown tax type: $type');
+        debugPrint('⚠️  Unknown tax type: $type');
         return;
       }
 
@@ -217,7 +219,7 @@ class SyncService {
           box = HiveService.getPayrollBox();
           break;
         default:
-          print('⚠️  Unknown box name: $boxName');
+          debugPrint('⚠️  Unknown box name: $boxName');
           return;
       }
 
@@ -325,17 +327,17 @@ class SyncService {
     try {
       // This is a placeholder - implement based on your auth service
       // For now, return null to indicate no token available
-      print('⚠️  Token refresh not implemented');
+      debugPrint('⚠️  Token refresh not implemented');
       return null;
     } catch (e) {
-      print('❌ Failed to refresh token: $e');
+      debugPrint('❌ Failed to refresh token: $e');
       return null;
     }
   }
 
   /// Force manual sync
   static Future<void> manualSync() async {
-    print('🔄 Manual sync triggered');
+    debugPrint('🔄 Manual sync triggered');
     await performSync();
   }
 
@@ -347,7 +349,7 @@ class SyncService {
   /// Clear all pending records
   static Future<void> clearPending() async {
     await HiveService.clearPending();
-    print('🗑️  Cleared all pending records');
+    debugPrint('🗑️  Cleared all pending records');
   }
 
   /// Get failed records

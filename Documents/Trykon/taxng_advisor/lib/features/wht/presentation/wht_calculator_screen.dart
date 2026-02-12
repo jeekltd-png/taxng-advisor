@@ -12,6 +12,9 @@ import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 
 /// WHT Calculator Screen
 class WhtCalculatorScreen extends StatefulWidget {
@@ -22,13 +25,14 @@ class WhtCalculatorScreen extends StatefulWidget {
 }
 
 class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
 
   WhtType _selectedType = WhtType.dividends;
   WhtResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   final Map<WhtType, String> _whtTypeLabels = {
@@ -48,11 +52,19 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
     // Register validation rules
     ValidationService.registerRules('WHT', ValidationService.getWHTRules());
 
+    // Mark as real data when user edits any field
+    _amountController.addListener(() {
+      if (_isExampleData && _amountController.text.isNotEmpty) {
+        _isExampleData = false;
+      }
+    });
+
     // Handle imported data from route
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null && (args['amount'] != null || args['type'] != null)) {
+        _isExampleData = false;
         if (args['amount'] != null) {
           _amountController.text = (args['amount'] as num).toString();
         }
@@ -92,6 +104,7 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
   }
 
   void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
     setState(() {
       if (data['amount'] != null) {
         _amountController.text = data['amount'].toString();
@@ -125,6 +138,11 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
       return;
     }
 
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('WHT', isExampleData: _isExampleData)) {
+      return;
+    }
+
     final result = await ErrorRecoveryService.withErrorHandling(
       context,
       () async {
@@ -149,6 +167,10 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
         context,
         '✅ WHT calculated successfully',
       );
+
+      // Track calculator usage for admin analytics
+      UserActivityTracker.trackCalculatorUse('wht',
+          details: 'Amount: ${data['amount']}, Type: ${_selectedType.name}');
     }
   }
 
@@ -223,6 +245,7 @@ class _WhtCalculatorScreenState extends State<WhtCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'WHT'),
             Text(
               'Withholding Tax (WHT) ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

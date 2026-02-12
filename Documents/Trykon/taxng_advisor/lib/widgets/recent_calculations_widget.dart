@@ -263,7 +263,7 @@ class RecentCalculationsWidget extends StatelessWidget {
 
       return calculations;
     } catch (e) {
-      print('Error getting recent calculations: $e');
+      debugPrint('Error getting recent calculations: $e');
       return [];
     }
   }

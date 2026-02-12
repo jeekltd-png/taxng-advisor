@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
+import 'package:taxng_advisor/theme/colors.dart';
 
 /// Admin-only screen for accessing comprehensive test cases
 /// This screen is restricted to administrators and QA testers only
@@ -41,7 +42,17 @@ class _TestCasesAdminScreenState extends State<TestCasesAdminScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Test Cases - Admin Only'),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [TaxNGColors.primaryDark, TaxNGColors.primary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.description),

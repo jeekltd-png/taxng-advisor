@@ -14,6 +14,9 @@ import 'package:taxng_advisor/widgets/template_action_buttons.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 
 /// PIT Calculator Screen
 class PitCalculatorScreen extends StatefulWidget {
@@ -24,7 +27,7 @@ class PitCalculatorScreen extends StatefulWidget {
 }
 
 class _PitCalculatorScreenState extends State<PitCalculatorScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _grossIncomeController = TextEditingController();
   final _otherDeductionsController = TextEditingController();
@@ -32,6 +35,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
 
   PitResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   @override
@@ -39,6 +43,17 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
     super.initState();
     // Register validation rules
     ValidationService.registerRules('PIT', ValidationService.getPITRules());
+
+    // Mark as real data when user edits any field
+    for (final c in [
+      _grossIncomeController,
+      _otherDeductionsController,
+      _annualRentPaidController,
+    ]) {
+      c.addListener(() {
+        if (_isExampleData && c.text.isNotEmpty) _isExampleData = false;
+      });
+    }
 
     // Handle imported data from route
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,6 +63,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
           (args['grossIncome'] != null ||
               args['otherDeductions'] != null ||
               args['annualRentPaid'] != null)) {
+        _isExampleData = false;
         if (args['grossIncome'] != null) {
           _grossIncomeController.text = (args['grossIncome'] as num).toString();
         }
@@ -67,6 +83,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
   }
 
   void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
     setState(() {
       if (data['grossIncome'] != null) {
         _grossIncomeController.text = data['grossIncome'].toString();
@@ -86,11 +103,8 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
   }
 
   void _calculateWithDummyData() {
-    result = PitCalculator.calculate(
-      grossIncome: 5000000,
-      otherDeductions: [200000],
-      annualRentPaid: 1200000,
-    );
+    // Calculate with default (empty) controller values
+    _calculatePIT();
   }
 
   void _calculatePIT() async {
@@ -102,6 +116,11 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
 
     // Validate before calculating
     if (!await canSubmit('PIT', data)) {
+      return;
+    }
+
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('PIT', isExampleData: _isExampleData)) {
       return;
     }
 
@@ -132,6 +151,10 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
         context,
         '✅ PIT calculated successfully',
       );
+
+      // Track calculator usage for admin analytics
+      UserActivityTracker.trackCalculatorUse('pit',
+          details: 'Gross income: ${data['grossIncome']}');
     }
   }
 
@@ -193,9 +216,12 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
         originalCurrency: paymentData['originalCurrency'],
         originalAmount: paymentData['originalAmount'],
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment recorded and confirmation sent')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Payment recorded and confirmation sent')),
+        );
+      }
     }
   }
 
@@ -287,6 +313,7 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'PIT'),
             Text(
               'Personal Income Tax (PIT) ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -294,13 +321,18 @@ class _PitCalculatorScreenState extends State<PitCalculatorScreen>
             const SizedBox(height: 8),
             Text(
               'Enter your personal income details',
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  fontSize: 13),
             ),
             const SizedBox(height: 24),
 
             // Information Card
             Card(
-              color: Colors.blue[50],
+              color: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withOpacity(0.3),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

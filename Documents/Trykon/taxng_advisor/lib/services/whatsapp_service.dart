@@ -1,6 +1,7 @@
 /// WhatsApp integration service for notifications and bot interactions
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:taxng_advisor/models/user.dart';
@@ -64,7 +65,8 @@ class WhatsAppNotification {
       type: WhatsAppMessageType.values[m['type'] as int? ?? 0],
       message: m['message'] as String,
       createdAt: DateTime.parse(m['createdAt'] as String),
-      sentAt: m['sentAt'] != null ? DateTime.parse(m['sentAt'] as String) : null,
+      sentAt:
+          m['sentAt'] != null ? DateTime.parse(m['sentAt'] as String) : null,
       sent: m['sent'] as bool? ?? false,
       errorMessage: m['errorMessage'] as String?,
       metadata: m['metadata'] as Map<String, dynamic>?,
@@ -213,7 +215,8 @@ _Support hours: Mon-Fri 8AM-6PM_
       final encodedMessage = Uri.encodeComponent(message);
 
       // Try WhatsApp Business first, then regular WhatsApp
-      final whatsappUrl = Uri.parse('https://wa.me/$formattedNumber?text=$encodedMessage');
+      final whatsappUrl =
+          Uri.parse('https://wa.me/$formattedNumber?text=$encodedMessage');
 
       if (await canLaunchUrl(whatsappUrl)) {
         await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
@@ -222,7 +225,7 @@ _Support hours: Mon-Fri 8AM-6PM_
 
       return false;
     } catch (e) {
-      print('WhatsApp error: $e');
+      debugPrint('WhatsApp error: $e');
       return false;
     }
   }
@@ -500,15 +503,14 @@ Or describe what you need and I'll try to help!
 
   /// Get bot command help
   static String getBotHelp() {
-    return botCommands
-        .firstWhere((c) => c.command == 'help')
-        .response;
+    return botCommands.firstWhere((c) => c.command == 'help').response;
   }
 
   // ==================== HISTORY METHODS ====================
 
   /// Get notification history
-  static Future<List<WhatsAppNotification>> getNotificationHistory(String userId) async {
+  static Future<List<WhatsAppNotification>> getNotificationHistory(
+      String userId) async {
     await _ensureBoxOpen(_notificationsBox);
     final box = Hive.box(_notificationsBox);
 
@@ -564,7 +566,8 @@ Or describe what you need and I'll try to help!
     }
 
     final last7Days = all
-        .where((n) => n.createdAt.isAfter(DateTime.now().subtract(const Duration(days: 7))))
+        .where((n) => n.createdAt
+            .isAfter(DateTime.now().subtract(const Duration(days: 7))))
         .length;
 
     return {
@@ -579,7 +582,8 @@ Or describe what you need and I'll try to help!
   // ==================== SETTINGS ====================
 
   /// Enable/disable WhatsApp notifications
-  static Future<void> setNotificationsEnabled(String userId, bool enabled) async {
+  static Future<void> setNotificationsEnabled(
+      String userId, bool enabled) async {
     await _ensureBoxOpen(_settingsBox);
     final box = Hive.box(_settingsBox);
     await box.put('${userId}_enabled', enabled);
@@ -606,7 +610,8 @@ Or describe what you need and I'll try to help!
   }
 
   /// Get notification preferences
-  static Future<Map<WhatsAppMessageType, bool>> getNotificationPreferences(String userId) async {
+  static Future<Map<WhatsAppMessageType, bool>> getNotificationPreferences(
+      String userId) async {
     await _ensureBoxOpen(_settingsBox);
     final box = Hive.box(_settingsBox);
 
@@ -628,8 +633,18 @@ Or describe what you need and I'll try to help!
 
   static String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

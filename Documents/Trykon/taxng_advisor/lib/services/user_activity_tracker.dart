@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import '../models/user_activity.dart';
 import '../services/auth_service.dart';
 
@@ -28,18 +29,20 @@ class UserActivityTracker {
   /// Get device info string
   static Future<String> _getDeviceInfo() async {
     try {
-      if (Platform.isAndroid) {
-        return 'Android';
-      } else if (Platform.isIOS) {
-        return 'iOS';
-      } else if (Platform.isWindows) {
-        return 'Windows';
-      } else if (Platform.isMacOS) {
-        return 'macOS';
-      } else if (Platform.isLinux) {
-        return 'Linux';
-      } else {
-        return 'Web';
+      if (kIsWeb) return 'Web';
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          return 'Android';
+        case TargetPlatform.iOS:
+          return 'iOS';
+        case TargetPlatform.windows:
+          return 'Windows';
+        case TargetPlatform.macOS:
+          return 'macOS';
+        case TargetPlatform.linux:
+          return 'Linux';
+        default:
+          return 'Unknown';
       }
     } catch (e) {
       return 'Web'; // Default to web if platform detection fails
@@ -146,6 +149,62 @@ class UserActivityTracker {
       deviceInfo: deviceInfo,
       appVersion: appVersion,
       details: details,
+    );
+
+    final box = _getBox();
+    await box.add(activity.toMap());
+  }
+
+  /// Track data import usage
+  ///
+  /// [fileName] - name of the imported file
+  /// [taxType] - tax type the import was for (e.g. 'VAT', 'PIT')
+  static Future<void> trackDataImport(String fileName,
+      {String? taxType}) async {
+    final user = await AuthService.currentUser();
+    if (user == null) return;
+
+    final deviceInfo = await _getDeviceInfo();
+    final appVersion = await _getAppVersion();
+
+    final activity = UserActivity(
+      id: 'import_${DateTime.now().millisecondsSinceEpoch}',
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      activityType: 'data_import',
+      calculatorType: taxType?.toLowerCase(),
+      timestamp: DateTime.now(),
+      deviceInfo: deviceInfo,
+      appVersion: appVersion,
+      details:
+          'Imported file: $fileName${taxType != null ? ' for $taxType' : ''}',
+    );
+
+    final box = _getBox();
+    await box.add(activity.toMap());
+  }
+
+  /// Track page/screen view
+  ///
+  /// [pageName] - the name of the page/screen visited
+  static Future<void> trackPageView(String pageName) async {
+    final user = await AuthService.currentUser();
+    if (user == null) return;
+
+    final deviceInfo = await _getDeviceInfo();
+    final appVersion = await _getAppVersion();
+
+    final activity = UserActivity(
+      id: 'page_${DateTime.now().millisecondsSinceEpoch}',
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      activityType: 'page_view',
+      timestamp: DateTime.now(),
+      deviceInfo: deviceInfo,
+      appVersion: appVersion,
+      details: pageName,
     );
 
     final box = _getBox();
@@ -315,6 +374,8 @@ class UserActivityTracker {
       'logouts': activityCounts['logout'] ?? 0,
       'feedback_submissions': activityCounts['feedback'] ?? 0,
       'ratings_submitted': ratingCount,
+      'data_imports': activityCounts['data_import'] ?? 0,
+      'page_views': activityCounts['page_view'] ?? 0,
       'total_calculator_uses':
           calculatorCounts.values.fold(0, (sum, count) => sum + count),
     };

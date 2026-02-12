@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/admin_activity_log.dart';
 import '../models/user.dart';
@@ -31,7 +32,7 @@ class ActivityLogService {
 
       await box.add(log);
     } catch (e) {
-      print('Error logging activity: $e');
+      debugPrint('Error logging activity: $e');
     }
   }
 

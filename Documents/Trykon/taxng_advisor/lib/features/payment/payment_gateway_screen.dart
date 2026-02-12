@@ -123,10 +123,11 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
+      debugPrint('Payment processing error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Payment processing failed. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

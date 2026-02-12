@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:taxng_advisor/services/subscription_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/user.dart';
@@ -252,10 +252,16 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen>
               if (proofPath.toLowerCase().endsWith('.jpg') ||
                   proofPath.toLowerCase().endsWith('.jpeg') ||
                   proofPath.toLowerCase().endsWith('.png'))
-                File(proofPath).existsSync()
-                    ? Image.file(File(proofPath), fit: BoxFit.contain)
-                    : const Text('Image file not accessible',
-                        style: TextStyle(color: Colors.red))
+                kIsWeb
+                    ? const Text('Image preview not available on web',
+                        style: TextStyle(color: Colors.grey))
+                    : Image.network(
+                        proofPath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Text(
+                            'Image file not accessible',
+                            style: TextStyle(color: Colors.red)),
+                      )
               else
                 Text('File: ${proofPath.split('/').last}'),
             ],

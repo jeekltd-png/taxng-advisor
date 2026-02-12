@@ -73,10 +73,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         throw 'Could not launch email';
       }
     } catch (e) {
+      debugPrint('Feedback submission error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Could not submit feedback. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

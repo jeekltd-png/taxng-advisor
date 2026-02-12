@@ -403,6 +403,37 @@ class _ImportHistoryScreenState extends State<ImportHistoryScreen> {
                     ],
                   ],
                 ),
+                // Evidence badge — shows when taxTotals were saved
+                if (imp['taxTotals'] != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: TaxNGColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: TaxNGColors.primary.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified_outlined,
+                            size: 13, color: TaxNGColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Evidence saved · ${(imp['taxTotals'] as Map).length} assessed values',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: TaxNGColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -531,6 +562,12 @@ class _ImportDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Evidence: Assessed tax values (if saved)
+                  if (importRecord['taxTotals'] != null) ...[
+                    const SizedBox(height: 16),
+                    _buildEvidenceCard(isDark, currencyFormat),
+                  ],
+
                   const SizedBox(height: 16),
 
                   // Data table
@@ -657,5 +694,114 @@ class _ImportDetailScreen extends StatelessWidget {
               ),
             ),
     );
+  }
+
+  Widget _buildEvidenceCard(bool isDark, NumberFormat currencyFormat) {
+    final taxTotals =
+        Map<String, dynamic>.from(importRecord['taxTotals'] ?? {});
+    final taxType = importRecord['taxType'] ?? '';
+    final importedAt = importRecord['importedAt'] ?? '';
+    DateTime? dt;
+    try {
+      dt = DateTime.parse(importedAt);
+    } catch (_) {}
+    final dateStr =
+        dt != null ? DateFormat('MMM d, yyyy · h:mm a').format(dt) : '—';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? TaxNGColors.bgDarkSecondary : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2A3E) : TaxNGColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: TaxNGColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.verified_outlined,
+                    color: TaxNGColors.primary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Assessed Values — $taxType',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : TaxNGColors.textDark,
+                      ),
+                    ),
+                    Text(
+                      'Evidence saved $dateStr',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.white54 : TaxNGColors.textLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...taxTotals.entries.map((entry) {
+            final value = (entry.value is num)
+                ? (entry.value as num).toDouble()
+                : double.tryParse(entry.value.toString()) ?? 0.0;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.label_outline,
+                      size: 14,
+                      color: isDark ? Colors.white54 : TaxNGColors.textLight),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _formatLabel(entry.key),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white70 : TaxNGColors.textMedium,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '₦${currencyFormat.format(value)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : TaxNGColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _formatLabel(String key) {
+    return key
+        .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(0)}')
+        .trim()
+        .split(' ')
+        .map((w) => w[0].toUpperCase() + w.substring(1))
+        .join(' ');
   }
 }

@@ -251,7 +251,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 // Page indicator
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 6),
                   child: SmoothPageIndicator(
                     controller: _pageController,
                     count: _pages.length,
@@ -267,7 +267,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                 // Buttons
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 4),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -299,12 +299,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
 
                       // Continue / Get Started button
                       SizedBox(
                         width: double.infinity,
-                        height: 48,
+                        height: 44,
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_currentPage < _pages.length - 1) {
@@ -340,12 +340,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
                       // Register button
                       SizedBox(
                         width: double.infinity,
-                        height: 48,
+                        height: 44,
                         child: OutlinedButton(
                           onPressed: () async {
                             (await SharedPreferences.getInstance())
@@ -379,7 +379,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                       // Debug - Seed button (only in debug mode)
                       if (kDebugMode) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(
@@ -388,19 +388,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.white70,
-                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              padding: const EdgeInsets.symmetric(vertical: 2),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: const Text(
                               'Debug - Seed / Login Users',
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 11),
                             ),
                           ),
                         ),
                       ],
 
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
 
                       // Fine print with tappable links
                       Row(
@@ -456,7 +456,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                     ],
                   ),
                 ),

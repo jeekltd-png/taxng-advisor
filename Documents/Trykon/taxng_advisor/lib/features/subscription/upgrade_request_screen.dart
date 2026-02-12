@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'package:taxng_advisor/services/subscription_service.dart';
 import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/models/pricing_tier.dart';
@@ -25,7 +25,8 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
   List<PricingTier> _tiers = [];
 
   // Payment proof fields
-  File? _paymentProofFile;
+  Uint8List? _paymentProofBytes;
+  String? _paymentProofName;
   String? _paymentProofPath;
   final _bankNameController = TextEditingController();
   final _accountNumberController = TextEditingController();
@@ -69,12 +70,17 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+        withData: true,
       );
 
       if (result != null) {
         setState(() {
-          _paymentProofPath = result.files.single.path;
-          _paymentProofFile = File(result.files.single.path!);
+          _paymentProofBytes = result.files.single.bytes != null
+              ? Uint8List.fromList(result.files.single.bytes!)
+              : null;
+          _paymentProofName = result.files.single.name;
+          _paymentProofPath =
+              result.files.single.path ?? result.files.single.name;
         });
 
         if (mounted) {
@@ -88,10 +94,11 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
         }
       }
     } catch (e) {
+      debugPrint('File selection error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error selecting file: $e'),
+          const SnackBar(
+            content: Text('Could not select file. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -172,9 +179,12 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      debugPrint('Upgrade request error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          const SnackBar(
+              content: Text('Failed to submit request. Please try again.'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -583,8 +593,8 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
 
               // Payment Proof Upload
               Card(
-                elevation: _paymentProofFile != null ? 4 : 2,
-                color: _paymentProofFile != null ? Colors.green[50] : null,
+                elevation: _paymentProofBytes != null ? 4 : 2,
+                color: _paymentProofBytes != null ? Colors.green[50] : null,
                 child: InkWell(
                   onTap: _pickPaymentProof,
                   child: Padding(
@@ -592,10 +602,10 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          _paymentProofFile != null
+                          _paymentProofBytes != null
                               ? Icons.check_circle
                               : Icons.upload_file,
-                          color: _paymentProofFile != null
+                          color: _paymentProofBytes != null
                               ? Colors.green
                               : Colors.blue,
                           size: 32,
@@ -606,20 +616,20 @@ class _UpgradeRequestScreenState extends State<UpgradeRequestScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _paymentProofFile != null
+                                _paymentProofBytes != null
                                     ? '✅ Payment Proof Uploaded'
                                     : 'Upload Payment Proof *',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: _paymentProofFile != null
+                                  color: _paymentProofBytes != null
                                       ? Colors.green[900]
                                       : null,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _paymentProofFile != null
-                                    ? _paymentProofFile!.path.split('/').last
+                                _paymentProofBytes != null
+                                    ? _paymentProofName ?? 'Payment proof'
                                     : 'Receipt, screenshot, or bank confirmation',
                                 style: TextStyle(
                                   fontSize: 12,

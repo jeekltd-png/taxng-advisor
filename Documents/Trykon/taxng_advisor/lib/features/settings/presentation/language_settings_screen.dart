@@ -330,10 +330,11 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Language settings error: $e');
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          const SnackBar(content: Text('An error occurred. Please try again.')),
         );
       }
     }

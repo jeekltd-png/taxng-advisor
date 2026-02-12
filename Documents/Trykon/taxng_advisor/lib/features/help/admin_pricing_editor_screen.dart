@@ -59,10 +59,11 @@ class _AdminPricingEditorScreenState extends State<AdminPricingEditorScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Error saving pricing: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving pricing: $e'),
+            content: Text('Could not save pricing. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

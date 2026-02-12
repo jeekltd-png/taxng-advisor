@@ -14,6 +14,9 @@ import 'package:taxng_advisor/widgets/calculation_info_item.dart';
 import 'package:taxng_advisor/widgets/supporting_documents_widget.dart';
 import 'package:taxng_advisor/models/calculation_attachment.dart';
 import 'package:taxng_advisor/widgets/common/taxng_app_bar.dart';
+import 'package:taxng_advisor/services/user_activity_tracker.dart';
+import 'package:taxng_advisor/widgets/free_plan_banner.dart';
+import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 
 /// Stamp Duty Screen
 class StampDutyScreen extends StatefulWidget {
@@ -24,13 +27,14 @@ class StampDutyScreen extends StatefulWidget {
 }
 
 class _StampDutyScreenState extends State<StampDutyScreen>
-    with FormValidationMixin {
+    with FormValidationMixin, FreeUsageGateMixin {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
 
   StampDutyType _selectedType = StampDutyType.sale;
   StampDutyResult? result;
   bool _showResults = false;
+  bool _isExampleData = true;
   final List<CalculationAttachment> _attachments = [];
 
   final Map<StampDutyType, String> _stampDutyTypeLabels = {
@@ -51,11 +55,19 @@ class _StampDutyScreenState extends State<StampDutyScreen>
     ValidationService.registerRules(
         'StampDuty', ValidationService.getStampDutyRules());
 
+    // Mark as real data when user edits any field
+    _amountController.addListener(() {
+      if (_isExampleData && _amountController.text.isNotEmpty) {
+        _isExampleData = false;
+      }
+    });
+
     // Handle imported data from route
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null && (args['amount'] != null || args['type'] != null)) {
+        _isExampleData = false;
         if (args['amount'] != null) {
           _amountController.text = (args['amount'] as num).toString();
         }
@@ -94,6 +106,7 @@ class _StampDutyScreenState extends State<StampDutyScreen>
   }
 
   void _handleImportedData(Map<String, dynamic> data) {
+    _isExampleData = false;
     setState(() {
       if (data['amount'] != null) {
         _amountController.text = data['amount'].toString();
@@ -127,6 +140,12 @@ class _StampDutyScreenState extends State<StampDutyScreen>
       return;
     }
 
+    // Free-tier usage gate
+    if (!await checkFreeUsageAndProceed('StampDuty',
+        isExampleData: _isExampleData)) {
+      return;
+    }
+
     final result = await ErrorRecoveryService.withErrorHandling(
       context,
       () async {
@@ -151,6 +170,10 @@ class _StampDutyScreenState extends State<StampDutyScreen>
         context,
         '✅ Stamp Duty calculated successfully',
       );
+
+      // Track calculator usage for admin analytics
+      UserActivityTracker.trackCalculatorUse('stamp_duty',
+          details: 'Amount: ${data['amount']}, Type: ${_selectedType.name}');
     }
   }
 
@@ -312,6 +335,7 @@ class _StampDutyScreenState extends State<StampDutyScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FreePlanBanner(calculatorType: 'StampDuty'),
             Text(
               'Stamp Duty Calculator ${DateTime.now().year}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

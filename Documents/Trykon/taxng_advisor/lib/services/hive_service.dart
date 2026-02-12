@@ -26,6 +26,7 @@ class HiveService {
   static const String syncBox = 'sync_status';
   static const String profileBox = 'profile_settings';
   static const String upgradeRequestsBox = 'upgrade_requests';
+  static const String usageTrackerBox = 'usage_tracker';
 
   static const _secureStorage = FlutterSecureStorage();
   static const _encryptionKeyName = 'hive_encryption_key';
@@ -69,6 +70,7 @@ class HiveService {
       await Hive.openBox(payrollBox);
       await Hive.openBox(syncBox);
       await Hive.openBox(upgradeRequestsBox);
+      await Hive.openBox(usageTrackerBox);
 
       debugPrint('✅ Hive initialized with encryption');
     } catch (e) {
