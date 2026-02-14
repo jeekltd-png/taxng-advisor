@@ -478,7 +478,7 @@ class PdfService {
             '• This is a computer-generated receipt from TaxPadi application\n'
             '• Keep this receipt for your records and tax filing\n'
             '• Submit this receipt along with proof of payment to the relevant tax office\n'
-            '• For inquiries, contact: jeekltd@gmail.com',
+            '• For inquiries, contact: support@taxpadi.com',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 20),

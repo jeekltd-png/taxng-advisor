@@ -179,11 +179,25 @@ class EncryptionService {
     }
   }
 
-  /// Clear all encrypted data
+  /// Clear all encrypted data **except** critical infrastructure keys
+  /// (Hive encryption key, EncryptionService key) so that Hive boxes
+  /// remain readable after the clear.
   static Future<void> clearAllEncryptedData() async {
     try {
-      await _storage.deleteAll();
-      debugPrint('✅ All encrypted data cleared');
+      // Read all keys and selectively delete, preserving infrastructure keys.
+      final allKeys = await _storage.readAll();
+      const preservedKeys = {
+        _encKeyStorageKey, // EncryptionService AES key
+        'hive_encryption_key', // HiveService AES cipher key
+      };
+
+      for (final key in allKeys.keys) {
+        if (!preservedKeys.contains(key)) {
+          await _storage.delete(key: key);
+        }
+      }
+      debugPrint(
+          '✅ All encrypted data cleared (infrastructure keys preserved)');
     } catch (e) {
       debugPrint('❌ Failed to clear encrypted data: $e');
     }

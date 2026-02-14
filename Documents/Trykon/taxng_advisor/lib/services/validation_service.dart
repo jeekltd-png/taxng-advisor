@@ -114,11 +114,12 @@ class ValidationService {
         },
       ),
       ValidationRule(
-        fieldName: 'reliefs',
+        fieldName: 'otherDeductions',
         severity: ValidationSeverity.warning,
         validate: (data) {
           final grossIncome = data['grossIncome'] as double?;
-          final reliefs = data['reliefs'] as double?;
+          final reliefs =
+              (data['otherDeductions'] ?? data['reliefs']) as double?;
           if (grossIncome != null &&
               reliefs != null &&
               reliefs > grossIncome * 0.25) {
@@ -305,10 +306,11 @@ class ValidationService {
   static List<ValidationRule> getStampDutyRules() {
     return [
       ValidationRule(
-        fieldName: 'transactionAmount',
+        fieldName: 'amount',
         severity: ValidationSeverity.error,
         validate: (data) {
-          final value = data['transactionAmount'] as double?;
+          final value =
+              (data['amount'] ?? data['transactionAmount']) as double?;
           if (value == null || value <= 0) {
             return RuleValidationResult(
               isValid: false,
@@ -319,10 +321,11 @@ class ValidationService {
         },
       ),
       ValidationRule(
-        fieldName: 'transactionAmount',
+        fieldName: 'amount',
         severity: ValidationSeverity.warning,
         validate: (data) {
-          final value = data['transactionAmount'] as double?;
+          final value =
+              (data['amount'] ?? data['transactionAmount']) as double?;
           if (value != null && value > 10000000) {
             return RuleValidationResult(
               isValid: false,

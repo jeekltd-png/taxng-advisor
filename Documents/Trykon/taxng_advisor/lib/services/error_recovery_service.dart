@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 
 /// Error types for categorization
 enum ErrorType {
@@ -11,8 +13,122 @@ enum ErrorType {
   unknown,
 }
 
-/// Error recovery service for graceful error handling
+/// A structured error record for persistence and later reporting.
+class ErrorRecord {
+  final String message;
+  final String errorType;
+  final String? stackTrace;
+  final String? context;
+  final Map<String, dynamic>? additionalData;
+  final DateTime timestamp;
+
+  ErrorRecord({
+    required this.message,
+    required this.errorType,
+    this.stackTrace,
+    this.context,
+    this.additionalData,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  Map<String, dynamic> toMap() => {
+        'message': message,
+        'errorType': errorType,
+        'stackTrace': stackTrace,
+        'context': context,
+        'additionalData': additionalData,
+        'timestamp': timestamp.toIso8601String(),
+      };
+
+  factory ErrorRecord.fromMap(Map<String, dynamic> m) => ErrorRecord(
+        message: m['message'] as String? ?? '',
+        errorType: m['errorType'] as String? ?? 'unknown',
+        stackTrace: m['stackTrace'] as String?,
+        context: m['context'] as String?,
+        additionalData: m['additionalData'] != null
+            ? Map<String, dynamic>.from(m['additionalData'] as Map)
+            : null,
+        timestamp: DateTime.tryParse(m['timestamp'] as String? ?? '') ??
+            DateTime.now(),
+      );
+}
+
+/// Error recovery service for graceful error handling and crash reporting.
+///
+/// Errors are persisted to a Hive box (`error_logs`) so they survive
+/// app restarts. They can later be exported as JSON or sent to a remote
+/// backend when one becomes available.
 class ErrorRecoveryService {
+  static const _errorLogBox = 'error_logs';
+  static const int _maxLogEntries = 500;
+
+  /// Open (or return already-open) error log box.
+  static Future<Box> _openLogBox() async {
+    if (!Hive.isBoxOpen(_errorLogBox)) {
+      return await Hive.openBox(_errorLogBox);
+    }
+    return Hive.box(_errorLogBox);
+  }
+
+  /// Initialize the error reporting subsystem (call from main).
+  static Future<void> initialize() async {
+    await _openLogBox();
+
+    // Capture Flutter framework errors globally.
+    FlutterError.onError = (details) {
+      logError(
+        details.exception,
+        stackTrace: details.stack,
+        context: 'FlutterError: ${details.library}',
+      );
+      // Keep the default red-screen in debug mode.
+      FlutterError.presentError(details);
+    };
+
+    debugPrint('✅ Error reporting service initialized');
+  }
+
+  /// Persist an error to the local log.
+  static Future<void> _persistError(ErrorRecord record) async {
+    try {
+      final box = await _openLogBox();
+      await box.add(record.toMap());
+
+      // Trim oldest entries to stay within budget.
+      if (box.length > _maxLogEntries) {
+        final excess = box.length - _maxLogEntries;
+        for (int i = 0; i < excess; i++) {
+          await box.deleteAt(0);
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to persist error log: $e');
+    }
+  }
+
+  /// Get all persisted error logs.
+  static Future<List<ErrorRecord>> getErrorLogs() async {
+    final box = await _openLogBox();
+    return box.values.map((v) {
+      final m = v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};
+      return ErrorRecord.fromMap(m);
+    }).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  /// Export error logs as a JSON string (for sharing / support tickets).
+  static Future<String> exportErrorLogsAsJson() async {
+    final logs = await getErrorLogs();
+    return const JsonEncoder.withIndent('  ')
+        .convert(logs.map((l) => l.toMap()).toList());
+  }
+
+  /// Clear all persisted error logs.
+  static Future<void> clearErrorLogs() async {
+    final box = await _openLogBox();
+    await box.clear();
+  }
+
   /// Handle error with user-friendly dialog and recovery options
   static Future<void> handleError(
     BuildContext context,
@@ -243,7 +359,7 @@ class ErrorRecoveryService {
     }
   }
 
-  /// Log error for debugging (console only, could be extended to file/analytics)
+  /// Log error for debugging AND persist to local crash log.
   static void logError(
     dynamic error, {
     StackTrace? stackTrace,
@@ -260,6 +376,16 @@ class ErrorRecoveryService {
       debugPrint('Additional Data: $additionalData');
     }
     debugPrint('=================');
+
+    // Persist asynchronously — fire-and-forget so it doesn't block the caller.
+    final record = ErrorRecord(
+      message: error.toString(),
+      errorType: _detectErrorType(error).name,
+      stackTrace: stackTrace?.toString(),
+      context: context,
+      additionalData: additionalData,
+    );
+    _persistError(record);
   }
 
   /// Wrap an operation with error handling

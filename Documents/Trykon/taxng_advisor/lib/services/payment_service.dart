@@ -95,28 +95,36 @@ class GovTaxAccount {
 class PaymentService {
   static const _paymentsBox = 'payments';
 
-  /// Government tax agent accounts
+  /// Government tax collection channels.
+  ///
+  /// These are the official FIRS/SIRS payment gateways. Actual account
+  /// numbers are dynamically generated via Remita/NIBSS e-Collections and
+  /// must NOT be hardcoded. Users should generate a payment reference on
+  /// the FIRS or State IRS portal before making any transfer.
   static List<GovTaxAccount> get govTaxAccounts => [
         GovTaxAccount(
-          bankName: 'First Bank of Nigeria',
-          accountName: 'Federal Board of Inland Revenue',
-          accountNumber: '1234567890',
-          bankCode: '011',
-          description: 'Federal tax payments (CIT, VAT, WHT)',
+          bankName: 'Remita e-Collections (FIRS)',
+          accountName: 'Federal Inland Revenue Service',
+          accountNumber: 'Generate via remita.net',
+          bankCode: '000',
+          description:
+              'Federal tax payments (CIT, VAT, WHT) — generate a Remita Retrieval Reference (RRR) at remita.net or FIRS e-tax portal before payment.',
         ),
         GovTaxAccount(
-          bankName: 'GTBank',
-          accountName: 'Federal Board of Inland Revenue',
-          accountNumber: '0987654321',
-          bankCode: '058',
-          description: 'Federal tax payments (CIT, VAT, WHT)',
-        ),
-        GovTaxAccount(
-          bankName: 'Zenith Bank',
+          bankName: 'NIBSS e-BillsPay (State IRS)',
           accountName: 'State Internal Revenue Service',
-          accountNumber: '1111222233',
-          bankCode: '057',
-          description: 'State PIT and Stamp Duty payments',
+          accountNumber: 'Generate via your State IRS portal',
+          bankCode: '000',
+          description:
+              'State PIT and Stamp Duty payments — visit your State IRS online portal to generate a payment reference.',
+        ),
+        GovTaxAccount(
+          bankName: 'FIRS e-Tax Portal',
+          accountName: 'Federal Inland Revenue Service',
+          accountNumber: 'Visit: etax.firs.gov.ng',
+          bankCode: '000',
+          description:
+              'Self-service portal for generating Tax Reference Numbers (TRN) and making direct payments.',
         ),
       ];
 
@@ -364,8 +372,8 @@ HOW TO ACCESS YOUR PDF RECEIPT:
 -------------------------------------------
 
 Need Help?
-Contact Support: jeekltd@gmail.com
-App Version: 1.0.23+24
+Contact Support: support@taxpadi.com
+App Version: 3.1.0+39
 
 Thank you for using TaxPadi!
 

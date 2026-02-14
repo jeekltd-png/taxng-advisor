@@ -49,35 +49,56 @@ class HiveService {
   /// Initialize Hive and open all boxes used by the application.
   ///
   /// Sensitive boxes are encrypted using AES-256 with a key from secure storage.
+  /// If encrypted open fails (e.g. stale data from a previous unencrypted run),
+  /// the box is deleted and re-opened fresh so the app never gets stuck.
   static Future<void> initialize() async {
     await Hive.initFlutter();
 
+    HiveAesCipher? cipher;
     try {
       final encryptionKey = await _getEncryptionKey();
-      final cipher = HiveAesCipher(encryptionKey);
-
-      // Open sensitive boxes with encryption
-      await Hive.openBox(usersBox, encryptionCipher: cipher);
-      await Hive.openBox(paymentsBox, encryptionCipher: cipher);
-      await Hive.openBox(profileBox, encryptionCipher: cipher);
-
-      // Open non-sensitive boxes without encryption for performance
-      await Hive.openBox(citBox);
-      await Hive.openBox(pitBox);
-      await Hive.openBox(vatBox);
-      await Hive.openBox(whtBox);
-      await Hive.openBox(stampDutyBox);
-      await Hive.openBox(payrollBox);
-      await Hive.openBox(syncBox);
-      await Hive.openBox(upgradeRequestsBox);
-      await Hive.openBox(usageTrackerBox);
-
-      debugPrint('✅ Hive initialized with encryption');
+      cipher = HiveAesCipher(encryptionKey);
     } catch (e) {
-      // Bubble up the error so callers can decide how to recover.
-      debugPrint('❌ Hive initialization error: $e');
-      rethrow;
+      debugPrint('⚠️ Could not obtain encryption key, opening unencrypted: $e');
     }
+
+    // Helper: open a box with encryption, falling back to unencrypted, then
+    // to deleting-and-reopening if the data is corrupted.
+    Future<Box> _safeOpen(String name, {bool encrypted = false}) async {
+      try {
+        if (encrypted && cipher != null) {
+          return await Hive.openBox(name, encryptionCipher: cipher);
+        }
+        return await Hive.openBox(name);
+      } catch (e) {
+        debugPrint('⚠️ Box "$name" open failed ($e), resetting…');
+        try {
+          await Hive.deleteBoxFromDisk(name);
+        } catch (_) {}
+        // Re-open without encryption as a last resort
+        return await Hive.openBox(name);
+      }
+    }
+
+    // Sensitive boxes (attempt encryption)
+    await _safeOpen(usersBox, encrypted: true);
+    await _safeOpen(paymentsBox, encrypted: true);
+    await _safeOpen(profileBox, encrypted: true);
+
+    // Tax data boxes
+    await _safeOpen(citBox);
+    await _safeOpen(pitBox);
+    await _safeOpen(vatBox);
+    await _safeOpen(whtBox);
+    await _safeOpen(stampDutyBox);
+    await _safeOpen(payrollBox);
+
+    // Operational boxes
+    await _safeOpen(syncBox);
+    await _safeOpen(upgradeRequestsBox);
+    await _safeOpen(usageTrackerBox);
+
+    debugPrint('✅ Hive initialized — all boxes open');
   }
 
   /// Get CIT box

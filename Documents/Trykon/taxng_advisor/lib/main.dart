@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,6 +51,12 @@ import 'package:taxng_advisor/services/auth_service.dart';
 import 'package:taxng_advisor/services/admin_access_control.dart';
 import 'package:taxng_advisor/services/theme_service.dart';
 import 'package:taxng_advisor/features/admin/admin_ratings_dashboard.dart';
+import 'package:taxng_advisor/features/admin/admin_command_center.dart';
+import 'package:taxng_advisor/features/admin/analytics_dashboard_screen.dart';
+import 'package:taxng_advisor/features/admin/admin_user_activity_screen.dart';
+import 'package:taxng_advisor/features/admin/admin_reports_screen.dart';
+import 'package:taxng_advisor/features/admin/user_management_screen.dart';
+import 'package:taxng_advisor/services/error_recovery_service.dart';
 import 'package:taxng_advisor/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -61,49 +66,39 @@ void main() async {
   // Initialize ThemeService before app starts
   final themeService = ThemeService();
 
-  // Global error handler — catches all uncaught Flutter framework errors
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    if (kReleaseMode) {
-      // In production: log to crash reporting service (e.g. Firebase Crashlytics)
-      debugPrint('FlutterError: ${details.exceptionAsString()}');
+  // ── Initialization ────────────────────────────────────────────────
+  try {
+    // Initialize Hive database FIRST (calls Hive.initFlutter)
+    await HiveService.initialize();
+
+    // Initialize persistent error/crash reporting AFTER Hive is ready
+    await ErrorRecoveryService.initialize();
+
+    // Initialize theme from persisted preference
+    await themeService.initialize();
+
+    // Seed default admin only in debug mode — never in production
+    if (kDebugMode) {
+      await AuthService.seedTestUsers();
     }
-  };
+  } catch (e, st) {
+    debugPrint('Initialization error: $e\n$st');
+  }
 
-  // Catch all uncaught async errors
-  runZonedGuarded(() async {
-    try {
-      // Initialize Hive database
-      await HiveService.initialize();
+  // Check if onboarding has been seen
+  bool onboardingSeen = false;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    onboardingSeen = prefs.getBool('onboarding_seen') ?? false;
+  } catch (_) {}
 
-      // Initialize theme from persisted preference
-      await themeService.initialize();
-
-      // Seed default users only in debug mode — never in production
-      if (kDebugMode) {
-        await AuthService.seedTestUsers();
-      }
-    } catch (e) {
-      debugPrint('Initialization error: $e');
-    }
-
-    // Check if onboarding has been seen
-    bool onboardingSeen = false;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      onboardingSeen = prefs.getBool('onboarding_seen') ?? false;
-    } catch (_) {}
-
-    runApp(
-      ChangeNotifierProvider.value(
-        value: themeService,
-        child: TaxNgApp(showOnboarding: !onboardingSeen),
-      ),
-    );
-  }, (error, stackTrace) {
-    debugPrint('Uncaught error: $error');
-    debugPrint('Stack trace: $stackTrace');
-  });
+  // ── Launch app ────────────────────────────────────────────────────
+  runApp(
+    ChangeNotifierProvider.value(
+      value: themeService,
+      child: TaxNgApp(showOnboarding: !onboardingSeen),
+    ),
+  );
 }
 
 class TaxNgApp extends StatelessWidget {
@@ -157,6 +152,16 @@ class TaxNgApp extends StatelessWidget {
                 const AdminGuardedRoute(child: AdminSubscriptionScreen()),
             '/admin/ratings': (_) =>
                 const AdminGuardedRoute(child: AdminRatingsDashboard()),
+            '/admin/command-center': (_) =>
+                const AdminGuardedRoute(child: AdminCommandCenter()),
+            '/admin/analytics': (_) =>
+                const AdminGuardedRoute(child: AnalyticsDashboardScreen()),
+            '/admin/user-activity': (_) =>
+                const AdminGuardedRoute(child: AdminUserActivityScreen()),
+            '/admin/reports': (_) =>
+                const AdminGuardedRoute(child: AdminReportsScreen()),
+            '/admin/users': (_) =>
+                const AdminGuardedRoute(child: UserManagementScreen()),
             '/vat': (_) => const VatCalculatorScreen(),
             '/pit': (_) => const PitCalculatorScreen(),
             '/cit': (_) => const CitCalculatorScreen(),

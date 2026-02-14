@@ -52,7 +52,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       );
 
       final emailUri =
-          Uri.parse('mailto:jeekltd@gmail.com?subject=$subject&body=$body');
+          Uri.parse('mailto:support@taxpadi.com?subject=$subject&body=$body');
 
       if (await canLaunchUrl(emailUri)) {
         await launchUrl(emailUri);
@@ -248,7 +248,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           Icon(Icons.email, size: 16, color: Colors.grey[600]),
                           const SizedBox(width: 8),
                           Text(
-                            'jeekltd@gmail.com',
+                            'support@taxpadi.com',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],

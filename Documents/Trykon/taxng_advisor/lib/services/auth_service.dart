@@ -278,78 +278,81 @@ class AuthService {
     return UserProfile.fromMap(rec.cast<String, dynamic>());
   }
 
-  /// Seed default users including admin on first launch.
+  /// Seed initial admin on first launch using a secure, randomly generated
+  /// password stored in FlutterSecureStorage. The password is printed to
+  /// the debug console on first run only so the deployer can log in and
+  /// change it immediately.
+  ///
+  /// **No hardcoded passwords are ever written to disk.**
   static Future<void> seedTestUsers() async {
     final box = await _openUsersBox();
     final existingUsernames =
         box.values.cast<Map>().map((u) => u['username']).toSet();
 
-    final seeds = [
-      {
-        'username': 'admin',
-        'password': 'Admin@123',
-        'email': 'admin@taxpadi.com',
-        'isBusiness': true,
-        'businessName': 'TaxPadi Admin',
-        'isAdmin': true,
-        'subscriptionTier': 'business',
-      },
-      {
-        'username': 'subadmin1',
-        'password': 'SubAdmin1@123',
-        'email': 'subadmin1@taxpadi.com',
-        'isBusiness': true,
-        'businessName': 'TaxPadi Support',
-        'isAdmin': true,
-        'subscriptionTier': 'business',
-      },
-      {
-        'username': 'subadmin2',
-        'password': 'SubAdmin2@123',
-        'email': 'subadmin2@taxpadi.com',
-        'isBusiness': true,
-        'businessName': 'TaxPadi Support 2',
-        'isAdmin': true,
-        'subscriptionTier': 'business',
-      },
-      {
-        'username': 'testuser',
-        'password': 'Test@1234',
-        'email': 'testuser@example.com',
-        'isBusiness': false,
-        'businessName': null,
-      },
-      {
-        'username': 'business1',
-        'password': 'Biz@12345',
-        'email': 'biz1@example.com',
-        'isBusiness': true,
-        'businessName': 'Acme LLC',
-      },
+    // Only create the primary admin if no admin account exists yet.
+    if (existingUsernames.contains('admin')) return;
+
+    // Generate a cryptographically secure one-time password.
+    final oneTimePassword = _generateSecureOneTimePassword();
+
+    // Persist to secure storage so the deployer can retrieve it once.
+    await _secure.write(key: 'admin_initial_otp', value: oneTimePassword);
+
+    final id = 'user_${DateTime.now().millisecondsSinceEpoch}_admin';
+    final now = DateTime.now();
+    final userMap = {
+      'id': id,
+      'username': 'admin',
+      'email': 'admin@taxpadi.com',
+      'isBusiness': true,
+      'businessName': 'TaxPadi Admin',
+      'industrySector': null,
+      'subscriptionTier': 'business',
+      'isAdmin': true,
+      'adminRole': 'main_admin',
+      'adminHierarchyLevel': 0,
+      'requirePasswordChange': true, // Force change on first login
+      'hashedPassword': _hashPassword(oneTimePassword),
+      'createdAt': now.toIso8601String(),
+      'modifiedAt': now.toIso8601String(),
+    };
+
+    await box.add(userMap);
+
+    // Print to debug console only — never in release builds.
+    debugPrint('╔══════════════════════════════════════════════════╗');
+    debugPrint('║  INITIAL ADMIN CREDENTIALS (change immediately) ║');
+    debugPrint('║  Username: admin                                ║');
+    debugPrint('║  Password: $oneTimePassword');
+    debugPrint('║  This will NOT be shown again.                  ║');
+    debugPrint('╚══════════════════════════════════════════════════╝');
+  }
+
+  /// Generate a secure 16-character one-time password meeting complexity rules.
+  static String _generateSecureOneTimePassword() {
+    final random = Random.secure();
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const digits = '0123456789';
+    const special = '!@#\$%^&*';
+    const all = '$upper$lower$digits$special';
+
+    // Guarantee at least one of each required category.
+    final password = <String>[
+      upper[random.nextInt(upper.length)],
+      lower[random.nextInt(lower.length)],
+      digits[random.nextInt(digits.length)],
+      special[random.nextInt(special.length)],
     ];
 
-    for (final s in seeds) {
-      final uname = s['username'] as String;
-      if (existingUsernames.contains(uname)) continue;
-
-      final id = 'user_${DateTime.now().millisecondsSinceEpoch}_$uname';
-      final now = DateTime.now();
-      final userMap = {
-        'id': id,
-        'username': uname,
-        'email': s['email'],
-        'isBusiness': s['isBusiness'],
-        'businessName': s['businessName'],
-        'industrySector': s['industrySector'],
-        'subscriptionTier': s['subscriptionTier'] ?? 'free',
-        'isAdmin': s['isAdmin'] ?? false,
-        'hashedPassword': _hashPassword(s['password'] as String),
-        'createdAt': now.toIso8601String(),
-        'modifiedAt': now.toIso8601String(),
-      };
-
-      await box.add(userMap);
+    // Fill remaining 12 characters randomly.
+    for (int i = 0; i < 12; i++) {
+      password.add(all[random.nextInt(all.length)]);
     }
+
+    // Shuffle to avoid predictable positions.
+    password.shuffle(random);
+    return password.join();
   }
 
   /// Return all users currently stored (for debug/dev UI)

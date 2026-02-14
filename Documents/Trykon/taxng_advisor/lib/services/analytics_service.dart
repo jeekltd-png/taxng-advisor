@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../models/subscription_request.dart';
 import '../models/support_ticket.dart';
 import '../models/admin_activity_log.dart';
+import '../services/user_activity_tracker.dart';
 
 class AnalyticsService {
   /// Get user growth statistics
@@ -224,22 +225,33 @@ class AnalyticsService {
     };
   }
 
-  /// Get calculator usage statistics (from activity logs)
+  /// Get calculator usage statistics from UserActivityTracker
   static Future<Map<String, dynamic>> getCalculatorUsageStats() async {
-    // Since we don't have dedicated calculator usage tracking,
-    // we'll return placeholder data for future implementation
+    try {
+      final stats = await UserActivityTracker.getActivityStatistics();
+      final calcCounts =
+          (stats['calculator_counts'] as Map<String, int>?) ?? {};
 
-    return {
-      'vat_calculations': 0,
-      'pit_calculations': 0,
-      'cit_calculations': 0,
-      'wht_calculations': 0,
-      'payroll_calculations': 0,
-      'stamp_duty_calculations': 0,
-      'total_calculations': 0,
-      'note':
-          'Calculator usage tracking not yet implemented. Integrate with calculation screens to track usage.',
-    };
+      return {
+        'vat_calculations': calcCounts['vat'] ?? 0,
+        'pit_calculations': calcCounts['pit'] ?? 0,
+        'cit_calculations': calcCounts['cit'] ?? 0,
+        'wht_calculations': calcCounts['wht'] ?? 0,
+        'payroll_calculations': calcCounts['payroll'] ?? 0,
+        'stamp_duty_calculations': calcCounts['stamp_duty'] ?? 0,
+        'total_calculations': stats['total_calculator_uses'] ?? 0,
+      };
+    } catch (e) {
+      return {
+        'vat_calculations': 0,
+        'pit_calculations': 0,
+        'cit_calculations': 0,
+        'wht_calculations': 0,
+        'payroll_calculations': 0,
+        'stamp_duty_calculations': 0,
+        'total_calculations': 0,
+      };
+    }
   }
 
   /// Get overall system health metrics
@@ -261,10 +273,10 @@ class AnalyticsService {
     final avgResponseTime = tickets['avg_response_time_hours'] as double;
 
     String healthStatus = 'Good';
-    if (highPriorityTickets > 5 || avgResponseTime > 48) {
-      healthStatus = 'Needs Attention';
-    } else if (highPriorityTickets > 10 || avgResponseTime > 72) {
+    if (highPriorityTickets > 10 || avgResponseTime > 72) {
       healthStatus = 'Critical';
+    } else if (highPriorityTickets > 5 || avgResponseTime > 48) {
+      healthStatus = 'Needs Attention';
     }
 
     return {

@@ -17,6 +17,7 @@ import 'package:taxng_advisor/widgets/free_plan_banner.dart';
 import 'package:taxng_advisor/widgets/free_usage_gate_mixin.dart';
 import 'package:taxng_advisor/widgets/quick_import_button.dart';
 import 'package:taxng_advisor/widgets/template_action_buttons.dart';
+import 'package:taxng_advisor/widgets/form_guidance.dart';
 import 'package:taxng_advisor/services/hive_service.dart';
 import 'package:taxng_advisor/services/sync_service.dart';
 
@@ -278,6 +279,17 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
             ),
             const SizedBox(height: 24),
 
+            // Step-by-step progress guide
+            FormStepGuide(
+              calculatorType: 'CIT',
+              currentStep: _turnoverController.text.isEmpty
+                  ? 0
+                  : _profitController.text.isEmpty
+                      ? 1
+                      : 2,
+              totalSteps: 3,
+            ),
+
             // Information Card
             Card(
               color: Theme.of(context)
@@ -359,34 +371,42 @@ class _CitCalculatorScreenState extends State<CitCalculatorScreen>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      ValidatedTextField(
-                        controller: _turnoverController,
-                        label: 'Annual Business Turnover (₦)',
+                      FormFieldGuide(
+                        calculatorType: 'CIT',
                         fieldName: 'turnover',
-                        calculatorKey: 'CIT',
-                        getFormData: () => {
-                          'turnover':
-                              double.tryParse(_turnoverController.text) ?? 0,
-                          'profit':
-                              double.tryParse(_profitController.text) ?? 0,
-                        },
-                        keyboardType: TextInputType.number,
-                        hintText: 'e.g., 75000000',
+                        child: ValidatedTextField(
+                          controller: _turnoverController,
+                          label: 'Annual Business Turnover (₦)',
+                          fieldName: 'turnover',
+                          calculatorKey: 'CIT',
+                          getFormData: () => {
+                            'turnover':
+                                double.tryParse(_turnoverController.text) ?? 0,
+                            'profit':
+                                double.tryParse(_profitController.text) ?? 0,
+                          },
+                          keyboardType: TextInputType.number,
+                          hintText: 'e.g., 75000000',
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      ValidatedTextField(
-                        controller: _profitController,
-                        label: 'Chargeable Profit (₦)',
+                      FormFieldGuide(
+                        calculatorType: 'CIT',
                         fieldName: 'profit',
-                        calculatorKey: 'CIT',
-                        getFormData: () => {
-                          'turnover':
-                              double.tryParse(_turnoverController.text) ?? 0,
-                          'profit':
-                              double.tryParse(_profitController.text) ?? 0,
-                        },
-                        keyboardType: TextInputType.number,
-                        hintText: 'e.g., 15000000',
+                        child: ValidatedTextField(
+                          controller: _profitController,
+                          label: 'Chargeable Profit (₦)',
+                          fieldName: 'profit',
+                          calculatorKey: 'CIT',
+                          getFormData: () => {
+                            'turnover':
+                                double.tryParse(_turnoverController.text) ?? 0,
+                            'profit':
+                                double.tryParse(_profitController.text) ?? 0,
+                          },
+                          keyboardType: TextInputType.number,
+                          hintText: 'e.g., 15000000',
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Row(

@@ -91,20 +91,25 @@ class UserProfile {
   /// Check if business is in oil and gas sector (requires USD payments)
   bool get isOilAndGasSector => industrySector == 'oil_and_gas';
 
-  /// Check if user can access pro features
-  bool get isPro => subscriptionTier == 'pro' || subscriptionTier == 'business';
+  /// Check if user can access pro/paid features.
+  /// Matches actual tiers: free, individual, business, enterprise.
+  bool get isPro =>
+      subscriptionTier == 'individual' ||
+      subscriptionTier == 'business' ||
+      subscriptionTier == 'enterprise';
 
-  /// Check if user can access business features
-  bool get isBusiness_Tier => subscriptionTier == 'business';
+  /// Check if user can access business-tier features
+  bool get isBusinessTier =>
+      subscriptionTier == 'business' || subscriptionTier == 'enterprise';
 
   /// Get reminder limit based on subscription tier
   int get reminderLimit {
     switch (subscriptionTier) {
       case 'free':
         return 3;
-      case 'basic':
+      case 'individual':
         return 10;
-      default: // pro, business
+      default: // business, enterprise
         return -1; // unlimited
     }
   }
