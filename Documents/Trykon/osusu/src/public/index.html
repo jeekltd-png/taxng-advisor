@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Osusu UK - Savings Circle</title>
+  <style>
+    :root {
+      --bg: #070a0f;
+      --surface: #0e1726;
+      --accent1: #38bdf8;
+      --accent2: #22c55e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif; background: radial-gradient(circle at top left, #1e293b, #070a0f); color: var(--text); }
+    a { color: var(--accent1); text-decoration: none; }
+    h1, h2, h3 { margin: 0; }
+    p { margin: 0; }
+
+    header { background: linear-gradient(135deg, #0f172a, #0b1220); border-bottom: 1px solid var(--border); position: sticky; top:0; z-index: 1000; }
+    .nav-container { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; max-width: 1080px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; font-size: 1.1rem; }
+    .brand span { color: var(--accent2); }
+
+    .nav-link { margin-left: 1.2rem; font-size: 0.94rem; color: var(--muted); }
+    .nav-link:hover { color: var(--text); }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 1.5rem; }
+
+    .hero { display: grid; grid-template-columns: 1fr; gap: 1.2rem; margin-bottom: 1.4rem; }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.1; }
+    .hero p { color: var(--muted); margin-top: 0.8rem; }
+
+    .cta-group { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .cta { display: inline-flex; align-items: center; justify-content: center; padding: 0.85rem 1.2rem; border-radius: 999px; border: 1px solid transparent; cursor: pointer; transition: all .2s ease; font-weight: 700; }
+    .cta-start { background: var(--accent1); color: #020617; }
+    .cta-learn { border-color: var(--accent1); color: var(--accent1); }
+    .cta-start:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .cta-learn:hover { background: rgba(56, 189, 248, 0.1); }
+
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+    .section h2 { margin-bottom: 0.75rem; }
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 1.1rem; }
+    .card h3 { color: #cbd5e1; }
+    .card p { color: #94a3b8; font-size: 0.94rem; line-height: 1.35; }
+
+    .panel { background: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 1.1rem; margin-bottom: 1rem; }
+    .panel h3 { margin-bottom: 0.8rem; }
+    .flex-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem; }
+    input, select { flex: 1; min-width: 120px; padding: 0.75rem 0.9rem; border: 1px solid #334155; border-radius: 10px; background: #020617; color: #f8fafc; }
+    button { background: var(--accent2); color: #020617; border: none; border-radius: 10px; padding: 0.75rem 1rem; font-weight: 700; cursor: pointer; }
+    button:hover { filter: brightness(1.05); }
+
+    .out { margin-top: 0.8rem; background: #020617; border: 1px solid #334155; border-radius: 10px; color: #dbeafe; padding: 0.95rem; white-space: pre-wrap; min-height: 110px; overflow-y: auto; font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+    footer { background: #0a101b; border-top: 1px solid #1e293b; color: #94a3b8; padding: 1.3rem 1.5rem; }
+    .footer grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .footer h4 { margin-bottom: 0.5rem; color: #cbd5e1; }
+    .footer a { display: block; color: #94a3b8; text-decoration: none; margin-bottom: 0.3rem; font-size: 0.95rem; }
+    .footer a:hover { color: var(--accent1); }
+
+    .badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: #475569; background: #c7d2fe; border-radius: 999px; padding: 0.25rem 0.6rem; margin-top: 0.75rem; font-weight: 700; }
+
+    @media (max-width: 800px) {
+      .nav-container { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+      .hero { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a class="brand" href="#">osusu <span>UK</span></a>
+      <nav>
+        <a class="nav-link" href="#how-it-works">How it works</a>
+        <a class="nav-link" href="#features">Features</a>
+        <a class="nav-link" href="#governance">Rules</a>
+        <a class="nav-link" href="#support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h1>Modern Osusu for Gen Z savers in the UK</h1>
+        <p>Build savings discipline in a trusted circle, share payout cycles, and keep your goals on track—no banks, no interest, just community.</p>
+        <div class="cta-group">
+          <button class="cta cta-start" onclick="document.getElementById('signin-email').focus()">Get started</button>
+          <button class="cta cta-learn" onclick="location.hash='#how-it-works'">View guide</button>
+        </div>
+      </div>
+      <div class="badge" id="geoBadge">Location: detecting...</div>
+    </section>
+
+    <section id="auth" class="section" style="margin-bottom: 1.5rem;">
+      <h2>Authentication</h2>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="card" style="padding:1rem;">
+          <h3>Sign In</h3>
+          <div class="flex-row" style="margin-top:0.6rem; margin-bottom:0.6rem;"><input id="signin-email" placeholder="Email" type="email" /></div>
+          <div class="flex-row" style="margin-bottom:0.6rem;"><input id="signin-password" placeholder="Password" type="password" /></div>
+          <div class="flex-row"><button id="signinBtn">Sign In</button><button id="switchToSignup" style="background: #38bdf8; color:#020617;">Create Account</button></div>
+        </div>
+
+        <div class="card" style="padding:1rem;">
+          <h3>Forgot Password</h3>
+          <div class="flex-row" style="margin-top:0.6rem; margin-bottom:0.6rem;"><input id="forgot-email" placeholder="Registered email" type="email" /></div>
+          <div class="flex-row"><button id="forgotBtn">Send reset link</button></div>
+          <p style="color:#94a3b8; margin-top:0.75rem; font-size:0.9rem;">(Demo: simulates reset with message)</p>
+        </div>
+
+        <div class="card" style="padding:1rem;">
+          <h3>Login with OAuth2</h3>
+          <div class="flex-row" style="flex-direction:column; gap:8px; margin-top:0.6rem;">
+            <button class="oauth-btn" data-provider="google">Continue with Google</button>
+            <button class="oauth-btn" data-provider="twitter">Continue with Twitter</button>
+            <button class="oauth-btn" data-provider="facebook">Continue with Facebook</button>
+          </div>
+          <p style="color:#94a3b8; margin-top:0.75rem; font-size:0.9rem;">OAuth flow routes to Supabase provider endpoints in production.</p>
+        </div>
+      </div>
+      <div class="flex-row" style="margin-top: 0.4rem; margin-bottom: 0.4rem;"><button id="logoutBtn" style="background: #ef4444; color:white; border-radius:8px;">Logout</button></div>
+      <div class="out" id="authOutput">You are not signed in.</div>
+    </section>
+
+    <section id="how-it-works" class="section">
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card"><h3>1. Join or create a group</h3><p>Choose your contribution amount and cycle (weekly/fortnightly/monthly).</p></div>
+        <div class="card"><h3>2. Add members</h3><p>Invite 5-20 people, set the payout order, and lock the rules.</p></div>
+        <div class="card"><h3>3. Pay into the pot</h3><p>Each member contributes on time; late payments apply penalties.</p></div>
+        <div class="card"><h3>4. Receive the pot</h3><p>One member collects the total minus platform fee (1%). Everyone evens out by cycle end.</p></div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <h2>Features</h2>
+      <div class="grid">
+        <div class="card"><h3>Automated collection</h3><p>Track due dates, status and receipts transparently in the ledger.</p></div>
+        <div class="card"><h3>Penalty engine</h3><p>Late payment penalty applies automatically (default 10% per missed cycle).</p></div>
+        <div class="card"><h3>Progress dashboard</h3><p>Live balance by member, group total, and payout schedule.</p></div>
+        <div class="card"><h3>Secure UK Data</h3><p>Your data is saved in secure Postgres, fully auditable and easy to export.</p></div>
+      </div>
+    </section>
+
+    <section id="governance" class="section">
+      <h2>Group governance rules</h2>
+      <ul style="color: var(--muted); margin-left: 1rem;">
+        <li>1. Each member pays agreed contribution before due date.</li>
+        <li>2. One treasurer handles collection and payout.</li>
+        <li>3. Payout order is fixed at setup; changes need unanimous consent.</li>
+        <li>4. Late payment = 10% penalty automatically added to next cycle.</li>
+        <li>5. No early withdrawal unless full group agrees and covers shortfall.</li>
+        <li>6. Disputes handled by majority vote; member removal is group decision.</li>
+        <li>7. One cycle = N member payments; option to restart after completion.</li>
+        <li>8. All transactions logged with full transparency.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="app-controls">
+      <h2>Run a demo</h2>
+      <div class="panel">
+        <h3>Create group</h3>
+        <div class="flex-row"><input id="groupName" placeholder="Circle name e.g., Brixton Stars" /><button id="createGroup">Create</button></div>
+      </div>
+      <div class="panel">
+        <h3>Add member</h3>
+        <div class="flex-row"><input id="groupNameMember" placeholder="Circle name" /><input id="memberName" placeholder="Member name" /><button id="addMember">Add</button></div>
+      </div>
+      <div class="panel">
+        <h3>Deposit money</h3>
+        <div class="flex-row"><input id="groupNameDeposit" placeholder="Circle name" /><input id="depositMember" placeholder="Member name" /><input id="depositAmount" placeholder="Amount £" type="number" /><button id="depositBtn">Deposit</button></div>
+      </div>
+      <div class="panel">
+        <h3>Group info</h3>
+        <div class="flex-row"><input id="groupNameInfo" placeholder="Circle name" /><button id="groupInfo">Load</button></div>
+      </div>
+      <div class="out" id="output">Ready for UK saving vibe.</div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer">
+      <div>
+        <h4>Osusu UK</h4>
+        <p>Community savings, grassroots finance, modern UX.</p>
+        <a href="#terms">Terms of Service</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
+      <div>
+        <h4>Quick links</h4>
+        <a href="#how-it-works">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#governance">Rules</a>
+        <a href="#support">Support</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="mailto:support@osusu.uk">support@osusu.uk</a>
+        <a href="https://github.com/jeekltd-png/TheOsusuProject" target="_blank" rel="noopener">GitHub repo</a>
+        <a href="#contact">Live chat (beta)</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const out = (text) => document.getElementById('output').textContent = text;
+    const setLocation = (text) => document.getElementById('locationStatus').textContent = text;
+
+    let authToken = null;
+
+    const request = async (url, method='GET', body=null) => {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (authToken) opts.headers['Authorization'] = `Bearer ${authToken}`;
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+      return data;
+    };
+
+    const detectLocation = async () => {
+      setLocation('Detecting location...');
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setLocation(`Geo: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (fetching region...)`);
+          try {
+            const ipRes = await fetch(`https://ipapi.co/json`);
+            const ipData = await ipRes.json();
+            const country = ipData.country_name || 'Unknown';
+            const region = ipData.region || 'Unknown';
+            const isUk = ipData.country_code === 'GB';
+            setLocation(`Location: ${country} / ${region} ${isUk ? '(UK mode)' : '(Intl mode)'}`);
+          } catch (error) {
+            setLocation(`Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (geo coords only)`);
+          }
+        }, async (err) => {
+          try {
+            const ipRes = await fetch(`https://ipapi.co/json`);
+            const ipData = await ipRes.json();
+            const country = ipData.country_name || 'unknown';
+            const region = ipData.region || 'unknown';
+            const isUk = ipData.country_code === 'GB';
+            setLocation(`IP location: ${country} / ${region} ${isUk ? '(UK mode)' : '(Intl mode)'}`);
+          } catch (ipErr) {
+            setLocation('Location unavailable (permission denied, fallback failed)');
+          }
+        });
+      } else {
+        try {
+          const ipRes = await fetch(`https://ipapi.co/json`);
+          const ipData = await ipRes.json();
+          const country = ipData.country_name || 'unknown';
+          const region = ipData.region || 'unknown';
+          const isUk = ipData.country_code === 'GB';
+          setLocation(`IP location: ${country} / ${region} ${isUk ? '(UK mode)' : '(Intl mode)'}`);
+        } catch (error) {
+          setLocation('Location not available');
+        }
+      }
+    };
+
+    document.getElementById('refreshLocation').onclick = detectLocation;
+    window.addEventListener('load', detectLocation);
+
+    document.getElementById('createGroup').onclick = async () => {
+      const name = document.getElementById('groupName').value.trim();
+      if (!name) return out('Need a circle name!');
+      try { out(`Creating ${name}...`); const r = await request('/group', 'POST', { name }); out(`Created: ${JSON.stringify(r)}`); } catch (e) { out('Error: ' + e.message); }
+    };
+
+    document.getElementById('addMember').onclick = async () => {
+      const group = document.getElementById('groupNameMember').value.trim();
+      const member = document.getElementById('memberName').value.trim();
+      if (!group || !member) return out('Circle + member required');
+      try { const r = await request(`/group/${encodeURIComponent(group)}/member`, 'POST', { memberName: member }); out(`Added: ${JSON.stringify(r)}`); } catch (e) { out('Error: ' + e.message); }
+    };
+
+    document.getElementById('depositBtn').onclick = async () => {
+      const group = document.getElementById('groupNameDeposit').value.trim();
+      const member = document.getElementById('depositMember').value.trim();
+      const amount = Number(document.getElementById('depositAmount').value);
+      if (!group || !member || !amount) return out('Group + member + amount required');
+      try { const r = await request(`/group/${encodeURIComponent(group)}/member/${encodeURIComponent(member)}/deposit`, 'POST', { amount }); out(`Deposit done: ${JSON.stringify(r)}`); } catch (e) { out('Error: ' + e.message); }
+    };
+
+    const session = { user: null };
+
+    const updateAuthState = () => {
+      const authOutput = document.getElementById('authOutput');
+      const appControls = document.getElementById('app-controls');
+      if (session.user) {
+        authOutput.textContent = `Signed in as ${session.user.email} (id: ${session.user.id})`;
+        appControls.style.display = 'block';
+      } else {
+        authOutput.textContent = 'You are not signed in.';
+        appControls.style.display = 'none';
+      }
+    };
+
+    const saveSession = (user, token) => {
+      session.user = user;
+      authToken = token || null;
+      localStorage.setItem('osusu_user', JSON.stringify(user));
+      localStorage.setItem('osusu_token', token || '');
+      updateAuthState();
+    };
+
+    const clearSession = () => {
+      session.user = null;
+      authToken = null;
+      localStorage.removeItem('osusu_user');
+      localStorage.removeItem('osusu_token');
+      updateAuthState();
+    };
+
+    const startOauth = async (provider) => {
+      out(`OAuth sign in with ${provider}...`);
+      try {
+        const resp = await request(`/auth/oauth/${provider}`);
+        saveSession({ id: resp.user.id, email: resp.user.email });
+        out(`OAuth success with ${provider} as ${resp.user.email}`);
+      } catch (err) {
+        out('OAuth failed: ' + err.message);
+      }
+    };
+
+    document.getElementById('signinBtn').onclick = async () => {
+      const email = document.getElementById('signin-email').value.trim();
+      const pwd = document.getElementById('signin-password').value.trim();
+      if (!email || !pwd) return out('Please provide email and password.');
+      try {
+        const resp = await request('/auth/signin', 'POST', { email, password: pwd });
+        saveSession(resp.user, resp.token);
+        out(`Signed in as ${resp.user.email}`);
+      } catch (err) {
+        out('Sign-in failed: ' + err.message);
+      }
+    };
+
+    document.getElementById('switchToSignup').onclick = async () => {
+      const email = document.getElementById('signin-email').value.trim();
+      const pwd = document.getElementById('signin-password').value.trim();
+      if (!email || !pwd) return out('Please provide email and password to create account.');
+      try {
+        const resp = await request('/auth/signup', 'POST', { email, password: pwd });
+        saveSession(resp.user, resp.token);
+        out(`Account created & signed in as ${resp.user.email}`);
+      } catch (err) {
+        out('Signup failed: ' + err.message);
+      }
+    };
+
+    document.getElementById('forgotBtn').onclick = async () => {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) return out('Enter your email first.');
+      try {
+        const resp = await request('/auth/forgot', 'POST', { email });
+        out(resp.message);
+      } catch (err) {
+        out('Forgot password failed: ' + err.message);
+      }
+    };
+
+    document.querySelectorAll('.oauth-btn').forEach(btn => {
+      btn.onclick = () => startOauth(btn.getAttribute('data-provider'));
+    });
+
+    document.getElementById('logoutBtn').onclick = async () => {
+      try {
+        await request('/auth/logout', 'POST');
+      } catch (err) {
+        // ignore
+      }
+      clearSession();
+      out('You are logged out.');
+    };
+
+    const initSession = () => {
+      const saved = localStorage.getItem('osusu_user');
+      const savedToken = localStorage.getItem('osusu_token');
+      if (saved) {
+        try { session.user = JSON.parse(saved); } catch (e) { session.user = null; }
+      }
+      authToken = savedToken || null;
+      updateAuthState();
+    };
+
+    document.getElementById('groupInfo').onclick = async () => {
+      const group = document.getElementById('groupNameInfo').value.trim();
+      if (!group) return out('Add circle name');
+      try { const r = await request(`/group/${encodeURIComponent(group)}`); out(`Group info:\n${JSON.stringify(r, null, 2)}`); } catch (e) { out('Error: ' + e.message); }
+    };
+
+    initSession();
+  </script>
+</body>
+</html>
