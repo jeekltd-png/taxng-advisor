@@ -38,10 +38,41 @@ npm test
 ## API
 
 - `GET /health`
-- `POST /group` { name }
+- `POST /auth/signup` { email, password }
+- `POST /auth/signin` { email, password }
+- `POST /auth/forgot` { email }
+- `POST /auth/logout`
+- `GET /auth/oauth/:provider` (google/twitter/facebook)
+- `POST /auth/refresh` { refreshToken }
+- `POST /group` { name, currency, locale, country, contributionAmount, cycleType }
 - `POST /group/:groupName/member` { memberName }
 - `POST /group/:groupName/member/:memberName/deposit` { amount }
+- `POST /group/:groupName/collect`
+- `POST /group/:groupName/payout` { recipient }
+- `GET /group/:groupName/status`
 - `GET /group/:groupName`
+
+### Contribution and payout flow
+
+1. Create group with collection params.
+2. Add members.
+3. Staff collects contributions for a cycle with `POST /group/:groupName/collect`.
+   - Computes gross pot, fee, net payout.
+4. Payout recipient with `POST /group/:groupName/payout`.
+   - Updates cycle status and recipient balance.
+5. Check status with `GET /group/:groupName/status`.
+
+### Dashboard roles
+
+- User: view groups, contributions, payouts.
+- Admin/treasurer: run collect/payout, manage members, view financials.
+- Super Admin: global metrics, audit logs, moderation.
+
+## Web UI (responsive)
+
+- Single-page controls in `src/public/index.html`
+- `GET /` serves UI from express static
+- Mobile-friendly design with 1-column on small screens
 
 ## Web UI (responsive)
 
