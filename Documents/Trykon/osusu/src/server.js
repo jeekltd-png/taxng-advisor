@@ -86,12 +86,21 @@ app.post('/auth/logout', (req, res) => {
 });
 
 app.post('/group', authenticateToken, (req, res) => {
-  const { name } = req.body;
+  const { name, currency, locale, country, contributionAmount, cycleType } = req.body;
   if (!name) return res.status(400).json({ error: 'Group name is required' });
   if (groups.has(name)) return res.status(409).json({ error: 'Group already exists' });
 
-  groups.set(name, new OsusuGroup(name));
-  return res.status(201).json({ name, totalBalance: 0 });
+  const group = new OsusuGroup(name, { currency, locale, country, contributionAmount, cycleType });
+  groups.set(name, group);
+  return res.status(201).json({
+    name: group.name,
+    currency: group.currency,
+    locale: group.locale,
+    country: group.country,
+    contributionAmount: group.contributionAmount,
+    cycleType: group.cycleType,
+    totalBalance: group.totalBalance
+  });
 });
 
 app.post('/group/:groupName/member', (req, res) => {
@@ -119,6 +128,22 @@ app.post('/group/:groupName/member/:memberName/deposit', (req, res) => {
 
   member.deposit(amount);
   return res.status(200).json({ member: memberName, balance: member.balance });
+});
+
+app.get('/exchange-rate', (req, res) => {
+  const from = (req.query.from || 'GBP').toUpperCase();
+  const to = (req.query.to || 'USD').toUpperCase();
+  const rates = {
+    USD: 1.0,
+    GBP: 0.78,
+    EUR: 0.93,
+    NGN: 1350.0,
+    GHS: 11.2,
+    JMD: 156.3
+  };
+  if (!rates[from] || !rates[to]) return res.status(400).json({ error: 'Unsupported currency' });
+  const value = rates[to] / rates[from];
+  return res.json({ from, to, rate: Number(value.toFixed(6)) });
 });
 
 app.get('/group/:groupName', (req, res) => {

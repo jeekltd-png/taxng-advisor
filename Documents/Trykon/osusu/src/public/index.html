@@ -76,7 +76,7 @@
 <body>
   <header>
     <div class="nav-container">
-      <a class="brand" href="#">osusu <span>UK</span></a>
+      <a class="brand" href="#">osusu <span>Global</span></a>
       <nav>
         <a class="nav-link" href="#how-it-works">How it works</a>
         <a class="nav-link" href="#features">Features</a>
@@ -89,8 +89,34 @@
   <main class="container">
     <section class="hero">
       <div>
-        <h1>Modern Osusu for Gen Z savers in the UK</h1>
-        <p>Build savings discipline in a trusted circle, share payout cycles, and keep your goals on track—no banks, no interest, just community.</p>
+        <h1 id="heroTitle">Modern Osusu for Gen Z savers</h1>
+        <p id="heroSubtitle">Build savings discipline in a trusted circle, share payout cycles, and keep your goals on track—no banks, no interest, just community.</p>
+        <div class="flex-row" style="margin-bottom: 1rem;">
+          <select id="countrySelect" style="max-width: 10rem;">
+            <option value="UK">United Kingdom</option>
+            <option value="US">United States</option>
+            <option value="NG">Nigeria</option>
+            <option value="GH">Ghana</option>
+            <option value="JM">Jamaica</option>
+            <option value="EU">Euro Zone</option>
+          </select>
+          <select id="currencySelect" style="max-width: 10rem;">
+            <option value="GBP">GBP</option>
+            <option value="USD">USD</option>
+            <option value="NGN">NGN</option>
+            <option value="GHS">GHS</option>
+            <option value="EUR">EUR</option>
+            <option value="JMD">JMD</option>
+          </select>
+          <select id="localeSelect" style="max-width: 10rem;">
+            <option value="en-GB">English (UK)</option>
+            <option value="en-US">English (US)</option>
+            <option value="fr-FR">Français</option>
+            <option value="es-ES">Español</option>
+            <option value="pt-PT">Português</option>
+          </select>
+          <button id="applyLocale" class="cta cta-learn" style="margin:0;">Apply</button>
+        </div>
         <div class="cta-group">
           <button class="cta cta-start" onclick="document.getElementById('signin-email').focus()">Get started</button>
           <button class="cta cta-learn" onclick="location.hash='#how-it-works'">View guide</button>
@@ -168,7 +194,16 @@
       <h2>Run a demo</h2>
       <div class="panel">
         <h3>Create group</h3>
-        <div class="flex-row"><input id="groupName" placeholder="Circle name e.g., Brixton Stars" /><button id="createGroup">Create</button></div>
+        <div class="flex-row"><input id="groupName" placeholder="Circle name e.g., Brixton Stars" /></div>
+        <div class="flex-row">
+          <input id="contributionAmount" placeholder="Contribution (£/unit)" type="number" min="1" />
+          <select id="cycleTypeSelect">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="flex-row"><button id="createGroup">Create</button></div>
       </div>
       <div class="panel">
         <h3>Add member</h3>
@@ -215,6 +250,64 @@
     const setLocation = (text) => document.getElementById('locationStatus').textContent = text;
 
     let authToken = null;
+
+    const translations = {
+      'en-GB': {
+        heroTitle: 'Modern Osusu for Gen Z savers',
+        heroSubtitle: 'Build savings discipline in a trusted circle, share payout cycles, and keep your goals on track—no banks, no interest, just community.',
+        signup: 'Create Account',
+        signin: 'Sign In',
+        forgot: 'Forgot Password',
+        logout: 'Logout',
+        runDemo: 'Run a demo'
+      },
+      'en-US': {
+        heroTitle: 'Modern Savings Circle for Gen Z',
+        heroSubtitle: 'Grow your savings with a trusted group, transparent cycles and fee-friendly plans.',
+        signup: 'Create Account',
+        signin: 'Sign In',
+        forgot: 'Forgot Password',
+        logout: 'Logout',
+        runDemo: 'Try Demo'
+      },
+      'fr-FR': {
+        heroTitle: 'Osusu moderne pour la génération Z',
+        heroSubtitle: "Épargnez avec votre groupe, partagez les cycles et atteignez vos objectifs ensemble.",
+        signup: 'Créer un compte',
+        signin: 'Se connecter',
+        forgot: 'Mot de passe oublié',
+        logout: 'Déconnexion',
+        runDemo: 'Démonstration'
+      },
+      'es-ES': {
+        heroTitle: 'Osusu moderno para la Generación Z',
+        heroSubtitle: 'Ahorra en grupo, comparte ciclos y alcanza tus objetivos sin bancos.',
+        signup: 'Crear cuenta',
+        signin: 'Iniciar sesión',
+        forgot: 'Olvidé mi contraseña',
+        logout: 'Cerrar sesión',
+        runDemo: 'Probar demo'
+      },
+      'pt-PT': {
+        heroTitle: 'Osusu moderno para a Geração Z',
+        heroSubtitle: 'Poupe em grupo, partilhe ciclos e atinja objetivos sem juros bancários.',
+        signup: 'Criar conta',
+        signin: 'Entrar',
+        forgot: 'Esqueceu a senha',
+        logout: 'Sair',
+        runDemo: 'Ver Demo'
+      }
+    };
+    const applyLocale = (locale) => {
+      const t = translations[locale] || translations['en-GB'];
+      document.getElementById('heroTitle').textContent = t.heroTitle;
+      document.getElementById('heroSubtitle').textContent = t.heroSubtitle;
+      document.getElementById('signinBtn').textContent = t.signin;
+      document.getElementById('switchToSignup').textContent = t.signup;
+      document.getElementById('forgotBtn').textContent = t.forgot;
+      document.getElementById('logoutBtn').textContent = t.logout;
+      document.querySelector('#app-controls h2').textContent = t.runDemo;
+    };
 
     const request = async (url, method='GET', body=null) => {
       const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -273,8 +366,19 @@
 
     document.getElementById('createGroup').onclick = async () => {
       const name = document.getElementById('groupName').value.trim();
+      const currency = document.getElementById('currencySelect').value;
+      const locale = document.getElementById('localeSelect').value;
+      const country = document.getElementById('countrySelect').value;
+      const contributionAmount = Number(document.getElementById('contributionAmount').value || 100);
+      const cycleType = document.getElementById('cycleTypeSelect').value;
       if (!name) return out('Need a circle name!');
-      try { out(`Creating ${name}...`); const r = await request('/group', 'POST', { name }); out(`Created: ${JSON.stringify(r)}`); } catch (e) { out('Error: ' + e.message); }
+      try {
+        out(`Creating ${name}...`);
+        const r = await request('/group', 'POST', { name, currency, locale, country, contributionAmount, cycleType });
+        out(`Created: ${JSON.stringify(r)}`);
+      } catch (e) {
+        out('Error: ' + e.message);
+      }
     };
 
     document.getElementById('addMember').onclick = async () => {
@@ -400,6 +504,12 @@
       try { const r = await request(`/group/${encodeURIComponent(group)}`); out(`Group info:\n${JSON.stringify(r, null, 2)}`); } catch (e) { out('Error: ' + e.message); }
     };
 
+    document.getElementById('applyLocale').onclick = () => {
+      const locale = document.getElementById('localeSelect').value;
+      applyLocale(locale);
+    };
+
+    applyLocale(document.getElementById('localeSelect').value);
     initSession();
   </script>
 </body>

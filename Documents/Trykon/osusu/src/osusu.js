@@ -18,10 +18,15 @@ class Member {
 }
 
 class OsusuGroup {
-  constructor(name) {
+  constructor(name, options = {}) {
     if (!name) throw new Error('Group name is required');
     this.name = name;
     this.members = [];
+    this.currency = options.currency || 'GBP';
+    this.locale = options.locale || 'en-GB';
+    this.country = options.country || 'UK';
+    this.contributionAmount = Number(options.contributionAmount || 100);
+    this.cycleType = options.cycleType || 'weekly';
   }
 
   addMember(member) {
