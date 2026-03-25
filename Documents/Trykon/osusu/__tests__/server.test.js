@@ -42,4 +42,39 @@ describe('osusu server API', () => {
     expect(res.body.totalBalance).toBe(120);
     expect(res.body.members[0].balance).toBe(120);
   });
+
+  test('reports end-to-end: user/admin/superadmin', async () => {
+    const adminSignup = await request(app).post('/auth/signup').send({ email: 'admin@example.com', password: 'Password123!', role: 'admin' }).expect(201);
+    const adminToken = adminSignup.body.token;
+
+    const superSignup = await request(app).post('/auth/signup').send({ email: 'super@example.com', password: 'Password123!', role: 'superadmin' }).expect(201);
+    const superToken = superSignup.body.token;
+
+    const userSignup = await request(app).post('/auth/signup').send({ email: 'user@example.com', password: 'Password123!', role: 'user' }).expect(201);
+    const userToken = userSignup.body.token;
+
+    await request(app).post('/group').set('Authorization', `Bearer ${userToken}`).send({ name: 'reports-group' }).expect(201);
+    await request(app).post('/group/reports-group/member').set('Authorization', `Bearer ${userToken}`).send({ memberName: 'bob' }).expect(201);
+    await request(app).post('/group/reports-group/member/bob/deposit').set('Authorization', `Bearer ${userToken}`).send({ amount: 100 }).expect(200);
+
+    const userReport = await request(app).get('/reports/user').set('Authorization', `Bearer ${userToken}`).expect(200);
+    expect(userReport.body.data).toBeDefined();
+
+    const adminReport = await request(app).get('/reports/admin').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    expect(adminReport.body.stats.activeGroups).toBeGreaterThanOrEqual(1);
+
+    const superReport = await request(app).get('/reports/superadmin').set('Authorization', `Bearer ${superToken}`).expect(200);
+    expect(superReport.body.roleBreakdown).toEqual(expect.arrayContaining([expect.objectContaining({ role: 'superadmin' })]));
+  });
+
+  test('migrate /migrate-from-json endpoint', async () => {
+    const signup = await request(app).post('/auth/signup').send({ email: 'migrate@example.com', password: 'Password123!' }).expect(201);
+    const token = signup.body.token;
+
+    const groupName = 'migrate-group';
+    await request(app).post('/group').set('Authorization', `Bearer ${token}`).send({ name: groupName }).expect(201);
+
+    const res = await request(app).post('/migrate-from-json').expect(200);
+    expect(res.body.message).toBe('Migration complete');
+  });
 });
