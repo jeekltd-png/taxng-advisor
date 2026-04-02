@@ -1,0 +1,188 @@
+# Load Testing Configuration for Osusu
+# Run with: artillery run load-test.yml
+
+config:
+  target: '{{ $processEnvironment.TARGET_URL || "http://localhost:5000" }}'
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 20
+      name: "Ramp up"
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    - duration: 60
+      arrivalRate: 100
+      name: "Stress test"
+    - duration: 60
+      arrivalRate: 200
+      name: "Break point"
+  ramp:
+    mode: linear
+  processor: "./scripts/load-test-processor.js"
+  variables:
+    email: "loadtest-{{ $randomNumber(1, 10000) }}@osusu.app"
+    password: "TestPassword123!"
+    groupName: "Load-Test-Group-{{ $randomNumber(1, 1000) }}"
+  plugins:
+    statsd:
+      host: localhost
+      port: 8125
+      prefix: "osusu_loadtest"
+
+scenarios:
+  - name: "Health Check"
+    flow:
+      - get:
+          url: "/health"
+  
+  - name: "User Registration & Login"
+    weight: 30
+    flow:
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 201
+      - think: 2
+      - post:
+          url: "/auth/signin"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Group Management"
+    weight: 20
+    flow:
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 201
+      - think: 1
+      - post:
+          url: "/group"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "{{ groupName }}"
+            currency: "GBP"
+            cycleType: "weekly"
+            contributionAmount: 100
+          expect:
+            - statusCode: 201
+      - think: 1
+      - get:
+          url: "/group/{{ groupName }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Member & Contributions"
+    weight: 25
+    flow:
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 201
+      - think: 1
+      - post:
+          url: "/group"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "{{ groupName }}"
+            currency: "GBP"
+            cycleType: "weekly"
+            contributionAmount: 100
+          expect:
+            - statusCode: 201
+      - think: 1
+      - post:
+          url: "/group/{{ groupName }}/member"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Member-{{ $randomNumber(1, 10000) }}"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.id"
+              as: "memberId"
+      - think: 1
+      - post:
+          url: "/group/{{ groupName }}/member/Member-{{ memberId }}/deposit"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            amount: 100
+          expect:
+            - statusCode: 200
+
+  - name: "Reports & Analytics"
+    weight: 15
+    flow:
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: 201
+      - think: 1
+      - get:
+          url: "/reports/user"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      - think: 1
+      - get:
+          url: "/reports/admin"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Error Handling"
+    weight: 10
+    flow:
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "invalid-email"
+            password: "short"
+          expect:
+            - statusCode: 400
+      - think: 1
+      - post:
+          url: "/auth/signin"
+          json:
+            email: "nonexistent@osusu.app"
+            password: "wrongpassword"
+          expect:
+            - statusCode: 401

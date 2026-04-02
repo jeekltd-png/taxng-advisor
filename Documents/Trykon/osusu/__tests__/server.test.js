@@ -12,7 +12,12 @@ describe('osusu server API', () => {
   test('GET /health returns ok', async () => {
     const res = await request(app).get('/health');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toHaveProperty('status');
+    expect(res.body.status).toBe('ok');
+    expect(res.body).toHaveProperty('database');
+    expect(res.body).toHaveProperty('memory');
+    expect(res.body).toHaveProperty('uptime');
+    expect(res.body.database.healthy).toBe(true);
   });
 
   test('POST /group and GET /group/:groupName', async () => {

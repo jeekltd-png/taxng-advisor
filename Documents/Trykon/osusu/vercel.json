@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "buildCommand": "npm ci",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_ENV": "production",
+    "JWT_SECRET": "@JWT_SECRET",
+    "CORS_ORIGINS": "@CORS_ORIGINS",
+    "SENTRY_DSN": "@SENTRY_DSN"
+  },
+  "functions": {
+    "src/server.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/.*",
+      "dest": "src/server.js"
+    }
+  ]
+}
